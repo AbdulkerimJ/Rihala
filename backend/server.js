@@ -1,10 +1,16 @@
-import { createApp } from "./src/app/app.js";
+import { createApp } from "./src/app.js";
+import { connectDatabase } from "./src/config/database.js";
 import { env } from "./src/config/env.js";
-import { initializeStartup } from "./src/app/startup/index.js";
 
 const app = createApp();
 
-await initializeStartup();
+try {
+  await connectDatabase();
+  console.log("Connected to MongoDB");
+} catch (error) {
+  process.exitCode = 1;
+  throw error;
+}
 
 app.listen(env.port, () => {
   console.log(`Rihala backend listening on port ${env.port}`);

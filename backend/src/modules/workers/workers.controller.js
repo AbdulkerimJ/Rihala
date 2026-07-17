@@ -1,5 +1,6 @@
-import { createNotImplementedHandler } from "../../shared/utils/not-implemented.js";
+import { AppError } from "../../shared/utils/appError.js";
+import { catchAsync } from "../../shared/utils/catchAsync.js";
 
-export const getWorkers = createNotImplementedHandler(
-  "Workers are not implemented yet.",
-);
+export const getWorkers = catchAsync(async (req, res, next) => {
+  throw new AppError("Workers are not implemented yet.", 501);
+});

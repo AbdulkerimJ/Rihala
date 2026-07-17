@@ -1,12 +1,12 @@
-import { authRouter } from "../modules/auth/auth.routes.js";
-import { dashboardRouter } from "../modules/dashboard/dashboard.routes.js";
-import { expensesRouter } from "../modules/expenses/expenses.routes.js";
-import { workersRouter } from "../modules/workers/workers.routes.js";
-import { workerPaymentsRouter } from "../modules/worker-payments/worker-payments.routes.js";
+import { authRouter } from "./modules/auth/auth.routes.js";
+import { dashboardRouter } from "./modules/dashboard/dashboard.routes.js";
+import { expensesRouter } from "./modules/expenses/expenses.routes.js";
+import { workersRouter } from "./modules/workers/workers.routes.js";
+import { workerPaymentsRouter } from "./modules/worker-payments/worker-payments.routes.js";
 import {
   API_VERSION,
   HEALTH_CHECK_PATH,
-} from "../shared/constants/api.constants.js";
+} from "./shared/constants/api.constants.js";
 
 export function registerRoutes(app) {
   const apiBasePath = `/api/${API_VERSION}`;

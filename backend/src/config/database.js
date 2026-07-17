@@ -1,11 +1,13 @@
 import mongoose from "mongoose";
 
-import { env } from "../config/env.js";
+import { env } from "./env.js";
 
 export async function connectDatabase() {
   if (!env.mongoUri) {
     throw new Error("MONGODB_URI is not configured.");
   }
 
-  await mongoose.connect(env.mongoUri);
+  await mongoose.connect(env.mongoUri, {
+    serverSelectionTimeoutMS: 5000,
+  });
 }

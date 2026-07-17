@@ -1,8 +1,10 @@
-import { createNotImplementedHandler } from "../../shared/utils/not-implemented.js";
+import { AppError } from "../../shared/utils/appError.js";
+import { catchAsync } from "../../shared/utils/catchAsync.js";
 
-export const login = createNotImplementedHandler(
-  "Authentication login is not implemented yet.",
-);
-export const logout = createNotImplementedHandler(
-  "Authentication logout is not implemented yet.",
-);
+export const login = catchAsync(async (_request, _response, _next) => {
+  throw new AppError("Authentication login is not implemented yet.", 501);
+});
+
+export const logout = catchAsync(async (_request, _response, _next) => {
+  throw new AppError("Authentication logout is not implemented yet.", 501);
+});

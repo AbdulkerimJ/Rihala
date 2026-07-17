@@ -1,5 +1,6 @@
-import { createNotImplementedHandler } from "../../shared/utils/not-implemented.js";
+import { AppError } from "../../shared/utils/appError.js";
+import { catchAsync } from "../../shared/utils/catchAsync.js";
 
-export const getDashboard = createNotImplementedHandler(
-  "Dashboard is not implemented yet.",
-);
+export const getDashboard = catchAsync(async (req, res, next) => {
+  throw new AppError("Dashboard is not implemented yet.", 501);
+});
