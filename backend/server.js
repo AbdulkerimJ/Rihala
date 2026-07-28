@@ -1,9 +1,12 @@
-import { createApp } from "./src/app.js";
-import { connectDatabase } from "./src/config/database.js";
-import { env } from "./src/config/env.js";
+import dotenv from "dotenv";
+import app from "./src/app.js";
+import connectDatabase from "./src/core/database/mongodb.js";
 
-const app = createApp();
+dotenv.config();
 
+const port = process.env.PORT || 5000;
+
+// Database connection
 try {
   await connectDatabase();
   console.log("Connected to MongoDB");
@@ -12,6 +15,7 @@ try {
   throw error;
 }
 
-app.listen(env.port, () => {
-  console.log(`Rihala backend listening on port ${env.port}`);
+// Start the server
+app.listen(port, () => {
+  console.log(`Rihala backend listening on port ${port}`);
 });
