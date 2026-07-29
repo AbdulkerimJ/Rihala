@@ -7,6 +7,7 @@ import {
   forgotPasswordService,
   resetPasswordService,
 } from "./auth.service.js";
+import { parseDurationToMs } from "../../core/utils/jwt.js";
 
 // Helper to determine client type from X-Client-Type header
 const getClientType = (req) => {
@@ -47,7 +48,8 @@ const loginController = catchAsync(async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: "/api/v1/auth",
+      maxAge: parseDurationToMs(process.env.REFRESH_TOKEN_EXPIRES_IN),
     });
 
     return res.status(200).json({
@@ -91,7 +93,9 @@ const logoutController = catchAsync(async (req, res) => {
   await logoutService(refreshToken);
 
   // Always clear cookie for web requests or if cookie exists
-  res.clearCookie("refreshToken");
+  res.clearCookie("refreshToken", {
+    path: "/api/v1/auth",
+  });
 
   res.status(200).json({
     status: "success",

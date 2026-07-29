@@ -1,16 +1,15 @@
 import { verifyAccessToken } from "../utils/jwt.js";
 import UnauthorizedError from "../errors/UnauthorizedError.js";
+import User from "../../modules/users/user.model.js";
 
 const authenticate = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
-
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       throw new UnauthorizedError("Authentication token is missing.");
     }
 
     const token = authHeader.split(" ")[1];
-
     if (!token) {
       throw new UnauthorizedError("Authentication token is missing.");
     }

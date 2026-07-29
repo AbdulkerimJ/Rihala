@@ -7,6 +7,8 @@ import { errorHandler } from "./core/middleware/errorHandler.js";
 import { notFoundHandler } from "./core/middleware/notFoundHandler.js";
 import userRoutes from "./modules/users/user.routes.js";
 import authRoutes from "./modules/auth/auth.routes.js";
+import roleRoutes from "./modules/roles/role.routes.js";
+import permissionRoutes from "./modules/permissions/permission.routes.js";
 
 const app = express();
 
@@ -24,6 +26,8 @@ app.get("/", (req, res) => {
 
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/roles", roleRoutes);
+app.use("/api/v1/permissions", permissionRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

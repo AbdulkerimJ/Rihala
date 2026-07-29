@@ -11,13 +11,22 @@ import {
   softDeleteUserController,
   updateUserController,
 } from "./user.controller.js";
+import {
+  assignRolesToUserController,
+  removeRoleFromUserController,
+} from "./user.roles.controller.js";
 import validate from "../../core/middleware/validate.js";
 import authenticate from "../../core/middleware/authenticate.js";
+import authorize from "../../core/middleware/authorize.js";
 import {
   createUserSchema,
   updateUserSchema,
   userIdSchema,
 } from "./user.validation.js";
+import {
+  assignRolesToUserSchema,
+  userRoleParamsSchema,
+} from "../roles/role.validation.js";
 
 const router = express.Router();
 
@@ -78,6 +87,23 @@ router.delete(
   "/:id",
   validate(userIdSchema, "Please check the user id.", "params"),
   softDeleteUserController,
+);
+
+// Assign roles to a user.
+router.post(
+  "/:id/roles",
+  authorize("users.assign-role"),
+  validate(userIdSchema, "Please check the user id.", "params"),
+  validate(assignRolesToUserSchema, "Please check the role ids."),
+  assignRolesToUserController,
+);
+
+// Remove a role from a user.
+router.delete(
+  "/:id/roles/:roleId",
+  authorize("users.assign-role"),
+  validate(userRoleParamsSchema, "Please check the ids.", "params"),
+  removeRoleFromUserController,
 );
 
 export default router;

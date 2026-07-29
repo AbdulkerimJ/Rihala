@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "cross-env NODE_ENV=production node server.js",
-    "dev": "cross-env NODE_ENV=development nodemon server.js"
+    "dev": "cross-env NODE_ENV=development nodemon server.js",
+    "seed:admin": "node src/seeds/admin.seed.js",
+    "seed": "npm run seed:admin"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

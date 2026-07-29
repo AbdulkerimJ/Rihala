@@ -4,6 +4,7 @@ import VerificationToken from "./verificationToken.model.js";
 import {
   generateAccessToken,
   generateRefreshToken,
+  getRefreshTokenExpiresAt,
 } from "../../core/utils/jwt.js";
 import { generateRandomToken, hashToken } from "../../core/utils/token.js";
 import UnauthorizedError from "../../core/errors/UnauthorizedError.js";
@@ -89,11 +90,11 @@ const loginService = async ({
 
   const refreshToken = generateRefreshToken({
     id: user._id,
-    email: user.email,
   });
 
   const refreshTokenHash = hashToken(refreshToken);
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+  const expiresAt = getRefreshTokenExpiresAt();
 
   await RefreshToken.create({
     user: user._id,
@@ -165,7 +166,6 @@ const logoutService = async (refreshToken) => {
   if (!refreshToken) {
     return;
   }
-
   const refreshTokenHash = hashToken(refreshToken);
 
   const refreshTokenDoc = await RefreshToken.findOne({
