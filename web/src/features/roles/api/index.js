@@ -25,7 +25,7 @@ export const addPermissionsToRole = async ({ id, permissionIds }) => {
   return response.data;
 };
 
-export const removePermissionFromRole = async ({ id, permissionId }) => {
-  const response = await api.delete(`/roles/${id}/permissions/${permissionId}`);
+export const removePermissionsFromRole = async ({ id, permissionIds }) => {
+  const response = await api.delete(`/roles/${id}/permissions`, { data: { permissionIds } });
   return response.data;
 };

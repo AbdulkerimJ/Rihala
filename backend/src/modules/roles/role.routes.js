@@ -10,14 +10,14 @@ import {
   updateRoleController,
   deleteRoleController,
   addPermissionsController,
-  removePermissionController,
+  removePermissionsController,
 } from "./role.controller.js";
 import {
   createRoleSchema,
   updateRoleSchema,
   roleIdSchema,
   addPermissionsSchema,
-  removePermissionParamsSchema,
+  removePermissionsSchema,
 } from "./role.validation.js";
 
 const router = express.Router();
@@ -70,12 +70,13 @@ router.post(
   addPermissionsController,
 );
 
-// Remove a permission from a role.
+// Remove permissions from a role.
 router.delete(
-  "/:id/permissions/:permissionId",
+  "/:id/permissions",
   authorize("roles.assign-permission"),
-  validate(removePermissionParamsSchema, "Please check the ids.", "params"),
-  removePermissionController,
+  validate(roleIdSchema, "Please check the role id.", "params"),
+  validate(removePermissionsSchema, "Please check the permission ids."),
+  removePermissionsController,
 );
 
 export default router;

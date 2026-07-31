@@ -39,9 +39,12 @@ const addPermissionsSchema = z.object({
     .min(1, "At least one permission id is required."),
 });
 
-const removePermissionParamsSchema = z.object({
-  id: z.string().regex(mongoIdRegex, "Invalid role id."),
-  permissionId: z.string().regex(mongoIdRegex, "Invalid permission id."),
+const removePermissionsSchema = z.object({
+  permissionIds: z
+    .array(
+      z.string().regex(mongoIdRegex, "Each permission id must be a valid ObjectId."),
+    )
+    .min(1, "At least one permission id is required."),
 });
 
 const assignRolesToUserSchema = z.object({
@@ -62,7 +65,7 @@ export {
   updateRoleSchema,
   roleIdSchema,
   addPermissionsSchema,
-  removePermissionParamsSchema,
+  removePermissionsSchema,
   assignRolesToUserSchema,
   userRoleParamsSchema,
 };

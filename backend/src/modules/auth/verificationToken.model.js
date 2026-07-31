@@ -10,7 +10,7 @@ const verificationTokenSchema = new mongoose.Schema(
 
     type: {
       type: String,
-      enum: ["email_verification", "password_reset"],
+      enum: ["password_reset", "invitation"],
       required: [true, "Token type is required"],
     },
 

@@ -1,29 +1,23 @@
 import express from "express";
 import validate from "../../core/middleware/validate.js";
 import {
-  verifyEmailSchema,
   loginSchema,
   refreshTokenSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  acceptInvitationSchema,
 } from "./auth.validation.js";
 import {
-  verifyEmailController,
   loginController,
   refreshController,
   logoutController,
   forgotPasswordController,
   resetPasswordController,
+  validateInvitationController,
+  acceptInvitationController,
 } from "./auth.controller.js";
 
 const router = express.Router();
-
-// Verify user email address
-router.post(
-  "/verify-email",
-  validate(verifyEmailSchema, "Please provide a valid verification token."),
-  verifyEmailController,
-);
 
 // User login
 router.post(
@@ -54,6 +48,16 @@ router.post(
   "/reset-password",
   validate(resetPasswordSchema, "Please check password reset information."),
   resetPasswordController,
+);
+
+// Validate an invitation token (GET - called on page load)
+router.get("/invitation/validate/:token", validateInvitationController);
+
+// Accept an invitation and set password (POST)
+router.post(
+  "/invitation/accept",
+  validate(acceptInvitationSchema, "Please check the invitation details."),
+  acceptInvitationController,
 );
 
 export default router;

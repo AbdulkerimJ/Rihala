@@ -14,13 +14,6 @@ const loginSchema = z.object({
     .min(1, "Password is required."),
 });
 
-const verifyEmailSchema = z.object({
-  token: z
-    .string({
-      error: "Verification token is required.",
-    })
-    .min(1, "Verification token is required."),
-});
 
 const refreshTokenSchema = z.object({
   refreshToken: z.string().optional(),
@@ -48,10 +41,29 @@ const resetPasswordSchema = z.object({
     .min(6, "New password must be at least 6 characters."),
 });
 
+const acceptInvitationSchema = z
+  .object({
+    token: z
+      .string({ error: "Token is required." })
+      .min(1, "Token is required."),
+
+    password: z
+      .string({ error: "Password is required." })
+      .min(6, "Password must be at least 6 characters."),
+
+    confirmPassword: z
+      .string({ error: "Please confirm your password." })
+      .min(1, "Please confirm your password."),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmPassword"],
+  });
+
 export {
   loginSchema,
-  verifyEmailSchema,
   refreshTokenSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  acceptInvitationSchema,
 };

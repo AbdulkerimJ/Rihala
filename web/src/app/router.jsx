@@ -6,6 +6,7 @@ import { ProtectedRoute } from '../routes/ProtectedRoute';
 import { RequirePermission } from '../routes/RequirePermission';
 
 import { Login } from '../features/auth/pages/Login';
+import { AcceptInvitation } from '../features/auth/pages/AcceptInvitation';
 import { Dashboard } from '../features/dashboard/pages/Dashboard';
 import { UsersList } from '../features/users/pages/UsersList';
 import { RolesList } from '../features/roles/pages/RolesList';
@@ -23,6 +24,10 @@ export const router = createBrowserRouter([
       {
         path: 'login',
         element: <Login />,
+      },
+      {
+        path: 'accept-invitation/:token',
+        element: <AcceptInvitation />,
       },
     ],
   },

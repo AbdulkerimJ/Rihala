@@ -8,6 +8,10 @@ const permissionSchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
+    description: {
+      type: String,
+      trim: true,
+    },
   },
   {
     timestamps: true,

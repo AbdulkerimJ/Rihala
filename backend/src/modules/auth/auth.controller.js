@@ -1,33 +1,26 @@
 import { catchAsync } from "../../core/utils/catchAsync.js";
 import {
-  verifyEmailService,
   loginService,
   refreshAccessTokenService,
   logoutService,
   forgotPasswordService,
   resetPasswordService,
+  validateInvitationService,
+  acceptInvitationService,
 } from "./auth.service.js";
 import { parseDurationToMs } from "../../core/utils/jwt.js";
 
 // Helper to determine client type from X-Client-Type header
 const getClientType = (req) => {
   const headerValue = req.headers["x-client-type"];
-  if (typeof headerValue === "string" && headerValue.toLowerCase() === "mobile") {
+  if (
+    typeof headerValue === "string" &&
+    headerValue.toLowerCase() === "mobile"
+  ) {
     return "mobile";
   }
   return "web";
 };
-
-// Verify email controller
-const verifyEmailController = catchAsync(async (req, res) => {
-  const user = await verifyEmailService(req.validatedBody.token);
-
-  res.status(200).json({
-    status: "success",
-    data: user,
-    message: "Email verified successfully.",
-  });
-});
 
 // Login controller
 const loginController = catchAsync(async (req, res) => {
@@ -73,7 +66,9 @@ const loginController = catchAsync(async (req, res) => {
 // Refresh access token controller
 const refreshController = catchAsync(async (req, res) => {
   const refreshToken =
-    req.cookies?.refreshToken || req.validatedBody?.refreshToken || req.body?.refreshToken;
+    req.cookies?.refreshToken ||
+    req.validatedBody?.refreshToken ||
+    req.body?.refreshToken;
 
   const result = await refreshAccessTokenService(refreshToken);
 
@@ -88,7 +83,9 @@ const refreshController = catchAsync(async (req, res) => {
 // Logout controller
 const logoutController = catchAsync(async (req, res) => {
   const refreshToken =
-    req.cookies?.refreshToken || req.validatedBody?.refreshToken || req.body?.refreshToken;
+    req.cookies?.refreshToken ||
+    req.validatedBody?.refreshToken ||
+    req.body?.refreshToken;
 
   await logoutService(refreshToken);
 
@@ -124,11 +121,34 @@ const resetPasswordController = catchAsync(async (req, res) => {
   });
 });
 
+// Validate invitation token controller
+const validateInvitationController = catchAsync(async (req, res) => {
+  const { token } = req.params;
+  const result = await validateInvitationService(token);
+
+  res.status(200).json({
+    status: "success",
+    data: result,
+  });
+});
+
+// Accept invitation and set password controller
+const acceptInvitationController = catchAsync(async (req, res) => {
+  const { token, password } = req.validatedBody;
+  const result = await acceptInvitationService(token, password);
+
+  res.status(200).json({
+    status: "success",
+    message: result.message,
+  });
+});
+
 export {
-  verifyEmailController,
   loginController,
   refreshController,
   logoutController,
   forgotPasswordController,
   resetPasswordController,
+  validateInvitationController,
+  acceptInvitationController,
 };

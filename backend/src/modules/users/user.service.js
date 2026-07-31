@@ -1,18 +1,54 @@
 import User from "./user.model.js";
+import VerificationToken from "../auth/verificationToken.model.js";
 import ConflictError from "../../core/errors/ConflictError.js";
 import NotFoundError from "../../core/errors/NotFoundError.js";
+import ValidationError from "../../core/errors/ValidationError.js";
+import { generateRandomToken, hashToken } from "../../core/utils/token.js";
+import { parseDurationToMs } from "../../core/utils/jwt.js";
 
-// Create a new user record.
-const createUserService = async (userData) => {
-  const existingUser = await User.findOne({
-    email: userData.email,
-  });
+// Parse invitation expiry duration from env (supports "24h", "7d" etc.)
+const getInvitationExpiresAt = () => {
+  const raw = process.env.INVITATION_TOKEN_EXPIRES_IN || "24h";
+  const ms = parseDurationToMs(raw);
+  return new Date(Date.now() + ms);
+};
+
+// Create a new invited user (no password required).
+// Generates a secure invitation token and logs the invite link to the console.
+const createUserService = async ({ name, email, roles }) => {
+  const existingUser = await User.findOne({ email });
 
   if (existingUser) {
     throw new ConflictError("Email already exists.");
   }
 
-  const user = await User.create(userData);
+  // Create user in invited state (no password)
+  const user = await User.create({
+    name,
+    email,
+    status: "invited",
+    emailVerified: false,
+    roles: roles || [],
+  });
+
+  // Generate secure invitation token
+  const rawToken = generateRandomToken();
+  const tokenHash = hashToken(rawToken);
+  const expiresAt = getInvitationExpiresAt();
+
+  await VerificationToken.create({
+    user: user._id,
+    type: "invitation",
+    tokenHash,
+    expiresAt,
+  });
+
+  // Log the invitation link (replace with real email service later)
+  const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+  const invitationLink = `${clientUrl}/accept-invitation/${rawToken}`;
+  console.log(
+    `[INVITATION] Invitation sent to ${email}:\n  Link: ${invitationLink}\n  Expires: ${expiresAt.toISOString()}`,
+  );
 
   return user;
 };
@@ -72,6 +108,40 @@ const updateUserService = async (userId, updateData) => {
     if (existingUser) {
       throw new ConflictError("Email already exists.");
     }
+
+    // If the user is invited and admin corrects the email, regenerate invitation token
+    if (user.status === "invited") {
+      // delete any existing invitation tokens for this user
+      await VerificationToken.deleteMany({
+        user: user._id,
+        type: "invitation",
+      });
+
+      // update the email on the user object so the new token/log uses it
+      user.email = updateData.email;
+
+      // create new invitation token
+      const rawToken = generateRandomToken();
+      const tokenHash = hashToken(rawToken);
+      const expiresAt = getInvitationExpiresAt();
+
+      await VerificationToken.create({
+        user: user._id,
+        type: "invitation",
+        tokenHash,
+        expiresAt,
+      });
+
+      const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+      const invitationLink = `${clientUrl}/accept-invitation/${rawToken}`;
+      console.log(
+        `[INVITATION] Invitation re-sent to ${user.email}:
+  Link: ${invitationLink}
+  Expires: ${expiresAt.toISOString()}`,
+      );
+      // remove email from updateData to avoid double-assigning below
+      delete updateData.email;
+    }
   }
 
   Object.assign(user, updateData);
@@ -106,6 +176,11 @@ const getUserByIdService = async (userId) => {
   const user = await User.findOne({
     _id: userId,
     deletedAt: null,
+  }).populate({
+    path: "roles",
+    populate: {
+      path: "permissions",
+    },
   });
 
   if (!user) {

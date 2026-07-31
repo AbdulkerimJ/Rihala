@@ -144,8 +144,8 @@ const addPermissionsToRoleService = async (roleId, permissionIds) => {
   return role.populate("permissions");
 };
 
-// Remove a single permission from a role.
-const removePermissionFromRoleService = async (roleId, permissionId) => {
+// Remove permissions from a role.
+const removePermissionsFromRoleService = async (roleId, permissionIds) => {
   const role = await Role.findById(roleId);
 
   if (!role) {
@@ -156,16 +156,19 @@ const removePermissionFromRoleService = async (roleId, permissionId) => {
     throw new ForbiddenError("System roles cannot be modified.");
   }
 
-  const permissionExists = role.permissions.some(
-    (id) => id.toString() === permissionId,
-  );
+  // Validate that all given permission ids exist
+  const validPermissions = await Permission.find({
+    _id: { $in: permissionIds },
+  }).select("_id");
 
-  if (!permissionExists) {
-    throw new NotFoundError("Permission not found in this role.");
+  if (validPermissions.length !== permissionIds.length) {
+    throw new NotFoundError("One or more permission ids are invalid.");
   }
 
+  const idsToRemove = validPermissions.map(p => p._id.toString());
+
   role.permissions = role.permissions.filter(
-    (id) => id.toString() !== permissionId,
+    (id) => !idsToRemove.includes(id.toString()),
   );
 
   await role.save();
@@ -180,5 +183,5 @@ export {
   updateRoleService,
   deleteRoleService,
   addPermissionsToRoleService,
-  removePermissionFromRoleService,
+  removePermissionsFromRoleService,
 };

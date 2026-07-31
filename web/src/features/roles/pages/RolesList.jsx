@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getRoles, createRole, updateRole, deleteRole } from '../api';
-import { useAuth } from '../../../hooks/useAuth';
-import { Can } from '../../../components/Can';
-import { Edit2, Trash2, Key } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { RoleModal } from '../components/RoleModal';
+import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getRoles, createRole, updateRole, deleteRole } from "../api";
+import { useAuth } from "../../../hooks/useAuth";
+import { Can } from "../../../components/Can";
+import { Edit2, Trash2, Key } from "lucide-react";
+import toast from "react-hot-toast";
+import { RoleModal } from "../components/RoleModal";
+import { LoadingSkeleton } from "../../../components/ui/LoadingSkeleton";
 
 export const RolesList = () => {
   const [page, setPage] = useState(1);
@@ -15,7 +16,7 @@ export const RolesList = () => {
   const limit = 10;
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['roles', { page, limit }],
+    queryKey: ["roles", { page, limit }],
     queryFn: () => getRoles({ page, limit }),
     keepPreviousData: true,
   });
@@ -23,28 +24,31 @@ export const RolesList = () => {
   const createMutation = useMutation({
     mutationFn: createRole,
     onSuccess: () => {
-      queryClient.invalidateQueries(['roles']);
-      toast.success('Role created successfully');
+      queryClient.invalidateQueries(["roles"]);
+      toast.success("Role created successfully");
     },
-    onError: (err) => toast.error(err.response?.data?.message || 'Failed to create role'),
+    onError: (err) =>
+      toast.error(err.response?.data?.message || "Failed to create role"),
   });
 
   const updateMutation = useMutation({
     mutationFn: updateRole,
     onSuccess: () => {
-      queryClient.invalidateQueries(['roles']);
-      toast.success('Role updated successfully');
+      queryClient.invalidateQueries(["roles"]);
+      toast.success("Role updated successfully");
     },
-    onError: (err) => toast.error(err.response?.data?.message || 'Failed to update role'),
+    onError: (err) =>
+      toast.error(err.response?.data?.message || "Failed to update role"),
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteRole,
     onSuccess: () => {
-      queryClient.invalidateQueries(['roles']);
-      toast.success('Role deleted successfully');
+      queryClient.invalidateQueries(["roles"]);
+      toast.success("Role deleted successfully");
     },
-    onError: (err) => toast.error(err.response?.data?.message || 'Failed to delete role'),
+    onError: (err) =>
+      toast.error(err.response?.data?.message || "Failed to delete role"),
   });
 
   const handleOpenModal = (role = null) => {
@@ -61,7 +65,7 @@ export const RolesList = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this role?')) {
+    if (window.confirm("Are you sure you want to delete this role?")) {
       await deleteMutation.mutateAsync(id);
     }
   };
@@ -71,19 +75,23 @@ export const RolesList = () => {
   const totalPages = Math.ceil(total / limit) || 1;
 
   if (isLoading) {
-    return <div className="p-4 text-center text-gray-500">Loading roles...</div>;
+    return <LoadingSkeleton columnCount={4} rowCount={6} />;
   }
 
   if (isError) {
-    return <div className="p-4 text-center text-red-500">Failed to load roles.</div>;
+    return (
+      <div className="p-4 text-center text-red-500">Failed to load roles.</div>
+    );
   }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl font-semibold text-primary">Roles Management</h1>
+        <h1 className="text-2xl font-semibold text-primary">
+          Roles Management
+        </h1>
         <Can permission="roles.create">
-          <button 
+          <button
             onClick={() => handleOpenModal()}
             className="bg-brand hover:bg-brand-hover text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
           >
@@ -97,13 +105,22 @@ export const RolesList = () => {
           <table className="min-w-full divide-y divide-border">
             <thead className="bg-main">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
+                >
                   Role Name
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
+                >
                   Description
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
+                >
                   Permissions Count
                 </th>
                 <th scope="col" className="relative px-6 py-3">
@@ -120,8 +137,11 @@ export const RolesList = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-secondary max-w-xs truncate" title={role.description}>
-                      {role.description || 'No description'}
+                    <div
+                      className="text-sm text-secondary max-w-xs truncate"
+                      title={role.description}
+                    >
+                      {role.description || "No description"}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -132,23 +152,26 @@ export const RolesList = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex justify-end gap-3">
                       <Can permission="roles.assign-permission">
-                        <button className="text-brand hover:text-brand-hover" title="Manage Permissions">
+                        <button
+                          className="text-brand hover:text-brand-hover"
+                          title="Manage Permissions"
+                        >
                           <Key className="w-4 h-4" />
                         </button>
                       </Can>
                       <Can permission="roles.update">
-                        <button 
+                        <button
                           onClick={() => handleOpenModal(role)}
-                          className="text-accent hover:text-accent-hover" 
+                          className="text-accent hover:text-accent-hover"
                           title="Edit Role"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                       </Can>
                       <Can permission="roles.delete">
-                        <button 
+                        <button
                           onClick={() => handleDelete(role._id)}
-                          className="text-danger hover:text-danger-hover" 
+                          className="text-danger hover:text-danger-hover"
                           title="Delete Role"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -160,7 +183,10 @@ export const RolesList = () => {
               ))}
               {roles.length === 0 && (
                 <tr>
-                  <td colSpan="4" className="px-6 py-10 text-center text-sm text-secondary">
+                  <td
+                    colSpan="4"
+                    className="px-6 py-10 text-center text-sm text-secondary"
+                  >
                     No roles found.
                   </td>
                 </tr>
@@ -169,7 +195,7 @@ export const RolesList = () => {
           </table>
         </div>
       </div>
-      <RoleModal 
+      <RoleModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleSubmit}

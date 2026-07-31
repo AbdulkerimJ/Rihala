@@ -6,7 +6,7 @@ import {
   updateRoleService,
   deleteRoleService,
   addPermissionsToRoleService,
-  removePermissionFromRoleService,
+  removePermissionsFromRoleService,
 } from "./role.service.js";
 
 // Get all roles.
@@ -72,11 +72,11 @@ const addPermissionsController = catchAsync(async (req, res) => {
   });
 });
 
-// Remove a permission from a role.
-const removePermissionController = catchAsync(async (req, res) => {
-  const role = await removePermissionFromRoleService(
+// Remove permissions from a role.
+const removePermissionsController = catchAsync(async (req, res) => {
+  const role = await removePermissionsFromRoleService(
     req.validatedParams.id,
-    req.validatedParams.permissionId,
+    req.validatedBody.permissionIds,
   );
 
   res.status(200).json({
@@ -92,5 +92,5 @@ export {
   updateRoleController,
   deleteRoleController,
   addPermissionsController,
-  removePermissionController,
+  removePermissionsController,
 };

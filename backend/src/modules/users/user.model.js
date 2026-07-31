@@ -20,7 +20,9 @@ const userSchema = new mongoose.Schema(
 
     password: {
       type: String,
-      required: [true, "Password is required"],
+      required: function() {
+        return this.status !== "invited";
+      },
       minlength: [6, "Password must be at least 6 characters"],
       select: false,
     },
@@ -39,7 +41,7 @@ const userSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["active", "inactive"],
+      enum: ["active", "inactive", "invited"],
       default: "active",
     },
 

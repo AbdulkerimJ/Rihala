@@ -11,44 +11,6 @@ import UnauthorizedError from "../../core/errors/UnauthorizedError.js";
 import ValidationError from "../../core/errors/ValidationError.js";
 import NotFoundError from "../../core/errors/NotFoundError.js";
 
-// Verify user email address using verification token.
-const verifyEmailService = async (token) => {
-  const tokenHash = hashToken(token);
-
-  const verificationToken = await VerificationToken.findOne({
-    tokenHash,
-    type: "email_verification",
-  });
-
-  if (!verificationToken) {
-    throw new ValidationError("Invalid verification token.");
-  }
-
-  if (verificationToken.expiresAt < new Date()) {
-    throw new ValidationError("Verification token has expired.");
-  }
-
-  if (verificationToken.usedAt) {
-    throw new ValidationError("Verification token has already been used.");
-  }
-
-  const user = await User.findById(verificationToken.user);
-
-  if (!user || user.deletedAt) {
-    throw new NotFoundError("User not found.");
-  }
-
-  user.emailVerified = true;
-  await user.save();
-
-  await VerificationToken.deleteOne({ _id: verificationToken._id });
-
-  const userObj = user.toObject();
-  delete userObj.password;
-
-  return userObj;
-};
-
 // Authenticate user and issue access & refresh tokens.
 const loginService = async ({
   email,
@@ -255,11 +217,76 @@ const resetPasswordService = async (token, newPassword) => {
   };
 };
 
+// Validate invitation token (used on page load of the accept-invitation page).
+const validateInvitationService = async (token) => {
+  const tokenHash = hashToken(token);
+
+  const tokenDoc = await VerificationToken.findOne({
+    tokenHash,
+    type: "invitation",
+  });
+
+  if (!tokenDoc) {
+    throw new ValidationError("Invalid invitation link.");
+  }
+
+  if (tokenDoc.expiresAt < new Date()) {
+    throw new ValidationError("This invitation link has expired.");
+  }
+
+  if (tokenDoc.usedAt) {
+    throw new ValidationError("This invitation link has already been used.");
+  }
+
+  return { valid: true };
+};
+
+// Accept an invitation: set password, activate user, mark token used.
+const acceptInvitationService = async (token, password) => {
+  const tokenHash = hashToken(token);
+
+  const tokenDoc = await VerificationToken.findOne({
+    tokenHash,
+    type: "invitation",
+  });
+
+  if (!tokenDoc) {
+    throw new ValidationError("Invalid invitation link.");
+  }
+
+  if (tokenDoc.expiresAt < new Date()) {
+    throw new ValidationError("This invitation link has expired.");
+  }
+
+  if (tokenDoc.usedAt) {
+    throw new ValidationError("This invitation link has already been used.");
+  }
+
+  const user = await User.findById(tokenDoc.user);
+
+  if (!user) {
+    throw new NotFoundError("User not found.");
+  }
+
+  // Set password, activate, and verify email
+  user.password = password;
+  user.status = "active";
+  user.emailVerified = true;
+  await user.save();
+
+  // Consume the token
+  tokenDoc.usedAt = new Date();
+  await tokenDoc.save();
+
+  return { message: "Password set successfully. You can now log in." };
+};
+
 export {
-  verifyEmailService,
   loginService,
   refreshAccessTokenService,
   logoutService,
   forgotPasswordService,
   resetPasswordService,
+  validateInvitationService,
+  acceptInvitationService,
 };

@@ -21,12 +21,13 @@ const getAllUsersController = catchAsync(async (req, res) => {
   });
 });
 
-// Create a new user.
+// Create a new invited user.
 const createUserController = catchAsync(async (req, res) => {
   const user = await createUserService(req.validatedBody);
 
   res.status(201).json({
     status: "success",
+    message: `Invitation sent to ${user.email}. They will receive a link to set their password.`,
     data: user,
   });
 });

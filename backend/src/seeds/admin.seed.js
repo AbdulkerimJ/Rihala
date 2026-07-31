@@ -7,20 +7,28 @@ import Permission from "../modules/permissions/permission.model.js";
 
 // All system-level permissions
 const ALL_PERMISSIONS = [
-  "users.read",
-  "users.create",
-  "users.update",
-  "users.delete",
-  "users.restore",
-  "users.assign-role",
+  { name: "users.read", description: "View all users" },
+  { name: "users.create", description: "Create a new user" },
+  { name: "users.update", description: "Update user details" },
+  { name: "users.delete", description: "Delete a user" },
+  { name: "users.restore", description: "Restore a deleted user" },
+  { name: "users.assign-role", description: "Assign roles to a user" },
 
-  "roles.read",
-  "roles.create",
-  "roles.update",
-  "roles.delete",
-  "roles.assign-permission",
+  { name: "roles.read", description: "View all roles" },
+  { name: "roles.create", description: "Create a new role" },
+  { name: "roles.update", description: "Update role details" },
+  { name: "roles.delete", description: "Delete a role" },
+  {
+    name: "roles.assign-permission",
+    description: "Assign permissions to a role",
+  },
 
-  "permissions.read",
+  { name: "permissions.read", description: "View all permissions" },
+
+  { name: "expenses.read", description: "View expenses" },
+  { name: "expenses.create", description: "Create expenses" },
+  { name: "expenses.update", description: "Update expenses" },
+  { name: "expenses.delete", description: "Delete expenses" },
 ];
 
 const ADMIN_ROLE_NAME = "Admin";
@@ -38,10 +46,10 @@ const seedAdmin = async () => {
     console.log("Seeding permissions...");
 
     const permissionDocs = await Promise.all(
-      ALL_PERMISSIONS.map((name) =>
+      ALL_PERMISSIONS.map((perm) =>
         Permission.findOneAndUpdate(
-          { name },
-          { name },
+          { name: perm.name },
+          { name: perm.name, description: perm.description },
           { upsert: true, new: true },
         ),
       ),

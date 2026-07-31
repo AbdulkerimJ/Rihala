@@ -78,7 +78,7 @@ export const DashboardLayout = () => {
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex h-16 items-center justify-between px-6 border-b border-border">
+        <div className="flex h-16 items-center justify-between px-6">
           <span className="text-xl font-bold text-brand">Rihala</span>
           <Button
             variant="ghost"
@@ -109,8 +109,8 @@ export const DashboardLayout = () => {
           
           <div className="flex flex-1 justify-end items-center gap-4">
             <ThemeToggle />
-            <div className="text-sm text-primary font-medium">
-              {currentUser?.firstName} {currentUser?.lastName}
+            <div className="text-sm text-primary font-medium capitalize">
+              {currentUser?.name}
             </div>
             <Button
               variant="ghostDanger"

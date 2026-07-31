@@ -13,11 +13,9 @@ const createUserSchema = z.object({
     })
     .email("Please enter a valid email address."),
 
-  password: z
-    .string({
-      error: "Password is required.",
-    })
-    .min(6, "Password must be at least 6 characters."),
+  roles: z
+    .array(z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid role id."))
+    .optional(),
 });
 
 const updateUserSchema = z
