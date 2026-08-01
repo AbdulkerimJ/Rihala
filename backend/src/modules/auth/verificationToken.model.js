@@ -20,6 +20,21 @@ const verificationTokenSchema = new mongoose.Schema(
       index: true,
     },
 
+    codeHash: {
+      type: String,
+      default: null,
+    },
+
+    codeExpiresAt: {
+      type: Date,
+      default: null,
+    },
+
+    codeAttempts: {
+      type: Number,
+      default: 0,
+    },
+
     expiresAt: {
       type: Date,
       required: [true, "Expiration date is required"],

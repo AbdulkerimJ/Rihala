@@ -6,10 +6,18 @@ import {
   generateRefreshToken,
   getRefreshTokenExpiresAt,
 } from "../../core/utils/jwt.js";
-import { generateRandomToken, hashToken } from "../../core/utils/token.js";
+import {
+  compareHashedToken,
+  generateRandomToken,
+  hashToken,
+} from "../../core/utils/token.js";
 import UnauthorizedError from "../../core/errors/UnauthorizedError.js";
 import ValidationError from "../../core/errors/ValidationError.js";
 import NotFoundError from "../../core/errors/NotFoundError.js";
+
+const MAX_INVITATION_CODE_ATTEMPTS = Number(
+  process.env.INVITATION_CODE_MAX_ATTEMPTS || 5,
+);
 
 // Authenticate user and issue access & refresh tokens.
 const loginService = async ({
@@ -241,8 +249,8 @@ const validateInvitationService = async (token) => {
   return { valid: true };
 };
 
-// Accept an invitation: set password, activate user, mark token used.
-const acceptInvitationService = async (token, password) => {
+// Accept an invitation: verify the code, set password, activate user, mark token used.
+const acceptInvitationService = async (token, code, password) => {
   const tokenHash = hashToken(token);
 
   const tokenDoc = await VerificationToken.findOne({
@@ -262,6 +270,37 @@ const acceptInvitationService = async (token, password) => {
     throw new ValidationError("This invitation link has already been used.");
   }
 
+  if (tokenDoc.codeExpiresAt && tokenDoc.codeExpiresAt < new Date()) {
+    throw new ValidationError("This invitation code has expired.");
+  }
+
+  if (tokenDoc.codeAttempts >= MAX_INVITATION_CODE_ATTEMPTS) {
+    throw new ValidationError(
+      "Maximum invitation code attempts reached. Please request a new invitation.",
+    );
+  }
+
+  if (!tokenDoc.codeHash) {
+    throw new ValidationError(
+      "This invitation is missing a verification code.",
+    );
+  }
+
+  const isValidCode = compareHashedToken(code, tokenDoc.codeHash);
+
+  if (!isValidCode) {
+    tokenDoc.codeAttempts = (tokenDoc.codeAttempts || 0) + 1;
+    await tokenDoc.save();
+
+    if (tokenDoc.codeAttempts >= MAX_INVITATION_CODE_ATTEMPTS) {
+      throw new ValidationError(
+        "Maximum invitation code attempts reached. Please request a new invitation.",
+      );
+    }
+
+    throw new ValidationError("Invalid invitation verification code.");
+  }
+
   const user = await User.findById(tokenDoc.user);
 
   if (!user) {
@@ -276,6 +315,9 @@ const acceptInvitationService = async (token, password) => {
 
   // Consume the token
   tokenDoc.usedAt = new Date();
+  tokenDoc.codeHash = null;
+  tokenDoc.codeExpiresAt = null;
+  tokenDoc.codeAttempts = 0;
   await tokenDoc.save();
 
   return { message: "Password set successfully. You can now log in." };

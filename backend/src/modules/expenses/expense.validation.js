@@ -42,19 +42,28 @@ const expenseIdSchema = z.object({
   id: z.string().regex(mongoIdRegex, "Invalid expense id."),
 });
 
-const expenseQuerySchema = z.object({
-  category: z
-    .enum(EXPENSE_CATEGORIES, {
-      error: "Please select a valid expense category.",
-    })
-    .optional(),
-  from: z.coerce
-    .date({ error: "The from date must be a valid date." })
-    .optional(),
-  to: z.coerce.date({ error: "The to date must be a valid date." }).optional(),
-  page: z.coerce.number().int().positive().optional(),
-  limit: z.coerce.number().int().positive().optional(),
-});
+const expenseQuerySchema = z
+  .object({
+    category: z
+      .enum(EXPENSE_CATEGORIES, {
+        error: "Please select a valid expense category.",
+      })
+      .optional(),
+    from: z.coerce
+      .date({ error: "The from date must be a valid date." })
+      .optional(),
+    to: z.coerce
+      .date({ error: "The to date must be a valid date." })
+      .optional(),
+    search: z.string().trim().optional(),
+    sort: z.string().trim().optional(),
+    page: z.coerce.number().int().positive().optional(),
+    limit: z.coerce.number().int().positive().optional(),
+  })
+  .strict({
+    error:
+      "Only category, from, to, search, sort, page, and limit are allowed.",
+  });
 
 export {
   createExpenseSchema,

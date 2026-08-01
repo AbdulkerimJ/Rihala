@@ -3,7 +3,11 @@ import VerificationToken from "../auth/verificationToken.model.js";
 import ConflictError from "../../core/errors/ConflictError.js";
 import NotFoundError from "../../core/errors/NotFoundError.js";
 import ValidationError from "../../core/errors/ValidationError.js";
-import { generateRandomToken, hashToken } from "../../core/utils/token.js";
+import {
+  generateInvitationCode,
+  generateRandomToken,
+  hashToken,
+} from "../../core/utils/token.js";
 import { parseDurationToMs } from "../../core/utils/jwt.js";
 
 // Parse invitation expiry duration from env (supports "24h", "7d" etc.)
@@ -31,26 +35,31 @@ const createUserService = async ({ name, email, roles }) => {
     roles: roles || [],
   });
 
-  // Generate secure invitation token
+  // Generate secure invitation token and verification code
   const rawToken = generateRandomToken();
   const tokenHash = hashToken(rawToken);
   const expiresAt = getInvitationExpiresAt();
+  const rawCode = generateInvitationCode();
+  const codeHash = hashToken(rawCode);
 
   await VerificationToken.create({
     user: user._id,
     type: "invitation",
     tokenHash,
     expiresAt,
+    codeHash,
+    codeExpiresAt: expiresAt,
+    codeAttempts: 0,
   });
 
   // Log the invitation link (replace with real email service later)
   const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
   const invitationLink = `${clientUrl}/accept-invitation/${rawToken}`;
   console.log(
-    `[INVITATION] Invitation sent to ${email}:\n  Link: ${invitationLink}\n  Expires: ${expiresAt.toISOString()}`,
+    `[INVITATION] Invitation sent to ${email}:\n  Link: ${invitationLink}\n  Code: ${rawCode}\n  Expires: ${expiresAt.toISOString()}`,
   );
 
-  return user;
+  return { user, invitationCode: rawCode };
 };
 
 // Mark a user as inactive.
@@ -120,16 +129,21 @@ const updateUserService = async (userId, updateData) => {
       // update the email on the user object so the new token/log uses it
       user.email = updateData.email;
 
-      // create new invitation token
+      // create new invitation token and verification code
       const rawToken = generateRandomToken();
       const tokenHash = hashToken(rawToken);
       const expiresAt = getInvitationExpiresAt();
+      const rawCode = generateInvitationCode();
+      const codeHash = hashToken(rawCode);
 
       await VerificationToken.create({
         user: user._id,
         type: "invitation",
         tokenHash,
         expiresAt,
+        codeHash,
+        codeExpiresAt: expiresAt,
+        codeAttempts: 0,
       });
 
       const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
@@ -137,10 +151,13 @@ const updateUserService = async (userId, updateData) => {
       console.log(
         `[INVITATION] Invitation re-sent to ${user.email}:
   Link: ${invitationLink}
+  Code: ${rawCode}
   Expires: ${expiresAt.toISOString()}`,
       );
       // remove email from updateData to avoid double-assigning below
       delete updateData.email;
+
+      return { user, invitationCode: rawCode };
     }
   }
 
@@ -148,7 +165,7 @@ const updateUserService = async (userId, updateData) => {
 
   await user.save();
 
-  return user;
+  return { user, invitationCode: null };
 };
 
 // Soft delete a user record.

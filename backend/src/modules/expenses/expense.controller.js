@@ -8,10 +8,7 @@ import {
 } from "./expense.service.js";
 
 const getAllExpensesController = catchAsync(async (req, res) => {
-  const result = await getExpensesService(
-    req.validatedQuery || {},
-    req.validatedQuery || {},
-  );
+  const result = await getExpensesService(req.validatedQuery || {});
 
   res.status(200).json({
     status: "success",

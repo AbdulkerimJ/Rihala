@@ -23,12 +23,16 @@ const getAllUsersController = catchAsync(async (req, res) => {
 
 // Create a new invited user.
 const createUserController = catchAsync(async (req, res) => {
-  const user = await createUserService(req.validatedBody);
+  const result = await createUserService(req.validatedBody);
+  const user = result.user;
 
   res.status(201).json({
     status: "success",
     message: `Invitation sent to ${user.email}. They will receive a link to set their password.`,
-    data: user,
+    data: {
+      user,
+      invitationCode: result.invitationCode,
+    },
   });
 });
 
@@ -97,14 +101,17 @@ const softDeleteUserController = catchAsync(async (req, res) => {
 
 // Update an existing user.
 const updateUserController = catchAsync(async (req, res) => {
-  const user = await updateUserService(
+  const result = await updateUserService(
     req.validatedParams.id,
     req.validatedBody,
   );
 
   res.status(200).json({
     status: "success",
-    data: user,
+    data: {
+      user: result.user,
+      invitationCode: result.invitationCode,
+    },
   });
 });
 

@@ -14,7 +14,6 @@ const loginSchema = z.object({
     .min(1, "Password is required."),
 });
 
-
 const refreshTokenSchema = z.object({
   refreshToken: z.string().optional(),
 });
@@ -46,6 +45,10 @@ const acceptInvitationSchema = z
     token: z
       .string({ error: "Token is required." })
       .min(1, "Token is required."),
+
+    code: z
+      .string({ error: "Verification code is required." })
+      .regex(/^\d{4}$/, "Verification code must be 4 digits."),
 
     password: z
       .string({ error: "Password is required." })

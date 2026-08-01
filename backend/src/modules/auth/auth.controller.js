@@ -134,8 +134,8 @@ const validateInvitationController = catchAsync(async (req, res) => {
 
 // Accept invitation and set password controller
 const acceptInvitationController = catchAsync(async (req, res) => {
-  const { token, password } = req.validatedBody;
-  const result = await acceptInvitationService(token, password);
+  const { token, code, password } = req.validatedBody;
+  const result = await acceptInvitationService(token, code, password);
 
   res.status(200).json({
     status: "success",
