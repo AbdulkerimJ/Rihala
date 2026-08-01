@@ -15,9 +15,30 @@ import orderRoutes from "./modules/orders/order.routes.js";
 
 const app = express();
 
+const allowedOrigins = [
+  "https://rihala.vercel.app",
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+].filter(Boolean);
+
+const isAllowedOrigin = (origin) => {
+  if (!origin) {
+    return true;
+  }
+
+  return allowedOrigins.includes(origin);
+};
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,
+    origin: (origin, callback) => {
+      if (isAllowedOrigin(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`Origin ${origin} not allowed by CORS`), false);
+    },
     credentials: true,
   }),
 );
