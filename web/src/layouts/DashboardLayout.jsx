@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import React, { useMemo, useState } from "react";
+import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { Can } from "../components/Can";
 import { Button } from "../components/ui/Button";
@@ -19,8 +19,27 @@ import {
 
 export const DashboardLayout = () => {
   const { currentUser, logout } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+
+  const sectionTitle = useMemo(() => {
+    const sectionMap = {
+      "/dashboard": "Dashboard",
+      "/users": "Users",
+      "/roles": "Roles",
+      "/permissions": "Permissions",
+      "/expenses": "Expenses",
+      "/customers": "Customers",
+      "/orders": "Orders",
+    };
+
+    const matchedEntry = Object.entries(sectionMap).find(([path]) =>
+      location.pathname.startsWith(path),
+    );
+
+    return matchedEntry?.[1] || "Dashboard";
+  }, [location.pathname]);
 
   const handleLogout = async () => {
     await logout();
@@ -71,8 +90,8 @@ export const DashboardLayout = () => {
           className={({ isActive }) =>
             `group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
               isActive
-                ? "bg-brand/10 text-brand"
-                : "text-secondary hover:bg-main"
+                ? "bg-[#fdfbf7]/15 text-[#fdfbf7]"
+                : "text-[#fdfbf7]/80 hover:bg-[#fdfbf7]/10 hover:text-[#fdfbf7]"
             }`
           }
           onClick={() => setSidebarOpen(false)}
@@ -105,28 +124,46 @@ export const DashboardLayout = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 w-64 transform bg-surface border-r border-border transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-30 flex w-64 transform flex-col border-r border-brand/20 bg-brand transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex h-16 items-center justify-between px-6">
-          <span className="text-xl font-bold text-brand">Rihala</span>
+          <div>
+            <span className="block text-xl font-semibold tracking-tight text-[#fdfbf7]">
+              Rihala Admin
+            </span>
+            <span className="block text-xs text-[#fdfbf7]/75">
+              Operations console
+            </span>
+          </div>
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden"
+            className="lg:hidden text-[#fdfbf7] hover:bg-[#fdfbf7]/10 hover:text-[#fdfbf7]"
             onClick={() => setSidebarOpen(false)}
           >
             <X className="h-6 w-6" />
           </Button>
         </div>
         <nav className="flex-1 space-y-1 px-3 py-4">{renderNavLinks()}</nav>
+        <div className="mt-auto px-3 pb-4 pt-2">
+          <Button
+            variant="ghostDanger"
+            onClick={handleLogout}
+            size="none"
+            className="flex w-full items-center justify-start rounded-lg px-3 py-2 text-sm font-medium text-[#fdfbf7]/90 hover:bg-[#fdfbf7]/10 hover:text-[#fdfbf7]"
+          >
+            <LogOut className="mr-3 h-4 w-4" />
+            Logout
+          </Button>
+        </div>
       </aside>
 
       {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Header */}
-        <header className="flex h-16 items-center justify-between border-b border-border bg-surface px-4 sm:px-6">
+        <header className="flex h-16 items-center justify-between border-b border-border bg-surface/95 px-4 backdrop-blur-sm sm:px-6">
           <Button
             variant="ghost"
             size="icon"
@@ -136,20 +173,25 @@ export const DashboardLayout = () => {
             <Menu className="h-6 w-6" />
           </Button>
 
-          <div className="flex flex-1 justify-end items-center gap-4">
-            <ThemeToggle />
-            <div className="text-sm text-primary font-medium capitalize">
-              {currentUser?.name}
+          <div className="flex min-w-0 flex-1 items-center justify-between gap-4 pl-2 lg:pl-0">
+            <div className="min-w-0">
+              <div className="truncate text-sm font-medium text-secondary">
+                {sectionTitle}
+              </div>
+              <div className="truncate text-lg font-semibold tracking-tight text-primary">
+                {currentUser?.name || "Team member"}
+              </div>
             </div>
-            <Button
-              variant="ghostDanger"
-              onClick={handleLogout}
-              size="none"
-              className="flex items-center text-sm font-medium"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </Button>
+
+            <div className="flex items-center gap-4">
+              <ThemeToggle />
+              <div className="hidden text-right sm:block">
+                <div className="truncate text-sm font-medium text-primary capitalize">
+                  {currentUser?.roles?.[0]?.name || "Operations"}
+                </div>
+                <div className="truncate text-xs text-secondary">Signed in</div>
+              </div>
+            </div>
           </div>
         </header>
 
