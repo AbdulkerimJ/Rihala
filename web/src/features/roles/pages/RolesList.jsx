@@ -1,12 +1,16 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getRoles, createRole, updateRole, deleteRole } from "../api";
-import { useAuth } from "../../../hooks/useAuth";
 import { Can } from "../../../components/Can";
 import { Edit2, Trash2, Key } from "lucide-react";
 import toast from "react-hot-toast";
 import { RoleModal } from "../components/RoleModal";
 import { LoadingSkeleton } from "../../../components/ui/LoadingSkeleton";
+import { EmptyState } from "../../../components/ui/EmptyState";
+import { PageHeader } from "../../../components/ui/PageHeader";
+import { Button } from "../../../components/ui/Button";
+import { ErrorState } from "../../../components/ui/ErrorState";
+import { getApiErrorMessage } from "../../../utils/apiResponse";
 
 export const RolesList = () => {
   const [page, setPage] = useState(1);
@@ -15,7 +19,7 @@ export const RolesList = () => {
   const queryClient = useQueryClient();
   const limit = 10;
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ["roles", { page, limit }],
     queryFn: () => getRoles({ page, limit }),
     keepPreviousData: true,
@@ -80,25 +84,23 @@ export const RolesList = () => {
 
   if (isError) {
     return (
-      <div className="p-4 text-center text-red-500">Failed to load roles.</div>
+      <ErrorState
+        description={getApiErrorMessage(error, "Failed to load roles.")}
+      />
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl font-semibold text-primary">
-          Roles Management
-        </h1>
-        <Can permission="roles.create">
-          <button
-            onClick={() => handleOpenModal()}
-            className="bg-brand hover:bg-brand-hover text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          >
-            Create Role
-          </button>
-        </Can>
-      </div>
+      <PageHeader
+        title="Roles"
+        description="Create roles and manage their permissions."
+        actions={
+          <Can permission="roles.create">
+            <Button onClick={() => handleOpenModal()}>Create Role</Button>
+          </Can>
+        }
+      />
 
       <div className="bg-surface shadow rounded-lg overflow-hidden border border-border">
         <div className="overflow-x-auto">
@@ -110,12 +112,6 @@ export const RolesList = () => {
                   className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
                 >
                   Role Name
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
-                >
-                  Description
                 </th>
                 <th
                   scope="col"
@@ -134,14 +130,6 @@ export const RolesList = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-primary">
                       {role.name}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div
-                      className="text-sm text-secondary max-w-xs truncate"
-                      title={role.description}
-                    >
-                      {role.description || "No description"}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -184,7 +172,7 @@ export const RolesList = () => {
               {roles.length === 0 && (
                 <tr>
                   <td
-                    colSpan="4"
+                    colSpan="3"
                     className="px-6 py-10 text-center text-sm text-secondary"
                   >
                     No roles found.

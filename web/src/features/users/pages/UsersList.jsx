@@ -1,61 +1,114 @@
-import React, { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getUsers, createUser, updateUser, deleteUser } from "../api";
+import React, { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
+import { Users, RefreshCw, UserPlus } from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth";
 import { Can } from "../../../components/Can";
-import { Edit2, Trash2, Shield } from "lucide-react";
-import toast from "react-hot-toast";
-import { UserModal } from "../components/UserModal";
 import { LoadingSkeleton } from "../../../components/ui/LoadingSkeleton";
+import { EmptyState } from "../../../components/ui/EmptyState";
+import { ErrorState } from "../../../components/ui/ErrorState";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
+import { PageHeader } from "../../../components/ui/PageHeader";
+import { Button } from "../../../components/ui/Button";
+import { UserModal } from "../components/UserModal";
+import {
+  getUsers,
+  createUser,
+  updateUser,
+  deleteUser,
+  activateUser,
+  deactivateUser,
+  restoreUser,
+  getDeletedUsers,
+} from "../api";
+import { getApiErrorMessage } from "../../../utils/apiResponse";
+import { formatDateTime } from "../../../utils/formatters";
+
+const USERS_QUERY_KEY = "users";
 
 export const UsersList = () => {
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
+  const queryClient = useQueryClient();
+  const { currentUser } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const queryClient = useQueryClient();
-  const limit = 10;
+  const [showDeleted, setShowDeleted] = useState(false);
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["users", { page, limit, search }],
-    queryFn: () => getUsers({ page, limit, search }),
-    keepPreviousData: true,
+  const usersQuery = useQuery({
+    queryKey: [USERS_QUERY_KEY, showDeleted],
+    queryFn: () => (showDeleted ? getDeletedUsers() : getUsers()),
   });
+
+  const users = useMemo(() => {
+    const payload = usersQuery.data;
+    const list = Array.isArray(payload?.data)
+      ? payload.data
+      : payload?.data?.users || payload?.data || [];
+    return Array.isArray(list) ? list : [];
+  }, [usersQuery.data]);
+
+  const refresh = () =>
+    queryClient.invalidateQueries({ queryKey: [USERS_QUERY_KEY] });
 
   const createMutation = useMutation({
     mutationFn: createUser,
     onSuccess: () => {
-      queryClient.invalidateQueries(["users"]);
-      toast.success("User created successfully");
+      queryClient.invalidateQueries({ queryKey: [USERS_QUERY_KEY] });
+      toast.success("User invited successfully");
     },
-    onError: (err) =>
-      toast.error(err.response?.data?.message || "Failed to create user"),
+    onError: (error) =>
+      toast.error(getApiErrorMessage(error, "Failed to invite user")),
   });
 
   const updateMutation = useMutation({
     mutationFn: updateUser,
     onSuccess: () => {
-      queryClient.invalidateQueries(["users"]);
+      queryClient.invalidateQueries({ queryKey: [USERS_QUERY_KEY] });
       toast.success("User updated successfully");
     },
-    onError: (err) =>
-      toast.error(err.response?.data?.message || "Failed to update user"),
+    onError: (error) =>
+      toast.error(getApiErrorMessage(error, "Failed to update user")),
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteUser,
     onSuccess: () => {
-      queryClient.invalidateQueries(["users"]);
+      queryClient.invalidateQueries({ queryKey: [USERS_QUERY_KEY] });
       toast.success("User deleted successfully");
     },
-    onError: (err) =>
-      toast.error(err.response?.data?.message || "Failed to delete user"),
+    onError: (error) =>
+      toast.error(getApiErrorMessage(error, "Failed to delete user")),
   });
 
-  const handleOpenModal = (user = null) => {
-    setEditingUser(user);
-    setIsModalOpen(true);
-  };
+  const activateMutation = useMutation({
+    mutationFn: activateUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [USERS_QUERY_KEY] });
+      toast.success("User activated successfully");
+    },
+    onError: (error) =>
+      toast.error(getApiErrorMessage(error, "Failed to activate user")),
+  });
+
+  const deactivateMutation = useMutation({
+    mutationFn: deactivateUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [USERS_QUERY_KEY] });
+      toast.success("User deactivated successfully");
+    },
+    onError: (error) =>
+      toast.error(getApiErrorMessage(error, "Failed to deactivate user")),
+  });
+
+  const restoreMutation = useMutation({
+    mutationFn: restoreUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [USERS_QUERY_KEY] });
+      toast.success("User restored successfully");
+    },
+    onError: (error) =>
+      toast.error(getApiErrorMessage(error, "Failed to restore user")),
+  });
 
   const handleSubmit = async (data) => {
     if (editingUser) {
@@ -63,6 +116,7 @@ export const UsersList = () => {
     } else {
       await createMutation.mutateAsync(data);
     }
+    queryClient.invalidateQueries({ queryKey: [USERS_QUERY_KEY] });
   };
 
   const handleDelete = async (id) => {
@@ -71,205 +125,183 @@ export const UsersList = () => {
     }
   };
 
-  // Since backend currently returns an array directly under data.data (no pagination meta),
-  // we handle it defensively.
-  const users = Array.isArray(data?.data) ? data.data : data?.data?.users || [];
-  const total = data?.data?.total || users.length;
-  const totalPages = Math.ceil(total / limit) || 1;
-
-  if (isLoading) {
-    return <LoadingSkeleton columnCount={4} rowCount={6} showSearch />;
+  if (usersQuery.isLoading) {
+    return <LoadingSkeleton variant="users" rowCount={6} />;
   }
 
-  if (isError) {
+  if (usersQuery.isError) {
     return (
-      <div className="p-4 text-center text-red-500">Failed to load users.</div>
+      <ErrorState
+        description={getApiErrorMessage(
+          usersQuery.error,
+          "Failed to load users.",
+        )}
+        onRetry={refresh}
+      />
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl font-semibold text-primary">
-          Users Management
-        </h1>
-        <Can permission="users.create">
-          <button
-            onClick={() => handleOpenModal()}
-            className="bg-brand hover:bg-brand-hover text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          >
-            Add New User
-          </button>
-        </Can>
-      </div>
-
-      <div className="bg-surface shadow rounded-lg overflow-hidden border border-border">
-        <div className="p-4 border-b border-border">
-          <input
-            type="text"
-            placeholder="Search users..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full sm:max-w-xs px-4 py-2 border border-border rounded-md focus:ring-brand focus:border-brand bg-main text-primary sm:text-sm"
-          />
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-border">
-            <thead className="bg-main">
-              <tr>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
-                >
-                  Name
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
-                >
-                  Email
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
-                >
-                  Status
-                </th>
-                <th scope="col" className="relative px-6 py-3">
-                  <span className="sr-only">Actions</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-surface divide-y divide-border">
-              {users.map((user) => (
-                <tr key={user._id} className="hover:bg-main transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="h-10 w-10 flex-shrink-0 rounded-full bg-brand/10 flex items-center justify-center text-brand font-bold uppercase">
-                        {user.name?.charAt(0)}
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-primary capitalize">
-                          {user.name}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-secondary">{user.email}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        user.status === "active"
-                          ? "bg-success/10 text-success"
-                          : "bg-danger/10 text-danger"
-                      }`}
-                    >
-                      {user.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end gap-3">
-                      <Can permission="users.assign-role">
-                        <button
-                          className="text-brand hover:text-brand-hover"
-                          title="Manage Roles"
-                        >
-                          <Shield className="w-4 h-4" />
-                        </button>
-                      </Can>
-                      <Can permission="users.update">
-                        <button
-                          onClick={() => handleOpenModal(user)}
-                          className="text-accent hover:text-accent-hover"
-                          title="Edit User"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                      </Can>
-                      <Can permission="users.delete">
-                        <button
-                          onClick={() => handleDelete(user._id)}
-                          className="text-danger hover:text-danger-hover"
-                          title="Delete User"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </Can>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {users.length === 0 && (
-                <tr>
-                  <td
-                    colSpan="4"
-                    className="px-6 py-10 text-center text-sm text-secondary"
-                  >
-                    No users found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination placeholder */}
-        <div className="bg-surface px-4 py-3 flex items-center justify-between border-t border-border sm:px-6">
-          <div className="flex-1 flex justify-between sm:hidden">
-            <button
-              onClick={() => setPage((old) => Math.max(old - 1, 1))}
-              disabled={page === 1}
-              className="relative inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-primary bg-surface hover:bg-main disabled:opacity-50"
+      <PageHeader
+        title="Users"
+        description="Manage invited users, active accounts, and role assignments."
+        actions={
+          <>
+            <Button
+              variant="secondary"
+              onClick={() => setShowDeleted((value) => !value)}
             >
-              Previous
-            </button>
-            <button
-              onClick={() =>
-                setPage((old) => (old < totalPages ? old + 1 : old))
-              }
-              disabled={page === totalPages}
-              className="ml-3 relative inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-primary bg-surface hover:bg-main disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
-          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-secondary">
-                Showing page{" "}
-                <span className="font-medium text-primary">{page}</span> of{" "}
-                <span className="font-medium text-primary">{totalPages}</span>
-              </p>
-            </div>
-            <div>
-              <nav
-                className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
-                aria-label="Pagination"
+              {showDeleted ? "Show Active Users" : "Show Deleted Users"}
+            </Button>
+            <Button variant="secondary" onClick={refresh}>
+              <RefreshCw className="mr-2 h-4 w-4" /> Refresh
+            </Button>
+            <Can permission="users.create">
+              <Button
+                onClick={() => {
+                  setEditingUser(null);
+                  setIsModalOpen(true);
+                }}
               >
-                <button
-                  onClick={() => setPage((old) => Math.max(old - 1, 1))}
-                  disabled={page === 1}
-                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-border bg-surface text-sm font-medium text-primary hover:bg-main disabled:opacity-50"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() =>
-                    setPage((old) => (old < totalPages ? old + 1 : old))
-                  }
-                  disabled={page === totalPages}
-                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-border bg-surface text-sm font-medium text-primary hover:bg-main disabled:opacity-50"
-                >
-                  Next
-                </button>
-              </nav>
-            </div>
+                <UserPlus className="mr-2 h-4 w-4" /> Invite User
+              </Button>
+            </Can>
+          </>
+        }
+      />
+
+      {users.length === 0 ? (
+        <EmptyState
+          title={showDeleted ? "No deleted users" : "No users found"}
+          description={
+            showDeleted
+              ? "Deleted users will appear here."
+              : "Invite a user to get started."
+          }
+          actionLabel={!showDeleted ? "Invite User" : null}
+          onAction={!showDeleted ? () => setIsModalOpen(true) : undefined}
+        />
+      ) : (
+        <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-border">
+              <thead className="bg-main">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-secondary">
+                    Name
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-secondary">
+                    Email
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-secondary">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-secondary">
+                    Roles
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-secondary">
+                    Created
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-secondary">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border bg-surface">
+                {users.map((user) => (
+                  <tr
+                    key={user._id}
+                    className="hover:bg-main transition-colors"
+                  >
+                    <td className="px-6 py-4 text-sm font-medium text-primary">
+                      <Link
+                        className="hover:text-brand"
+                        to={`/users/${user._id}`}
+                      >
+                        {user.name}
+                      </Link>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-secondary">
+                      {user.email}
+                    </td>
+                    <td className="px-6 py-4">
+                      <StatusBadge status={user.status} />
+                    </td>
+                    <td className="px-6 py-4 text-sm text-secondary">
+                      {user.roles?.length
+                        ? user.roles.map((role) => role.name || role).join(", ")
+                        : "-"}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-secondary">
+                      {formatDateTime(user.createdAt)}
+                    </td>
+                    <td className="px-6 py-4 text-right text-sm">
+                      <div className="flex justify-end gap-2">
+                        <Can permission="users.update">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => {
+                              setEditingUser(user);
+                              setIsModalOpen(true);
+                            }}
+                          >
+                            Edit
+                          </Button>
+                        </Can>
+                        <Can permission="users.update">
+                          {user.status === "inactive" ? (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => activateMutation.mutate(user._id)}
+                            >
+                              Activate
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() =>
+                                deactivateMutation.mutate(user._id)
+                              }
+                            >
+                              Deactivate
+                            </Button>
+                          )}
+                        </Can>
+                        {user.deletedAt ? (
+                          <Can permission="users.restore">
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => restoreMutation.mutate(user._id)}
+                            >
+                              Restore
+                            </Button>
+                          </Can>
+                        ) : (
+                          <Can permission="users.delete">
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              onClick={() => handleDelete(user._id)}
+                            >
+                              Delete
+                            </Button>
+                          </Can>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
-      </div>
+      )}
+
       <UserModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

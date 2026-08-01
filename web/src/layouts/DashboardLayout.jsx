@@ -1,18 +1,21 @@
-import React, { useState } from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-import { Can } from '../components/Can';
-import { Button } from '../components/ui/Button';
-import { ThemeToggle } from '../components/ui/ThemeToggle';
+import React, { useState } from "react";
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import { Can } from "../components/Can";
+import { Button } from "../components/ui/Button";
+import { ThemeToggle } from "../components/ui/ThemeToggle";
 import {
   LayoutDashboard,
   Users,
   ShieldCheck,
   Key,
+  Receipt,
+  Contact,
+  ClipboardList,
   LogOut,
   Menu,
-  X
-} from 'lucide-react';
+  X,
+} from "lucide-react";
 
 export const DashboardLayout = () => {
   const { currentUser, logout } = useAuth();
@@ -21,14 +24,42 @@ export const DashboardLayout = () => {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   const navItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    { name: 'Users', path: '/users', icon: Users, permission: 'users.read' },
-    { name: 'Roles', path: '/roles', icon: ShieldCheck, permission: 'roles.read' },
-    { name: 'Permissions', path: '/permissions', icon: Key, permission: 'permissions.read' },
+    { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+    { name: "Users", path: "/users", icon: Users, permission: "users.read" },
+    {
+      name: "Roles",
+      path: "/roles",
+      icon: ShieldCheck,
+      permission: "roles.read",
+    },
+    {
+      name: "Permissions",
+      path: "/permissions",
+      icon: Key,
+      permission: "permissions.read",
+    },
+    {
+      name: "Expenses",
+      path: "/expenses",
+      icon: Receipt,
+      permission: "expenses.read",
+    },
+    {
+      name: "Customers",
+      path: "/customers",
+      icon: Contact,
+      permission: "customers.read",
+    },
+    {
+      name: "Orders",
+      path: "/orders",
+      icon: ClipboardList,
+      permission: "orders.read",
+    },
   ];
 
   const renderNavLinks = () => {
@@ -40,8 +71,8 @@ export const DashboardLayout = () => {
           className={({ isActive }) =>
             `group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
               isActive
-                ? 'bg-brand/10 text-brand'
-                : 'text-secondary hover:bg-main'
+                ? "bg-brand/10 text-brand"
+                : "text-secondary hover:bg-main"
             }`
           }
           onClick={() => setSidebarOpen(false)}
@@ -75,7 +106,7 @@ export const DashboardLayout = () => {
       {/* Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-30 w-64 transform bg-surface border-r border-border transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex h-16 items-center justify-between px-6">
@@ -89,9 +120,7 @@ export const DashboardLayout = () => {
             <X className="h-6 w-6" />
           </Button>
         </div>
-        <nav className="flex-1 space-y-1 px-3 py-4">
-          {renderNavLinks()}
-        </nav>
+        <nav className="flex-1 space-y-1 px-3 py-4">{renderNavLinks()}</nav>
       </aside>
 
       {/* Main content */}
@@ -106,7 +135,7 @@ export const DashboardLayout = () => {
           >
             <Menu className="h-6 w-6" />
           </Button>
-          
+
           <div className="flex flex-1 justify-end items-center gap-4">
             <ThemeToggle />
             <div className="text-sm text-primary font-medium capitalize">

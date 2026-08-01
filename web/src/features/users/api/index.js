@@ -1,4 +1,4 @@
-import api from '../../../api/axios';
+import api from "../../../api/axios";
 
 export const getUserById = async (id) => {
   const response = await api.get(`/users/${id}`);
@@ -6,17 +6,37 @@ export const getUserById = async (id) => {
 };
 
 export const getUsers = async (params) => {
-  const response = await api.get('/users', { params });
+  const response = await api.get("/users", { params });
+  return response.data;
+};
+
+export const getDeletedUsers = async () => {
+  const response = await api.get("/users/deleted");
   return response.data;
 };
 
 export const createUser = async (data) => {
-  const response = await api.post('/users', data);
+  const response = await api.post("/users", data);
   return response.data;
 };
 
 export const updateUser = async ({ id, data }) => {
   const response = await api.patch(`/users/${id}`, data);
+  return response.data;
+};
+
+export const activateUser = async (id) => {
+  const response = await api.patch(`/users/${id}/activate`);
+  return response.data;
+};
+
+export const deactivateUser = async (id) => {
+  const response = await api.patch(`/users/${id}/deactivate`);
+  return response.data;
+};
+
+export const restoreUser = async (id) => {
+  const response = await api.patch(`/users/${id}/restore`);
   return response.data;
 };
 

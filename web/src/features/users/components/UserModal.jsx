@@ -1,21 +1,25 @@
-import React, { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useQuery } from '@tanstack/react-query';
-import { getRoles } from '../../roles/api';
-import { X, CheckCircle, Mail } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useQuery } from "@tanstack/react-query";
+import { getRoles } from "../../roles/api";
+import { X, CheckCircle, Mail } from "lucide-react";
 
 const createUserSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
   roles: z.array(z.string()).optional(),
 });
 
-const updateUserSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
-});
+const updateUserSchema = z
+  .object({
+    name: z.string().min(2, "Name must be at least 2 characters").optional(),
+    email: z.string().email("Invalid email address").optional(),
+  })
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "At least one field is required for update.",
+  });
 
 export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
   const isEditing = !!initialData;
@@ -30,13 +34,13 @@ export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(isEditing ? updateUserSchema : createUserSchema),
-    defaultValues: { name: '', email: '', roles: [] },
+    defaultValues: { name: "", email: "", roles: [] },
   });
 
-  const selectedRoles = watch('roles') || [];
+  const selectedRoles = watch("roles") || [];
 
   const { data: rolesData } = useQuery({
-    queryKey: ['roles'],
+    queryKey: ["roles"],
     queryFn: getRoles,
     enabled: isOpen && !isEditing,
   });
@@ -47,9 +51,9 @@ export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
     if (isOpen) {
       setInvitedEmail(null);
       if (initialData) {
-        reset({ name: initialData.name || '', email: initialData.email || '' });
+        reset({ name: initialData.name || "", email: initialData.email || "" });
       } else {
-        reset({ name: '', email: '', roles: [] });
+        reset({ name: "", email: "", roles: [] });
       }
     }
   }, [isOpen, initialData, reset]);
@@ -59,9 +63,12 @@ export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
   const toggleRole = (roleId) => {
     const current = selectedRoles;
     if (current.includes(roleId)) {
-      setValue('roles', current.filter((id) => id !== roleId));
+      setValue(
+        "roles",
+        current.filter((id) => id !== roleId),
+      );
     } else {
-      setValue('roles', [...current, roleId]);
+      setValue("roles", [...current, roleId]);
     }
   };
 
@@ -82,15 +89,20 @@ export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
           <div className="h-16 w-16 rounded-full bg-success/10 flex items-center justify-center">
             <CheckCircle className="h-8 w-8 text-success" />
           </div>
-          <h3 className="text-lg font-semibold text-primary">Invitation Sent!</h3>
+          <h3 className="text-lg font-semibold text-primary">
+            Invitation Sent!
+          </h3>
           <p className="text-sm text-secondary">
-            An invitation email has been sent to{' '}
+            An invitation email has been sent to{" "}
             <span className="font-medium text-primary">{invitedEmail}</span>.
-            They'll receive a link to set their password and activate their account.
+            They'll receive a link to set their password and activate their
+            account.
           </p>
           <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-main border border-border">
             <Mail className="h-4 w-4 text-brand" />
-            <span className="text-sm text-secondary">Check the backend console for the invite link</span>
+            <span className="text-sm text-secondary">
+              Check the backend console for the invite link
+            </span>
           </div>
           <button
             onClick={onClose}
@@ -108,7 +120,7 @@ export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
       <div className="relative w-full max-w-md rounded-xl bg-surface shadow-2xl border border-border">
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <h3 className="text-lg font-semibold text-primary">
-            {isEditing ? 'Edit User' : 'Invite New User'}
+            {isEditing ? "Edit User" : "Invite New User"}
           </h3>
           <button onClick={onClose} className="text-muted hover:text-primary">
             <X className="h-5 w-5" />
@@ -119,31 +131,44 @@ export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
           <div className="space-y-4">
             {/* Name */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-primary">Name</label>
+              <label className="mb-1 block text-sm font-medium text-primary">
+                Name
+              </label>
               <input
-                {...register('name')}
+                {...register("name")}
                 type="text"
                 className="block w-full rounded-md border border-border px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand bg-main text-primary"
               />
-              {errors.name && <p className="mt-1 text-xs text-danger">{errors.name.message}</p>}
+              {errors.name && (
+                <p className="mt-1 text-xs text-danger">
+                  {errors.name.message}
+                </p>
+              )}
             </div>
 
             {/* Email */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-primary">Email</label>
+              <label className="mb-1 block text-sm font-medium text-primary">
+                Email
+              </label>
               <input
-                {...register('email')}
+                {...register("email")}
                 type="email"
                 className="block w-full rounded-md border border-border px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand bg-main text-primary"
               />
-              {errors.email && <p className="mt-1 text-xs text-danger">{errors.email.message}</p>}
+              {errors.email && (
+                <p className="mt-1 text-xs text-danger">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
 
             {/* Role Selection — only for new users */}
             {!isEditing && (
               <div>
                 <label className="mb-2 block text-sm font-medium text-primary">
-                  Assign Roles <span className="text-muted font-normal">(optional)</span>
+                  Assign Roles{" "}
+                  <span className="text-muted font-normal">(optional)</span>
                 </label>
                 {availableRoles.length === 0 ? (
                   <p className="text-sm text-muted italic">Loading roles...</p>
@@ -160,7 +185,9 @@ export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
                           onChange={() => toggleRole(role._id)}
                           className="rounded border-border text-brand focus:ring-brand accent-brand"
                         />
-                        <span className="text-sm text-primary">{role.name}</span>
+                        <span className="text-sm text-primary">
+                          {role.name}
+                        </span>
                       </label>
                     ))}
                   </div>
@@ -171,7 +198,8 @@ export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
 
           {!isEditing && (
             <p className="mt-4 text-xs text-muted bg-main rounded-lg px-3 py-2 border border-border">
-              An invitation email will be sent to this address with a secure link to set their password.
+              An invitation email will be sent to this address with a secure
+              link to set their password.
             </p>
           )}
 
@@ -189,8 +217,12 @@ export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
               className="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-50"
             >
               {isSubmitting
-                ? isEditing ? 'Saving...' : 'Sending Invitation...'
-                : isEditing ? 'Save Changes' : 'Send Invitation'}
+                ? isEditing
+                  ? "Saving..."
+                  : "Sending Invitation..."
+                : isEditing
+                  ? "Save Changes"
+                  : "Send Invitation"}
             </button>
           </div>
         </form>

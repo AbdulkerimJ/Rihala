@@ -1,10 +1,17 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import axios from 'axios';
-import { setupInterceptors } from '../api/axios';
-import { parseJwt } from '../utils/jwt';
-import { login as loginApi, logout as logoutApi } from '../features/auth/api';
-import { getUserById } from '../features/users/api';
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
+import axios from "axios";
+import { getApiBaseUrl, setupInterceptors } from "../api/axios";
+import { parseJwt } from "../utils/jwt";
+import { login as loginApi, logout as logoutApi } from "../features/auth/api";
+import { getUserById } from "../features/users/api";
 
 export const AuthContext = createContext({
   currentUser: null,
@@ -34,7 +41,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await logoutApi();
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     } finally {
       setCurrentUser(null);
       setAccessToken(null);
@@ -45,34 +52,37 @@ export const AuthProvider = ({ children }) => {
     setupInterceptors(getAccessToken, setAccessToken, handleLogout);
   }, [getAccessToken, setAccessToken, handleLogout]);
 
-  const loadUser = useCallback(async (token) => {
-    try {
-      const payload = parseJwt(token);
-      if (payload && payload.id) {
-        const res = await getUserById(payload.id);
-        setCurrentUser(res.data);
+  const loadUser = useCallback(
+    async (token) => {
+      try {
+        const payload = parseJwt(token);
+        if (payload && payload.id) {
+          const res = await getUserById(payload.id);
+          setCurrentUser(res.data);
+        }
+      } catch (error) {
+        console.error("Failed to load user info:", error);
+        setCurrentUser(null);
+        setAccessToken(null);
       }
-    } catch (error) {
-      console.error('Failed to load user info:', error);
-      setCurrentUser(null);
-      setAccessToken(null);
-    }
-  }, [setAccessToken]);
+    },
+    [setAccessToken],
+  );
 
   const initializeAuth = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api/v1'}/auth/refresh`,
+        `${getApiBaseUrl()}/auth/refresh`,
         {},
-        { withCredentials: true }
+        { withCredentials: true },
       );
       const token = res.data.data.accessToken;
       setAccessToken(token);
       await loadUser(token);
     } catch (error) {
       // Refresh failed, probably no valid session
-      console.log('No valid session found on startup');
+      console.log("No valid session found on startup");
     } finally {
       setIsLoading(false);
     }
@@ -94,10 +104,10 @@ export const AuthProvider = ({ children }) => {
     (permissionName) => {
       if (!currentUser) return false;
       return currentUser.roles?.some((role) =>
-        role.permissions?.some((perm) => perm.name === permissionName)
+        role.permissions?.some((perm) => perm.name === permissionName),
       );
     },
-    [currentUser]
+    [currentUser],
   );
 
   const value = useMemo(
@@ -110,7 +120,7 @@ export const AuthProvider = ({ children }) => {
       logout: handleLogout,
       hasPermission,
     }),
-    [currentUser, accessToken, isLoading, hasPermission, handleLogout]
+    [currentUser, accessToken, isLoading, hasPermission, handleLogout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

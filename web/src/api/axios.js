@@ -1,7 +1,16 @@
 import axios from "axios";
 
+export const getApiBaseUrl = () => {
+  return (
+    import.meta.env.VITE_API_BASE_URL?.trim() ||
+    (import.meta.env.PROD
+      ? "https://rihala-backend.onrender.com/api/v1"
+      : "http://localhost:4000/api/v1")
+  );
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:4000/api/v1",
+  baseURL: getApiBaseUrl(),
   withCredentials: true,
   timeout: 10000, // 10 seconds
 });

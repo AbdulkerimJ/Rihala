@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import toast from 'react-hot-toast';
-import { useAuth } from '../../../hooks/useAuth';
-import { Button } from '../../../components/ui/Button';
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
+import { useAuth } from "../../../hooks/useAuth";
+import { Button } from "../../../components/ui/Button";
 
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email format"),
@@ -27,10 +28,11 @@ export const Login = () => {
     setIsSubmitting(true);
     try {
       await login(data);
-      toast.success('Successfully logged in!');
+      toast.success("Successfully logged in!");
     } catch (error) {
       toast.error(
-        error.response?.data?.message || 'Failed to login. Please check your credentials.'
+        error.response?.data?.message ||
+          "Failed to login. Please check your credentials.",
       );
     } finally {
       setIsSubmitting(false);
@@ -64,10 +66,10 @@ export const Login = () => {
                 autoComplete="email"
                 className={`block w-full appearance-none rounded-md border px-3 py-2 shadow-sm focus:outline-none sm:text-sm bg-main text-primary ${
                   errors.email
-                    ? 'border-danger focus:border-danger focus:ring-danger'
-                    : 'border-border focus:border-brand focus:ring-brand'
+                    ? "border-danger focus:border-danger focus:ring-danger"
+                    : "border-border focus:border-brand focus:ring-brand"
                 }`}
-                {...register('email')}
+                {...register("email")}
               />
               {errors.email && (
                 <p className="mt-2 text-sm text-danger">
@@ -91,10 +93,10 @@ export const Login = () => {
                 autoComplete="current-password"
                 className={`block w-full appearance-none rounded-md border px-3 py-2 shadow-sm focus:outline-none sm:text-sm bg-main text-primary ${
                   errors.password
-                    ? 'border-danger focus:border-danger focus:ring-danger'
-                    : 'border-border focus:border-brand focus:ring-brand'
+                    ? "border-danger focus:border-danger focus:ring-danger"
+                    : "border-border focus:border-brand focus:ring-brand"
                 }`}
-                {...register('password')}
+                {...register("password")}
               />
               {errors.password && (
                 <p className="mt-2 text-sm text-danger">
@@ -111,8 +113,15 @@ export const Login = () => {
               fullWidth
               className="mt-2"
             >
-              {isSubmitting ? 'Signing in...' : 'Sign in'}
+              {isSubmitting ? "Signing in..." : "Sign in"}
             </Button>
+          </div>
+
+          <div className="text-center text-sm text-secondary">
+            Forgot your password?{" "}
+            <Link to="/forgot-password" className="text-brand hover:underline">
+              Reset it here
+            </Link>
           </div>
         </form>
       </div>

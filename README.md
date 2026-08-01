@@ -23,6 +23,20 @@ Planned modules:
 - Payments
 - Dashboard and reporting
 
+## Current web scope
+
+The web app currently implements the authenticated frontend for:
+
+- Authentication and invitation onboarding
+- Users
+- Roles
+- Permissions
+- Expenses
+- Customers
+- Orders
+
+The web app uses an access-token-in-memory plus refresh-token-in-HttpOnly-cookie pattern. Permission-aware navigation and actions are driven by the permissions returned by the backend, but the backend remains the source of truth for authorization.
+
 ## Install
 
 1. Install backend dependencies:
