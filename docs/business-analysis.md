@@ -10,23 +10,22 @@
 
 # Business Overview
 
-Rihala is being developed for a furniture manufacturing business.
+Rihala is being developed for a furniture manufacturing business. The current implementation covers the operational foundation needed for secure access, internal administration, expense tracking, and customer record management.
 
-The company primarily manufactures furniture and currently relies on manual processes for managing day-to-day operations. Business information is recorded on paper or tracked informally, making it difficult to monitor operations and financial activities.
-
-The goal of Rihala is to digitize these processes while keeping the system simple, intuitive, and scalable.
+The business still expects future expansion into more detailed workshop operations such as workforce management, contracts, supplier purchasing, orders, payments, and reporting.
 
 ---
 
-# Business Goals
+# Current Business Goals
 
-The system should help the business:
+The system currently supports the business in:
 
-- Organize operational information in one place.
-- Reduce manual record keeping.
-- Track financial activities.
-- Improve visibility into daily operations.
-- Support future business growth.
+- organizing internal user access through secure authentication
+- managing roles and permissions
+- tracking operating expenses
+- maintaining customer records
+
+The broader business goal remains to reduce manual record-keeping and improve operational visibility over time.
 
 ---
 
@@ -38,130 +37,93 @@ Responsible for managing the business and making operational decisions.
 
 Needs:
 
-- Easy access to business information
-- Better financial visibility
-- Accurate records
+- reliable internal access control
+- clear visibility into expenses and customer records
+- a platform that can grow into broader workshop management
 
 ---
 
 ## Employees
 
-Employees perform daily work within the workshop.
-
-Employee types currently identified:
-
-- Regular Workers
-- Contract Workers
+Employees use the system as internal users. The current backend supports internal user accounts with role-based permissions.
 
 ---
 
 ## Customers
 
-Customers place furniture orders.
+Customers are business contacts maintained in the system. They are separate from system users and may be associated with future orders.
 
 ---
 
-## Suppliers
+# Current Implementation Scope
 
-Suppliers provide materials required for furniture production.
+Implemented business areas:
 
----
+- User management
+- Authentication and session handling
+- Role and permission management
+- Operating expense management
+- Customer management
 
-# Current Problems
+Planned business areas:
 
-Current challenges identified include:
-
-- Manual tracking of expenses
-- Difficulty tracking worker payments
-- Difficulty tracking supplier purchases
-- Business information is scattered
-- Limited visibility into business performance
-
-Additional problems will be documented as they are discovered.
-
----
-
-# Core Business Areas
-
-The following business areas have been identified:
-
-- User Management
-- Customer Management
-- Worker Management
-- Orders
-- Contracts
-- Suppliers
-- Purchases
-- Operating Expenses
-- Payments (under analysis)
+- worker management
+- contract management
+- supplier management
+- purchase management
+- order management
+- payment management
+- dashboard and reporting
 
 ---
 
 # Business Terminology
 
-## Regular Worker
+## Order
 
-An employee who receives scheduled payments (typically weekly).
+An Order represents a customer’s furniture request and is currently a planned business concept rather than an implemented module.
 
----
+Planned order details include:
 
-## Contract Worker
+- customer
+- description
+- agreedAmount
+- expectedCompletionDate
+- status
+- notes
 
-A worker hired for a specific contract with a negotiated payment.
+The initial design does not require a separate orderDate field; createdAt represents when the order is registered.
 
 ---
 
 ## Contract
 
-An agreement between the business and a contract worker for a specific piece of work.
-
----
-
-## Purchase
-
-The acquisition of materials from suppliers.
-
-Purchases may be paid immediately or at a later date.
+A Contract refers to an agreement with a contractual worker and remains a planned concept for future implementation.
 
 ---
 
 ## Operating Expense
 
-Business expenses not directly tied to purchasing materials.
-
-Examples include:
-
-- Electricity
-- Water
-- Internet
-- Rent
-- Fuel
-- Machine Maintenance
-- Taxes
+An operating expense is money spent by the business that is not represented as a material purchase in the current implementation.
 
 ---
 
-# Assumptions
+# Important Business Decisions Already Made
 
-Current assumptions include:
-
-- The system is primarily used internally.
-- The application is mobile-first.
-- The backend exposes a REST API.
-- Flutter will consume the same API in the future.
-- The application uses role-based access control (RBAC).
+- Expenses represent business spending and are not currently tied to orders or projects.
+- Customers are separate from system users.
+- Customer records are retained rather than permanently deleted.
+- Orders are planned as a future domain concept and are not implemented yet.
+- Payments are planned as a separate concept and should not be represented as a single paidAmount field on Order in the initial design.
 
 ---
 
 # Open Questions
 
-The following topics require further discussion:
+The following topics still require business clarification or future design work:
 
-- Complete order lifecycle
-- Production workflow
-- Delivery workflow
-- Inventory management
-- Payment model
-- Reporting requirements
-
-This document should be updated whenever new business knowledge is discovered.
+- detailed order lifecycle
+- worker and contract workflows
+- supplier and purchase workflows
+- payment model details
+- reporting requirements

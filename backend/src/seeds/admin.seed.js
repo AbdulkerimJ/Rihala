@@ -29,6 +29,16 @@ const ALL_PERMISSIONS = [
   { name: "expenses.create", description: "Create expenses" },
   { name: "expenses.update", description: "Update expenses" },
   { name: "expenses.delete", description: "Delete expenses" },
+
+  // Customer module permissions
+  { name: "customers.read", description: "View customers" },
+  { name: "customers.create", description: "Create customers" },
+  { name: "customers.update", description: "Update customers" },
+
+  // Order module permissions
+  { name: "orders.read", description: "View orders" },
+  { name: "orders.create", description: "Create orders" },
+  { name: "orders.update", description: "Update orders" },
 ];
 
 const ADMIN_ROLE_NAME = "Admin";

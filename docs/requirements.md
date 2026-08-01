@@ -16,108 +16,123 @@ Develop a modern management system that helps furniture workshops manage daily o
 
 # Project Scope
 
-The MVP focuses on digitizing the workshop's core business operations.
-
-The system is intended for internal use by the business owner and employees.
+The current implementation focuses on the backend foundation for internal administration and business operations. The system is intended for internal use by the business owner and employees.
 
 ---
 
 # Functional Requirements
 
-## Authentication
+## Implemented
 
-The system shall:
+### Authentication
 
-- Allow users to log in.
-- Allow users to log out.
-- Protect private routes.
-- Support RBAC.
+The system currently supports:
 
----
+- email/password login
+- logout with refresh-token revocation
+- JWT access tokens
+- persisted refresh tokens
+- password reset through verification tokens
+- invitation-based user onboarding
+- authentication middleware for protected routes
 
-## User Management
+### User Management
 
-The system shall:
+The system currently supports:
 
-- Manage user accounts.
-- Assign roles.
-- Activate or deactivate users.
+- creating invited users
+- activating and deactivating users
+- soft-deleting and restoring users
+- assigning and removing roles
+- viewing users and user details
 
----
+### Role and Permission Management
 
-## Customer Management
+The system currently supports:
 
-The system shall:
+- managing roles
+- managing permissions
+- assigning permissions to roles
+- enforcing permission-based authorization
 
-- Create customers.
-- Update customers.
-- View customer information.
-- Delete customers.
+### Expense Management
 
----
+The system currently supports:
 
-## Worker Management
+- recording expenses
+- updating expenses
+- viewing expenses
+- deleting expenses
+- defining fixed expense categories
+- pagination, search, sorting, filtering, and date-range filtering
 
-The system shall:
+### Customer Management
 
-- Manage regular workers.
-- Manage contract workers.
-- Store worker details.
+The system currently supports:
 
----
-
-## Contract Management
-
-The system shall:
-
-- Create contracts.
-- Update contracts.
-- Track contract status.
-- Associate contracts with workers.
-
----
-
-## Supplier Management
-
-The system shall:
-
-- Create suppliers.
-- Update suppliers.
-- View supplier information.
-- Delete suppliers.
+- creating customers
+- updating customers
+- viewing customer information
+- customer phone normalization for Ethiopian numbers
+- customer status management
 
 ---
 
-## Purchase Management
+## Planned
 
-The system shall:
+### Worker Management
 
-- Record purchases.
-- Track purchase status.
-- Associate purchases with suppliers.
+Planned future functionality includes:
 
----
+- managing regular workers
+- managing contract workers
+- storing worker details
 
-## Operating Expense Management
+### Contract Management
 
-The system shall:
+Planned future functionality includes:
 
-- Record operating expenses.
-- Categorize expenses.
-- Edit expenses.
-- Delete expenses.
+- creating and updating contracts
+- tracking contract status
+- associating contracts with workers
 
----
+### Supplier Management
 
-## Dashboard
+Planned future functionality includes:
 
-The dashboard shall display business summaries, including:
+- creating and updating suppliers
+- viewing supplier information
 
-- Recent activities
-- Monthly expenses
-- Active workers
-- Active contracts
-- Business statistics
+### Purchase Management
+
+Planned future functionality includes:
+
+- recording purchases
+- tracking purchase status
+- associating purchases with suppliers
+
+### Order Management
+
+Planned future functionality includes:
+
+- capturing customer furniture requests as orders
+- storing agreed amounts and expected completion dates
+- tracking order status
+
+### Payment Management
+
+Planned future functionality includes:
+
+- separate payment tracking for business transactions
+
+### Dashboard
+
+Planned future functionality includes:
+
+- business summaries
+- expense reports
+- recent activity
+- operational statistics
 
 ---
 
@@ -128,44 +143,30 @@ The dashboard shall display business summaries, including:
 - Fast response times.
 - Efficient database queries.
 
----
-
 ## Security
 
-- JWT Authentication
-- HttpOnly Cookies
-- Password hashing
-- RBAC
-- Input validation
-
----
+- JWT authentication
+- HttpOnly cookies for web refresh tokens
+- password hashing
+- permission-based RBAC
+- input validation
 
 ## Usability
 
-- Mobile-first interface
-- Responsive design
-- Simple user experience
-
----
+- mobile-first interface
+- responsive design
+- simple user experience
 
 ## Maintainability
 
-- Module-based architecture
-- Reusable components
-- Clean code
+- module-based architecture
+- reusable query utilities
+- clean code
 - RESTful API
-
----
 
 ## Scalability
 
-The architecture should support future features, including:
-
-- Inventory
-- Production Management
-- Reports
-- AI Features
-- Flutter Mobile App
+The architecture should support future features including inventory, production management, reports, AI features, and a mobile application.
 
 ---
 
@@ -179,8 +180,6 @@ The architecture should support future features, including:
 - React Router
 - Axios
 
----
-
 ## Backend
 
 - Node.js
@@ -192,28 +191,24 @@ The architecture should support future features, including:
 
 # Future Scope
 
-Features intentionally excluded from the MVP include:
+Features intentionally excluded from the current implementation include:
 
-- Inventory Management
-- Production Tracking
-- Advanced Reports
-- AI Insights
-- Flutter Mobile Application
+- inventory management
+- production tracking
+- advanced reporting
+- AI insights
+- Flutter mobile application
 
-These will be implemented in future releases.
+These remain future releases.
 
 ---
 
 # Success Criteria
 
-The MVP is successful when the business can:
+The current backend is successful when it can:
 
-- Securely access the system.
-- Manage customers.
-- Manage workers.
-- Manage suppliers.
-- Record purchases.
-- Record operating expenses.
-- View business information through the dashboard.
-
-The system should provide a solid foundation for future expansion.
+- secure internal access to the application
+- manage users and roles responsibly
+- support expense tracking
+- maintain customer records
+- provide a solid foundation for the planned workshop modules

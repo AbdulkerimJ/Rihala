@@ -1,115 +1,76 @@
 # Business Rules
 
-This document contains the rules that govern how the business operates.
+This document records the business rules that are either implemented today or explicitly planned for future work.
 
 ---
 
-# Users
+# Implemented Rules
 
-- Every user must authenticate before accessing the system.
-- Access is controlled using Role-Based Access Control (RBAC).
-- Permissions are assigned to roles.
-- Users receive permissions through their assigned role.
+## Authentication and access
 
----
+- Every user must authenticate before accessing protected resources.
+- Access is controlled through permission-based RBAC.
+- Permissions are assigned to roles, and users receive access through their assigned roles.
+- Authentication uses JWT access tokens and persisted refresh tokens.
+- Password resets and invitation-based onboarding are supported through verification tokens.
 
-# Workers
+## Users
 
-## Types
+- Users may have one of three statuses: active, inactive, or invited.
+- Users can be invited without an initial password and later complete onboarding.
+- Users may be assigned one or more roles.
+- Users may be soft-deleted and restored.
+- The system distinguishes system users from customers.
 
-The business has two worker types:
+## Expenses
 
-- Regular Worker
-- Contract Worker
+- Expenses represent money spent by the business.
+- Expenses are recorded with a category, amount, description, and date.
+- The business does not currently require every material purchase to be assigned to a specific project or order.
+- Expense categories are constrained to a fixed set defined by the implementation.
 
----
+## Customers
 
-## Regular Workers
-
-- Receive scheduled payments (typically weekly).
-- Can receive bonuses.
-- Can receive deductions.
-- Can receive overtime.
-- Can receive partial payments.
-
----
-
-## Contract Workers
-
-- Payment is negotiated before work begins.
-- Can receive bonuses.
-- Can receive deductions.
-- Cannot receive overtime.
-- Can receive partial payments.
-- Can work on multiple contracts simultaneously.
+- Customers are separate from system users.
+- Customers are retained rather than permanently deleted.
+- Customer records can be deactivated or reactivated through update operations.
+- Customer phone numbers are normalized to the Ethiopian international format.
+- Customer email is optional and normalized to lowercase.
+- Customer phone and email must remain unique.
 
 ---
 
-# Contracts
+# Planned Rules
 
-- A contract belongs to exactly one worker.
-- A worker can have multiple contracts.
-- Contract payment is agreed before work starts.
+## Orders
 
-Additional rules will be added as the business process becomes clearer.
+Orders are a planned business concept and not yet implemented.
 
----
+The current planned design is:
 
-# Suppliers
+- An Order represents a customer’s agreed request for Rihala to manufacture furniture.
+- The customer may describe the request through a photo, reference, design idea, or verbal description.
+- The final agreed design can initially be captured as an Order description.
+- The business expects an agreed amount and expected completion date to be captured on the order in the future.
+- Payments are planned as a separate concept and should not be represented as a single paidAmount field on Order in the initial design.
 
-- Suppliers provide materials.
-- Materials may be received before payment is made.
-- A purchase may remain unpaid or partially paid.
+## Workers and Contracts
 
----
+Worker and contract management are planned future business areas. The current implementation does not yet model these concepts.
 
-# Purchases
+## Suppliers and Purchases
 
-- Purchases record the acquisition of materials.
-- Purchases and payments are separate business events.
-- Purchases may be:
-  - Unpaid
-  - Partially Paid
-  - Fully Paid
+Supplier and purchase management are planned future business areas. The current implementation does not yet model these concepts.
 
----
+## Payments
 
-# Operating Expenses
-
-Operating expenses represent business costs unrelated to purchasing materials.
-
-Examples include:
-
-- Electricity
-- Water
-- Internet
-- Fuel
-- Rent
-- Machine Maintenance
-- Taxes
-
----
-
-# Payments
-
-The payment model is intentionally postponed.
-
-Current understanding:
-
-- Customers may pay in installments.
-- Workers may receive partial payments.
-- Suppliers may receive payments after materials are delivered.
-
-The final payment model will be designed after additional business discovery.
+The payment model is still planned and is not implemented yet.
 
 ---
 
 # Security
 
 - Only authenticated users can access protected resources.
-- Authorization is enforced through RBAC.
+- Authorization is enforced through RBAC and explicit permissions.
 - Administrative actions require appropriate permissions.
-
----
-
-This document should be updated whenever a new business rule is discovered.
+- System roles are protected from modification or deletion in the current implementation.

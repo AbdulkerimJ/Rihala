@@ -10,6 +10,8 @@ import authRoutes from "./modules/auth/auth.routes.js";
 import roleRoutes from "./modules/roles/role.routes.js";
 import permissionRoutes from "./modules/permissions/permission.routes.js";
 import expenseRoutes from "./modules/expenses/expense.routes.js";
+import customerRoutes from "./modules/customers/customer.routes.js";
+import orderRoutes from "./modules/orders/order.routes.js";
 
 const app = express();
 
@@ -35,6 +37,8 @@ app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/roles", roleRoutes);
 app.use("/api/v1/permissions", permissionRoutes);
 app.use("/api/v1/expenses", expenseRoutes);
+app.use("/api/v1/customers", customerRoutes);
+app.use("/api/v1/orders", orderRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

@@ -1,6 +1,27 @@
 # Rihala
 
-Rihala is a monorepo foundation for a furniture workshop management system.
+Rihala is a monorepo for a furniture workshop management system. The current backend already implements authentication, user and role management, permissions, expense tracking, and customer management. The remaining major business areas are still planned rather than implemented.
+
+## Current backend scope
+
+Implemented modules:
+
+- Auth
+- Users
+- Roles
+- Permissions
+- Expenses
+- Customers
+
+Planned modules:
+
+- Workers
+- Contracts
+- Suppliers
+- Purchases
+- Orders
+- Payments
+- Dashboard and reporting
 
 ## Install
 
@@ -47,11 +68,11 @@ Rihala is a monorepo foundation for a furniture workshop management system.
 
 ## Workspace Layout
 
-- `backend/` - Express and MongoDB REST API foundation
+- `backend/` - Express and MongoDB REST API implementation
 - `web/` - Vite and React application foundation
-- `docs/` - Architecture and planning notes
+- `docs/` - Product, business, architecture, and API documentation
 
 ## Notes
 
-- Business features are intentionally not implemented yet.
-- The repository is prepared for module-based extension.
+- The source code is the source of truth for what is currently implemented.
+- Documentation in this repository distinguishes implemented features from planned future work.

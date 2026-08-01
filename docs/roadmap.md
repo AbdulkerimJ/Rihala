@@ -15,7 +15,22 @@
 
 Rihala aims to become a complete management system for furniture manufacturing businesses. The first version focuses on solving the company's daily operational problems while providing a scalable foundation for future growth.
 
-The roadmap is divided into phases. Each phase builds on the previous one to ensure the system grows in a maintainable and professional way.
+The roadmap remains phased, but the current backend implementation already covers the foundation, authentication, access control, expenses, and customers. Future work continues from that base.
+
+---
+
+# Current implementation status
+
+The current backend already includes:
+
+- foundation infrastructure for Express, MongoDB, validation, error handling, and shared query utilities
+- authentication and refresh-token management
+- user lifecycle management, including invited-user onboarding
+- role and permission management
+- expense management
+- customer management
+
+The remaining roadmap areas are still planned or in progress rather than implemented.
 
 ---
 
@@ -25,13 +40,13 @@ The roadmap is divided into phases. Each phase builds on the previous one to ens
 
 ## Tasks
 
-- [ ] Interview business owner
-- [ ] Identify business problems
-- [ ] Discover entities
-- [ ] Define business rules
-- [ ] Define MVP scope
-- [ ] Document workflows
-- [ ] Create project documentation
+- [x] Interview business owner
+- [x] Identify business problems
+- [x] Discover entities
+- [x] Define business rules
+- [x] Define MVP scope
+- [x] Document workflows
+- [x] Create project documentation
 
 ## Deliverables
 
@@ -49,11 +64,11 @@ The roadmap is divided into phases. Each phase builds on the previous one to ens
 
 ## Tasks
 
-- [ ] Design module architecture
-- [ ] Design database collections
-- [ ] Design REST API
-- [ ] Design authentication flow
-- [ ] Design RBAC
+- [x] Design module architecture
+- [x] Design database collections
+- [x] Design REST API
+- [x] Design authentication flow
+- [x] Design RBAC
 - [ ] Create ER diagram
 - [ ] Create architecture diagram
 
@@ -72,24 +87,24 @@ The roadmap is divided into phases. Each phase builds on the previous one to ens
 
 ## Backend
 
-- [ ] Express project
-- [ ] Module-based architecture
-- [ ] Environment configuration
-- [ ] Logger
-- [ ] Global error handling
-- [ ] Validation
-- [ ] Database connection
-- [ ] Security middleware
+- [x] Express project
+- [x] Module-based architecture
+- [x] Environment configuration
+- [x] Logger
+- [x] Global error handling
+- [x] Validation
+- [x] Database connection
+- [x] Security middleware
 
 ## Frontend
 
-- [ ] React (Vite)
-- [ ] Tailwind CSS
-- [ ] React Router
-- [ ] Axios
-- [ ] Folder structure
-- [ ] Shared components
-- [ ] Layouts
+- [x] React (Vite)
+- [x] Tailwind CSS
+- [x] React Router
+- [x] Axios
+- [x] Folder structure
+- [x] Shared components
+- [x] Layouts
 
 ## Deliverables
 
@@ -105,20 +120,22 @@ The roadmap is divided into phases. Each phase builds on the previous one to ens
 
 ## Authentication
 
-- [ ] Login
-- [ ] Logout
-- [ ] JWT
-- [ ] HttpOnly Cookies
-- [ ] Password hashing
-- [ ] Session persistence
+- [x] Login
+- [x] Logout
+- [x] JWT access tokens
+- [x] HttpOnly Cookies for web refresh tokens
+- [x] Password hashing
+- [x] Refresh-token persistence and revocation
+- [x] Password reset flow
+- [x] Invitation-based onboarding
 
 ## Authorization
 
-- [ ] RBAC
-- [ ] Roles
-- [ ] Permissions
-- [ ] Protected routes
-- [ ] Authorization middleware
+- [x] RBAC
+- [x] Roles
+- [x] Permissions
+- [x] Protected routes
+- [x] Authorization middleware
 
 ## Deliverables
 
@@ -128,78 +145,61 @@ The roadmap is divided into phases. Each phase builds on the previous one to ens
 
 # Phase 4 — Core Business Modules (MVP)
 
-## Users
+## Implemented
 
-- [ ] User management
-- [ ] Roles
-- [ ] Account status
+### Users
 
----
+- [x] User management
+- [x] Roles
+- [x] Account status
 
-## Customers
+### Customers
 
-- [ ] CRUD
-- [ ] Customer details
+- [x] CRUD
+- [x] Customer details
 - [ ] Customer history
 
----
+### Operating Expenses
 
-## Orders
+- [x] Record expenses
+- [x] Categorize expenses
+- [x] Edit expenses
+- [x] Delete expenses
+
+## Planned next
+
+### Orders
 
 - [ ] Create order
 - [ ] Update order
 - [ ] Order status
 - [ ] Order history
 
----
-
-## Workers
+### Workers
 
 - [ ] Regular workers
 - [ ] Contract workers
 - [ ] Worker profiles
 
----
-
-## Contracts
+### Contracts
 
 - [ ] Create contract
 - [ ] Agreed payment
 - [ ] Contract status
 - [ ] Multiple contracts per worker
 
----
-
-## Suppliers
+### Suppliers
 
 - [ ] CRUD
 - [ ] Supplier information
 
----
-
-## Purchases
+### Purchases
 
 - [ ] Material purchases
 - [ ] Purchase status
 - [ ] Outstanding balance
 
----
-
-## Operating Expenses
-
-Examples:
-
-- Electricity
-- Water
-- Rent
-- Fuel
-- Internet
-- Machine Maintenance
-- Taxes
-
----
-
-## Payments
+### Payments
 
 > **Deferred**
 
