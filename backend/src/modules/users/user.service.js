@@ -17,6 +17,14 @@ const getInvitationExpiresAt = () => {
   return new Date(Date.now() + ms);
 };
 
+const populateUserRoles = async (user) =>
+  user.populate({
+    path: "roles",
+    populate: {
+      path: "permissions",
+    },
+  });
+
 // Create a new invited user (no password required).
 // Generates a secure invitation token and logs the invite link to the console.
 const createUserService = async ({ name, email, roles }) => {
@@ -59,7 +67,7 @@ const createUserService = async ({ name, email, roles }) => {
     `[INVITATION] Invitation sent to ${email}:\n  Link: ${invitationLink}\n  Code: ${rawCode}\n  Expires: ${expiresAt.toISOString()}`,
   );
 
-  return { user, invitationCode: rawCode };
+  return { user: await populateUserRoles(user), invitationCode: rawCode };
 };
 
 // Mark a user as inactive.
@@ -77,7 +85,7 @@ const deactivateUserService = async (userId) => {
 
   await user.save();
 
-  return user;
+  return populateUserRoles(user);
 };
 
 // Mark a user as active.
@@ -95,7 +103,7 @@ const activateUserService = async (userId) => {
 
   await user.save();
 
-  return user;
+  return populateUserRoles(user);
 };
 
 // Update an existing user record.
@@ -157,7 +165,7 @@ const updateUserService = async (userId, updateData) => {
       // remove email from updateData to avoid double-assigning below
       delete updateData.email;
 
-      return { user, invitationCode: rawCode };
+      return { user: await populateUserRoles(user), invitationCode: rawCode };
     }
   }
 
@@ -165,7 +173,7 @@ const updateUserService = async (userId, updateData) => {
 
   await user.save();
 
-  return { user, invitationCode: null };
+  return { user: await populateUserRoles(user), invitationCode: null };
 };
 
 // Soft delete a user record.
@@ -185,7 +193,7 @@ const softDeleteUserService = async (userId, deletedByUserId) => {
 
   await user.save();
 
-  return user;
+  return populateUserRoles(user);
 };
 
 // Get a user by id.
@@ -204,19 +212,19 @@ const getUserByIdService = async (userId) => {
     throw new NotFoundError("User not found.");
   }
 
-  return user;
+  return populateUserRoles(user);
 };
 
 // Get all active users.
 const getAllUsersService = async () => {
-  const users = await User.find({ deletedAt: null });
+  const users = await User.find({ deletedAt: null }).populate("roles");
 
   return users;
 };
 
 // Get all soft-deleted users.
 const getDeletedUsersService = async () => {
-  const users = await User.find({ deletedAt: { $ne: null } });
+  const users = await User.find({ deletedAt: { $ne: null } }).populate("roles");
 
   return users;
 };
@@ -238,7 +246,7 @@ const restoreUserService = async (userId) => {
 
   await user.save();
 
-  return user;
+  return populateUserRoles(user);
 };
 
 export {

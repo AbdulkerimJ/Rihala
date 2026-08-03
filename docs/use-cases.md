@@ -1,6 +1,6 @@
 # Use Cases
 
-This document captures the major workflows that are currently implemented in the backend.
+This document captures the major workflows that are currently implemented in the backend, followed by the planned future workflows.
 
 ## Implemented use cases
 
@@ -48,14 +48,64 @@ Authenticated users with the appropriate permissions can create, view, update, f
 
 Authenticated users with the appropriate permissions can create, view, update, search, sort, paginate, and filter customers.
 
+---
+
 ## Planned future use cases
 
-The following workflows are discussed in the business documentation but are not yet implemented:
+The following workflows are discussed in the business documentation but are not yet implemented.
 
-- manage workers
-- manage contracts
-- manage suppliers
-- manage purchases
-- manage orders
-- manage payments
-- view dashboard summaries and reports
+### Manage employees
+
+Staff can create and update employee profiles, including employment start and end dates.
+
+### Manage employee daily rates
+
+Staff can record a new daily rate for an employee with an effective date, preserving the full rate history. Historical calculations continue to use the rate that was applicable on the relevant date.
+
+### Record attendance
+
+Staff can manually record morning and afternoon attendance (`PRESENT` or `REST`) for an employee on a specific working day (Monday–Saturday, within the employee's employment period).
+
+### Record overtime
+
+Staff can record an overtime event for an employee with a date, duration (`HALF_DAY` or `FULL_DAY`), and an optional note. Overtime is calculated at 2× the applicable daily rate.
+
+### Review weekly attendance
+
+Staff can review an employee's attendance and overtime records for a given Monday–Sunday week and identify any missing required attendance records before settling.
+
+### Settle a week
+
+Staff can finalize a weekly settlement for a specific employee and week (Monday–Sunday). The system calculates normal earnings and overtime earnings, takes into account any financial adjustments, and records the finalized result. The settlement status moves from `OPEN` to `SETTLED`.
+
+### Record an employee payment
+
+Staff can record a payment made to an employee, specifying the employee, payment date, amount, and optional note. The system allocates the payment to outstanding balances using oldest-outstanding-balance-first. Excess payment over the current outstanding balance is recorded as an advance.
+
+### Record a post-settlement adjustment
+
+Staff can record a financial adjustment for an employee after a week has been settled. The adjustment specifies an amount and reason. The original settlement record remains intact; the adjustment affects the employee's current financial position.
+
+### Manage contractors
+
+Staff can create and update contractor profiles.
+
+### Manage contracts
+
+Staff can create and update contracts (agreements/deals) associated with a contractor.
+
+### Manage suppliers
+
+Staff can create and update supplier records.
+
+### Manage purchases
+
+Staff can record and track material purchases associated with suppliers.
+
+### Manage customer orders
+
+Staff can create, update, and track the status of customer furniture orders.
+
+### View dashboard summaries and reports
+
+Authenticated users can view business summaries, expense overviews, employee balance summaries, and other operational statistics.

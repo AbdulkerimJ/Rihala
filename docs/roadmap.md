@@ -1,4 +1,3 @@
-```markdown
 # Rihala Roadmap
 
 > **Project:** Rihala
@@ -168,25 +167,30 @@ The remaining roadmap areas are still planned or in progress rather than impleme
 
 ## Planned next
 
-### Orders
+### Customer Orders
 
-- [ ] Create order
-- [ ] Update order
+- [ ] Create customer order
+- [ ] Update customer order
 - [ ] Order status
 - [ ] Order history
 
-### Workers
+### Employees
 
-- [ ] Regular workers
-- [ ] Contract workers
-- [ ] Worker profiles
+> Domain decisions finalized. Ready for implementation.
 
-### Contracts
+- [ ] Employee profiles (name, contact, employment period)
+- [ ] Employee daily-rate records with effective dates
+- [ ] Attendance recording (morning + afternoon, Mon–Sat)
+- [ ] Overtime recording (HALF_DAY / FULL_DAY, 2× rate)
+- [ ] Weekly settlement per employee (Mon–Sun, OPEN → SETTLED)
+- [ ] Post-settlement adjustments
+- [ ] Employee payment recording and allocation (oldest-first)
+- [ ] Advance handling
 
-- [ ] Create contract
-- [ ] Agreed payment
-- [ ] Contract status
-- [ ] Multiple contracts per worker
+### Contractors
+
+- [ ] Contractor profiles
+- [ ] Contract (agreement/deal) management
 
 ### Suppliers
 
@@ -199,11 +203,11 @@ The remaining roadmap areas are still planned or in progress rather than impleme
 - [ ] Purchase status
 - [ ] Outstanding balance
 
-### Payments
+### Payments (non-employee)
 
 > **Deferred**
 
-The payment model will be finalized after the complete business domain is fully understood.
+The payment model for non-employee transactions will be finalized after the complete business domain is fully understood.
 
 ---
 
@@ -212,9 +216,9 @@ The payment model will be finalized after the complete business domain is fully 
 ## Features
 
 - [ ] Monthly expenses
-- [ ] Outstanding supplier balances
+- [ ] Outstanding employee balances
 - [ ] Active contracts
-- [ ] Orders in progress
+- [ ] Customer orders in progress
 - [ ] Recent activities
 - [ ] Quick statistics
 
@@ -333,8 +337,8 @@ Reuse the same REST API.
 
 - [ ] Authentication
 - [ ] Dashboard
-- [ ] Orders
-- [ ] Workers
+- [ ] Customer Orders
+- [ ] Employees
 - [ ] Purchases
 - [ ] Expenses
 - [ ] Offline improvements
@@ -371,7 +375,8 @@ Reuse the same REST API.
 
 - Profit & Loss
 - Expense reports
-- Worker reports
+- Employee reports
+- Contractor reports
 - Supplier reports
 - Sales reports
 
@@ -422,8 +427,8 @@ The MVP is considered successful when:
 
 - Users can securely log in.
 - The business can manage customers.
-- The business can manage workers.
-- Orders can be tracked.
+- The business can manage employees (attendance, overtime, weekly settlements).
+- Customer orders can be tracked.
 - Supplier purchases can be recorded.
 - Operating expenses can be managed.
 - Core business information is available from the dashboard.
@@ -441,4 +446,3 @@ The MVP is considered successful when:
 - Document important architectural decisions.
 - Use modern software engineering practices.
 - Solve real business problems, not hypothetical ones.
-```

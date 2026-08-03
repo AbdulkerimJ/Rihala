@@ -80,13 +80,24 @@ The system currently supports:
 
 ## Planned
 
-### Worker Management
+### Employee Management
 
 Planned future functionality includes:
 
-- managing regular workers
-- managing contract workers
-- storing worker details
+- managing employee profiles (name, contact details, employment start and end dates)
+- recording and tracking daily attendance (morning and afternoon half-day records)
+- recording overtime with date, duration, and optional note
+- maintaining a history of daily-rate changes per employee
+- calculating weekly earnings based on attendance and overtime
+- weekly settlement per employee (Monday–Sunday period)
+- recording post-settlement adjustments and corrections
+
+### Contractor Management
+
+Planned future functionality includes:
+
+- managing contractor profiles
+- associating contractors with contracts/agreements
 
 ### Contract Management
 
@@ -94,7 +105,7 @@ Planned future functionality includes:
 
 - creating and updating contracts
 - tracking contract status
-- associating contracts with workers
+- associating contracts with contractors
 
 ### Supplier Management
 
@@ -123,7 +134,10 @@ Planned future functionality includes:
 
 Planned future functionality includes:
 
-- separate payment tracking for business transactions
+- recording actual payments made to employees
+- oldest-outstanding-balance-first payment allocation
+- advance handling when payment exceeds current outstanding balance
+- separate payment tracking for other business transactions
 
 ### Dashboard
 

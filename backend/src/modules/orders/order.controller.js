@@ -4,10 +4,10 @@ import {
   getOrderByIdService,
   updateOrderService,
 } from "./order.service.js";
-import {catchAsync} from "../../core/utils/catchAsync.js";
+import { catchAsync } from "../../core/utils/catchAsync.js";
 
 const createOrder = catchAsync(async (req, res) => {
-  const order = await createOrderService(req.validatedBody, req.user._id);
+  const order = await createOrderService(req.validatedBody, req.user.id);
   res.status(201).json({
     success: true,
     message: "Order created successfully.",

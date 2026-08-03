@@ -4,7 +4,7 @@
 
 Rihala is a workshop management system designed to help furniture manufacturing businesses manage daily operations. The current implementation focuses on a solid backend foundation for authentication, access control, expense management, and customer management.
 
-The long-term goal remains to replace paper-based records and scattered spreadsheets with a centralized system that can eventually support customers, orders, workers, purchases, expenses, and business reporting.
+The long-term goal remains to replace paper-based records and scattered spreadsheets with a centralized system that can eventually support customers, orders, employees, contractors, purchases, expenses, and business reporting.
 
 ---
 
@@ -20,7 +20,8 @@ The implemented backend currently supports:
 
 The following areas are still planned rather than implemented:
 
-- worker management
+- employee management (attendance, overtime, weekly settlements)
+- contractor management
 - contract management
 - supplier management
 - purchase management

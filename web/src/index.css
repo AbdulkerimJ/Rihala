@@ -5,8 +5,8 @@
 @layer base {
   :root {
     /* Light Theme (Warm & Elegant) */
-    --bg-main: 253 251 247; /* #FDFBF7 */
-    --bg-surface: 255 252 247; /* #FFFCF7 */
+    --bg-main: 255 247 188; /* #FFF7BC */
+    --bg-surface: 255 251 244; /* #FFFBF4 */
 
     --color-primary: 6 78 59; /* #064E3B (Forest Green) */
     --color-primary-hover: 4 47 46; /* #042F2E */

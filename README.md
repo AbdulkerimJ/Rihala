@@ -15,11 +15,12 @@ Implemented modules:
 
 Planned modules:
 
-- Workers
+- Employees (attendance, overtime, daily rates, weekly settlements, adjustments)
+- Contractors
 - Contracts
 - Suppliers
 - Purchases
-- Orders
+- Customer Orders
 - Payments
 - Dashboard and reporting
 

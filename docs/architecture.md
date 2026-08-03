@@ -71,7 +71,7 @@ The frontend keeps the access token in memory only. Web refresh tokens stay in H
 
 ### Authorization
 
-Authorization is based on permissions assigned to roles. The authorization middleware resolves the user’s permissions dynamically from their assigned roles and checks the required permission name.
+Authorization is based on permissions assigned to roles. The authorization middleware resolves the user's permissions dynamically from their assigned roles and checks the required permission name.
 
 The frontend mirrors this through `hasPermission` in [web/src/context/AuthContext.jsx](../web/src/context/AuthContext.jsx), the `Can` component in [web/src/components/Can.jsx](../web/src/components/Can.jsx), and permission-guarded route entries in [web/src/app/router.jsx](../web/src/app/router.jsx). This is a UX layer only; backend authorization remains authoritative.
 
@@ -105,3 +105,55 @@ The architecture uses a two-level query design:
 2. The shared query utility defines how the query is executed.
 
 This pattern is currently used by Expenses and Customers.
+
+---
+
+## Planned module structure
+
+The following module layout is the intended direction for the next implementation phase. These modules do not exist yet and must not be confused with the currently implemented modules above.
+
+```text
+backend/src/modules/
+├── auth/                  (implemented)
+├── users/                 (implemented)
+├── roles/                 (implemented)
+├── permissions/           (implemented)
+├── expenses/              (implemented)
+├── customers/             (implemented)
+├── orders/                (implemented — frontend and partial backend)
+│
+├── employees/             (planned)
+│   ├── employee           — Employee profiles and employment period
+│   ├── employee-rates     — Daily-rate history per employee
+│   ├── attendance         — Morning/afternoon attendance records (Mon–Sat)
+│   ├── overtime           — Overtime records (HALF_DAY / FULL_DAY, 2× rate)
+│   ├── settlements        — Weekly settlement per employee (Mon–Sun, OPEN → SETTLED)
+│   └── adjustments        — Post-settlement corrections
+│
+├── contractors/           (planned)
+│   └── contractor         — Contractor profiles
+│
+├── contracts/             (planned)
+│   └── contract           — Contracts/deals between workshop and contractors
+│
+├── payments/              (planned)
+│   └── payment            — Employee payment records with oldest-first allocation
+│
+├── suppliers/             (planned)
+│   └── supplier
+│
+└── purchases/             (planned)
+    └── purchase
+```
+
+The exact file names within each planned module should follow the existing naming convention used by implemented modules (e.g., `employee.model.js`, `employee.service.js`, `employee.controller.js`, `employee.routes.js`, `employee.validation.js`).
+
+### Key design constraints for planned employee modules
+
+- **Employee** and **Contractor** are separate domain concepts with separate modules. Do not merge them into a single `workers` module.
+- **EmployeeRate** records belong to the `employees/employee-rates` sub-area and must support full rate history (one record per rate change, with an effective date).
+- **Attendance** records are per-employee per-date. Only one record per employee per date is allowed. Only Mon–Sat records are created as normal attendance.
+- **Overtime** is a separate record from attendance. No overtime subtypes (Sunday, night, etc.) exist in the MVP.
+- **WeeklySettlement** is per-employee per-week (Mon–Sun). The status lifecycle is `OPEN → SETTLED`. Settled records are not reopened.
+- **SettlementAdjustment** records are used for post-settlement corrections and do not alter the original settlement record.
+- **Payment** allocation follows oldest-outstanding-balance-first. Excess payment becomes an advance.
