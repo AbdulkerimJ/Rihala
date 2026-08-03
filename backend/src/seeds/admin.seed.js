@@ -49,6 +49,11 @@ const ALL_PERMISSIONS = [
   { name: "employeeRates.read", description: "View employee rates" },
   { name: "employeeRates.create", description: "Create employee rates" },
   { name: "employeeRates.update", description: "Update employee rates" },
+
+  // Attendance module permissions
+  { name: "attendances.read", description: "View attendances" },
+  { name: "attendances.create", description: "Create attendances" },
+  { name: "attendances.update", description: "Update attendances" },
 ];
 
 const ADMIN_ROLE_NAME = "Admin";
