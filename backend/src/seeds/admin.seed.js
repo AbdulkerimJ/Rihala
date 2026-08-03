@@ -54,6 +54,11 @@ const ALL_PERMISSIONS = [
   { name: "attendances.read", description: "View attendances" },
   { name: "attendances.create", description: "Create attendances" },
   { name: "attendances.update", description: "Update attendances" },
+
+  // Overtime module permissions
+  { name: "overtimes.read", description: "View overtime" },
+  { name: "overtimes.create", description: "Create overtime" },
+  { name: "overtimes.update", description: "Update overtime" },
 ];
 
 const ADMIN_ROLE_NAME = "Admin";

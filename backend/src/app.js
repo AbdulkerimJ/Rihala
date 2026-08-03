@@ -15,6 +15,7 @@ import orderRoutes from "./modules/orders/order.routes.js";
 import employeeRoutes from "./modules/employees/employee.routes.js";
 import employeeRateRoutes from "./modules/employeeRates/employeeRate.routes.js";
 import attendanceRoutes from "./modules/attendances/attendance.routes.js";
+import overtimeRoutes from "./modules/overtimes/overtime.routes.js";
 
 const app = express();
 
@@ -66,6 +67,7 @@ app.use("/api/v1/orders", orderRoutes);
 app.use("/api/v1/employees", employeeRoutes);
 app.use("/api/v1/employee-rates", employeeRateRoutes);
 app.use("/api/v1/attendances", attendanceRoutes);
+app.use("/api/v1/overtimes", overtimeRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
