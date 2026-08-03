@@ -12,6 +12,8 @@ import permissionRoutes from "./modules/permissions/permission.routes.js";
 import expenseRoutes from "./modules/expenses/expense.routes.js";
 import customerRoutes from "./modules/customers/customer.routes.js";
 import orderRoutes from "./modules/orders/order.routes.js";
+import employeeRoutes from "./modules/employees/employee.routes.js";
+import employeeRateRoutes from "./modules/employeeRates/employeeRate.routes.js";
 
 const app = express();
 
@@ -60,6 +62,8 @@ app.use("/api/v1/permissions", permissionRoutes);
 app.use("/api/v1/expenses", expenseRoutes);
 app.use("/api/v1/customers", customerRoutes);
 app.use("/api/v1/orders", orderRoutes);
+app.use("/api/v1/employees", employeeRoutes);
+app.use("/api/v1/employee-rates", employeeRateRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

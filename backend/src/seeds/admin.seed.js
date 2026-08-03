@@ -39,6 +39,16 @@ const ALL_PERMISSIONS = [
   { name: "orders.read", description: "View orders" },
   { name: "orders.create", description: "Create orders" },
   { name: "orders.update", description: "Update orders" },
+
+  // Employee module permissions
+  { name: "employees.read", description: "View employees" },
+  { name: "employees.create", description: "Create employees" },
+  { name: "employees.update", description: "Update employees" },
+
+  // Employee rate module permissions
+  { name: "employeeRates.read", description: "View employee rates" },
+  { name: "employeeRates.create", description: "Create employee rates" },
+  { name: "employeeRates.update", description: "Update employee rates" },
 ];
 
 const ADMIN_ROLE_NAME = "Admin";
