@@ -63,6 +63,12 @@ const ALL_PERMISSIONS = [
   // Weekly payroll permissions
   { name: "weeklyPayrolls.read", description: "View weekly payrolls" },
   { name: "weeklyPayrolls.close", description: "Close weekly payrolls" },
+
+  // Payment module permissions
+  { name: "payments.read", description: "View payments" },
+  { name: "payments.create", description: "Create payments" },
+  { name: "payments.update", description: "Update payments" },
+  { name: "payments.delete", description: "Delete payments" },
 ];
 
 const ADMIN_ROLE_NAME = "Admin";

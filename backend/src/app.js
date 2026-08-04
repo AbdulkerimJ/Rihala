@@ -17,6 +17,7 @@ import employeeRateRoutes from "./modules/employeeRates/employeeRate.routes.js";
 import attendanceRoutes from "./modules/attendances/attendance.routes.js";
 import overtimeRoutes from "./modules/overtimes/overtime.routes.js";
 import weeklyPayrollRoutes from "./modules/weeklyPayrolls/weeklyPayroll.routes.js";
+import paymentRoutes from "./modules/payments/payment.routes.js";
 
 const app = express();
 
@@ -70,6 +71,7 @@ app.use("/api/v1/employee-rates", employeeRateRoutes);
 app.use("/api/v1/attendances", attendanceRoutes);
 app.use("/api/v1/overtimes", overtimeRoutes);
 app.use("/api/v1/weekly-payrolls", weeklyPayrollRoutes);
+app.use("/api/v1/payments", paymentRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
