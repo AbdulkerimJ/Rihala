@@ -3,9 +3,7 @@ import { z } from "zod";
 const mongoIdRegex = /^[0-9a-fA-F]{24}$/;
 const attendanceStatuses = ["PRESENT", "ABSENT", "PERMISSION"];
 
-const attendanceStatusSchema = z.enum(attendanceStatuses, {
-  error: "Status must be PRESENT, ABSENT, or PERMISSION.",
-});
+const attendanceStatusSchema = z.enum(attendanceStatuses);
 
 const isWorkday = (date) => {
   const day = date.getDay();

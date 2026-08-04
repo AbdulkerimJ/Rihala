@@ -3,9 +3,7 @@ import { z } from "zod";
 const mongoIdRegex = /^[0-9a-fA-F]{24}$/;
 const overtimeDurations = ["HALF_DAY", "FULL_DAY"];
 
-const overtimeDurationSchema = z.enum(overtimeDurations, {
-  error: "Duration must be HALF_DAY or FULL_DAY.",
-});
+const overtimeDurationSchema = z.enum(overtimeDurations);
 
 const normalizeDateValue = (value) => {
   if (!value) {

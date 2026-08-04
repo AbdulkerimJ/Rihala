@@ -59,6 +59,10 @@ const ALL_PERMISSIONS = [
   { name: "overtimes.read", description: "View overtime" },
   { name: "overtimes.create", description: "Create overtime" },
   { name: "overtimes.update", description: "Update overtime" },
+
+  // Weekly payroll permissions
+  { name: "weeklyPayrolls.read", description: "View weekly payrolls" },
+  { name: "weeklyPayrolls.close", description: "Close weekly payrolls" },
 ];
 
 const ADMIN_ROLE_NAME = "Admin";
