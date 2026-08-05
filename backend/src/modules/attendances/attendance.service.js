@@ -1,22 +1,13 @@
 import Attendance from "./attendance.model.js";
-import Employee from "../employees/employee.model.js";
+import { ensureEmployeeExists } from "../employees/employee.service.js";
 import attendanceQueryConfig from "./attendance.query.js";
 import ConflictError from "../../core/errors/ConflictError.js";
 import NotFoundError from "../../core/errors/NotFoundError.js";
 import ValidationError from "../../core/errors/ValidationError.js";
 import { getPaginatedQueryResult } from "../../core/utils/query.js";
+import { normalizeDateValue } from "../../core/utils/date.js";
 
 const ATTENDANCE_STATUSES = ["PRESENT", "ABSENT", "PERMISSION"];
-
-const normalizeDateValue = (value) => {
-  if (!value) {
-    return null;
-  }
-
-  const parsedDate = new Date(value);
-  parsedDate.setHours(0, 0, 0, 0);
-  return parsedDate;
-};
 
 const isWorkday = (date) => {
   const day = date.getDay();
@@ -36,16 +27,6 @@ const calculateDailyAttendancePortion = (morningStatus, afternoonStatus) => {
   }
 
   return 0;
-};
-
-const ensureEmployeeExists = async (employeeId) => {
-  const employee = await Employee.findById(employeeId);
-
-  if (!employee) {
-    throw new NotFoundError("Employee not found.");
-  }
-
-  return employee;
 };
 
 const ensureAttendanceDateIsValid = (employee, workDate) => {
@@ -144,6 +125,7 @@ const updateAttendanceService = async (attendanceId, updateData) => {
 
 export {
   ATTENDANCE_STATUSES,
+  isWorkday,
   calculateDailyAttendancePortion,
   createAttendanceService,
   getAttendancesService,

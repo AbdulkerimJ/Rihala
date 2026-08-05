@@ -1,35 +1,16 @@
 import Overtime from "./overtime.model.js";
-import Employee from "../employees/employee.model.js";
+import { ensureEmployeeExists } from "../employees/employee.service.js";
 import overtimeQueryConfig from "./overtime.query.js";
 import ConflictError from "../../core/errors/ConflictError.js";
 import NotFoundError from "../../core/errors/NotFoundError.js";
 import ValidationError from "../../core/errors/ValidationError.js";
 import { getPaginatedQueryResult } from "../../core/utils/query.js";
 import { getApplicableRateService } from "../employeeRates/employeeRate.service.js";
-
-const normalizeDateValue = (value) => {
-  if (!value) {
-    return null;
-  }
-
-  const parsedDate = new Date(value);
-  parsedDate.setHours(0, 0, 0, 0);
-  return parsedDate;
-};
+import { normalizeDateValue } from "../../core/utils/date.js";
 
 const calculateOvertimeAmount = (dailyRate, duration) => {
   const durationFactor = duration === "HALF_DAY" ? 0.5 : 1;
   return dailyRate * 2 * durationFactor;
-};
-
-const ensureEmployeeExists = async (employeeId) => {
-  const employee = await Employee.findById(employeeId);
-
-  if (!employee) {
-    throw new NotFoundError("Employee not found.");
-  }
-
-  return employee;
 };
 
 const ensureEmploymentPeriodIsValid = (employee, workDate) => {

@@ -1,24 +1,11 @@
 import { z } from "zod";
+import { isWorkday } from "./attendance.service.js";
+import { normalizeDateValue } from "../../core/utils/date.js";
 
 const mongoIdRegex = /^[0-9a-fA-F]{24}$/;
 const attendanceStatuses = ["PRESENT", "ABSENT", "PERMISSION"];
 
 const attendanceStatusSchema = z.enum(attendanceStatuses);
-
-const isWorkday = (date) => {
-  const day = date.getDay();
-  return day >= 1 && day <= 6;
-};
-
-const normalizeDateValue = (value) => {
-  if (!value) {
-    return null;
-  }
-
-  const parsedDate = new Date(value);
-  parsedDate.setHours(0, 0, 0, 0);
-  return parsedDate;
-};
 
 const createAttendanceSchema = z
   .object({

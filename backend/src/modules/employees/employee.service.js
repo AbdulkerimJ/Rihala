@@ -5,15 +5,16 @@ import NotFoundError from "../../core/errors/NotFoundError.js";
 import ValidationError from "../../core/errors/ValidationError.js";
 import { getPaginatedQueryResult } from "../../core/utils/query.js";
 import { normalizePhone } from "../../core/utils/phone.js";
+import { normalizeDateValue } from "../../core/utils/date.js";
 
-const normalizeDateValue = (value) => {
-  if (!value) {
-    return null;
+const ensureEmployeeExists = async (employeeId) => {
+  const employee = await Employee.findById(employeeId);
+
+  if (!employee) {
+    throw new NotFoundError("Employee not found.");
   }
 
-  const parsedDate = new Date(value);
-  parsedDate.setHours(0, 0, 0, 0);
-  return parsedDate;
+  return employee;
 };
 
 const normalizeEmployeePayload = (data = {}) => {
@@ -79,13 +80,7 @@ const getEmployeesService = async (filters = {}) => {
 };
 
 const getEmployeeByIdService = async (employeeId) => {
-  const employee = await Employee.findById(employeeId);
-
-  if (!employee) {
-    throw new NotFoundError("Employee not found.");
-  }
-
-  return employee;
+  return ensureEmployeeExists(employeeId);
 };
 
 const updateEmployeeService = async (employeeId, updateData) => {
@@ -122,6 +117,7 @@ const updateEmployeeService = async (employeeId, updateData) => {
 };
 
 export {
+  ensureEmployeeExists,
   createEmployeeService,
   getEmployeesService,
   getEmployeeByIdService,

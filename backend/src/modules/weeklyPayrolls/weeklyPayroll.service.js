@@ -1,5 +1,5 @@
 import WeeklyPayroll from "./weeklyPayroll.model.js";
-import Employee from "../employees/employee.model.js";
+import { ensureEmployeeExists } from "../employees/employee.service.js";
 import Attendance from "../attendances/attendance.model.js";
 import Overtime from "../overtimes/overtime.model.js";
 import EmployeeRate from "../employeeRates/employeeRate.model.js";
@@ -35,16 +35,6 @@ const normalizeDateValue = (value) => {
 const isWorkday = (date) => {
   const day = date.getUTCDay();
   return day >= 1 && day <= 6;
-};
-
-const ensureEmployeeExists = async (employeeId) => {
-  const employee = await Employee.findById(employeeId);
-
-  if (!employee) {
-    throw new NotFoundError("Employee not found.");
-  }
-
-  return employee;
 };
 
 const getLatestClosedPayroll = async (employeeId) => {

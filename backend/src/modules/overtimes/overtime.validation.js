@@ -1,23 +1,10 @@
 import { z } from "zod";
+import { normalizeDateValue } from "../../core/utils/date.js";
 
 const mongoIdRegex = /^[0-9a-fA-F]{24}$/;
 const overtimeDurations = ["HALF_DAY", "FULL_DAY"];
 
 const overtimeDurationSchema = z.enum(overtimeDurations);
-
-const normalizeDateValue = (value) => {
-  if (!value) {
-    return null;
-  }
-
-  const parsedDate = new Date(value);
-  if (Number.isNaN(parsedDate.getTime())) {
-    return null;
-  }
-
-  parsedDate.setHours(0, 0, 0, 0);
-  return parsedDate;
-};
 
 const createOvertimeSchema = z
   .object({

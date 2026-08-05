@@ -1,29 +1,10 @@
 import EmployeeRate from "./employeeRate.model.js";
-import Employee from "../employees/employee.model.js";
+import { ensureEmployeeExists } from "../employees/employee.service.js";
 import employeeRateQueryConfig from "./employeeRate.query.js";
 import ConflictError from "../../core/errors/ConflictError.js";
 import NotFoundError from "../../core/errors/NotFoundError.js";
 import { getPaginatedQueryResult } from "../../core/utils/query.js";
-
-const normalizeDateValue = (value) => {
-  if (!value) {
-    return null;
-  }
-
-  const parsedDate = new Date(value);
-  parsedDate.setHours(0, 0, 0, 0);
-  return parsedDate;
-};
-
-const ensureEmployeeExists = async (employeeId) => {
-  const employee = await Employee.findById(employeeId);
-
-  if (!employee) {
-    throw new NotFoundError("Employee not found.");
-  }
-
-  return employee;
-};
+import { normalizeDateValue } from "../../core/utils/date.js";
 
 const createEmployeeRateService = async (data) => {
   const normalizedData = {
