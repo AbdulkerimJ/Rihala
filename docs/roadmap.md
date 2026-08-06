@@ -176,16 +176,14 @@ The remaining roadmap areas are still planned or in progress rather than impleme
 
 ### Employees
 
-> Domain decisions finalized. Ready for implementation.
+> Domain decisions finalized. Core modules implemented.
 
-- [ ] Employee profiles (name, contact, employment period)
-- [ ] Employee daily-rate records with effective dates
-- [ ] Attendance recording (morning + afternoon, Mon–Sat)
-- [ ] Overtime recording (HALF_DAY / FULL_DAY, 2× rate)
-- [ ] Weekly settlement per employee (Mon–Sun, OPEN → SETTLED)
-- [ ] Post-settlement adjustments
-- [ ] Employee payment recording and allocation (oldest-first)
-- [ ] Advance handling
+- [x] Employee profiles (name, contact, employment period)
+- [x] Employee daily-rate records with effective dates
+- [x] Attendance recording (morning + afternoon, Mon–Sat)
+- [x] Overtime recording (HALF_DAY / FULL_DAY, 2× rate)
+- [x] WeeklyPayroll calculation (dynamic continuous periods)
+- [x] Employee payment recording
 
 ### Contractors
 

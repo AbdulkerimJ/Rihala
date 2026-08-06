@@ -48,43 +48,51 @@ Authenticated users with the appropriate permissions can create, view, update, f
 
 Authenticated users with the appropriate permissions can create, view, update, search, sort, paginate, and filter customers.
 
----
-
-## Planned future use cases
-
-The following workflows are discussed in the business documentation but are not yet implemented.
-
 ### Manage employees
 
-Staff can create and update employee profiles, including employment start and end dates.
+Staff can create, view, update, and list employee profiles, including their employment start and end dates.
 
-### Manage employee daily rates
+### Manage employee rates
 
 Staff can record a new daily rate for an employee with an effective date, preserving the full rate history. Historical calculations continue to use the rate that was applicable on the relevant date.
 
 ### Record attendance
 
-Staff can manually record morning and afternoon attendance (`PRESENT` or `REST`) for an employee on a specific working day (Monday–Saturday, within the employee's employment period).
+Staff can manually record morning and afternoon attendance (`PRESENT`, `ABSENT`, or `PERMISSION`) for an employee on a specific working day (Monday–Saturday, within the employee's employment period).
 
 ### Record overtime
 
 Staff can record an overtime event for an employee with a date, duration (`HALF_DAY` or `FULL_DAY`), and an optional note. Overtime is calculated at 2× the applicable daily rate.
 
-### Review weekly attendance
+### Calculate current payroll
 
-Staff can review an employee's attendance and overtime records for a given Monday–Sunday week and identify any missing required attendance records before settling.
+Staff can request a dynamic calculation of an employee's current payroll. The system determines the period based on the employment start date or the last closed payroll, checks attendance completeness, and calculates normal and overtime earnings.
 
-### Settle a week
+### Inspect payroll completeness
 
-Staff can finalize a weekly settlement for a specific employee and week (Monday–Sunday). The system calculates normal earnings and overtime earnings, takes into account any financial adjustments, and records the finalized result. The settlement status moves from `OPEN` to `SETTLED`.
+When calculating current payroll, the system identifies any missing required attendance records. Missing attendance blocks the payroll closure process.
+
+### Close employee payroll
+
+Staff can finalize a payroll calculation for a specific employee. The system creates a permanent snapshot of the calculated earnings. The payroll status is recorded as `CLOSED` along with a `closedAt` timestamp.
 
 ### Record an employee payment
 
-Staff can record a payment made to an employee, specifying the employee, payment date, amount, and optional note. The system allocates the payment to outstanding balances using oldest-outstanding-balance-first. Excess payment over the current outstanding balance is recorded as an advance.
+Staff can record a payment made to an employee, specifying the employee, payment date, amount, and optional note. Payments are independent of the WeeklyPayroll process.
 
-### Record a post-settlement adjustment
+### View payroll history
 
-Staff can record a financial adjustment for an employee after a week has been settled. The adjustment specifies an amount and reason. The original settlement record remains intact; the adjustment affects the employee's current financial position.
+Authenticated users with the appropriate permissions can view closed payroll records.
+
+### View payment history
+
+Authenticated users with the appropriate permissions can view the history of payments made to employees.
+
+---
+
+## Planned future use cases
+
+The following workflows are discussed in the business documentation but are not yet implemented.
 
 ### Manage contractors
 

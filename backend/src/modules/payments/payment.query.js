@@ -1,7 +1,7 @@
 const paymentQueryConfig = {
   searchableFields: ["note"],
   sortableFields: ["paymentDate", "amount", "createdAt"],
-  filterableFields: ["employee"],
+  filterableFields: ["employee", "type"],
   defaultSort: "-paymentDate",
   filterTransforms: {
     from: (value) => ({

@@ -34,7 +34,11 @@ const getOrderById = catchAsync(async (req, res) => {
 });
 
 const updateOrder = catchAsync(async (req, res) => {
-  const order = await updateOrderService(req.params.id, req.validatedBody);
+  const order = await updateOrderService(
+    req.params.id,
+    req.validatedBody,
+    req.user.id
+  );
   res.status(200).json({
     success: true,
     message: "Order updated successfully.",

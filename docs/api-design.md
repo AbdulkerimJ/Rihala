@@ -303,3 +303,222 @@ This document summarizes the API surface that currently exists in the backend. I
 - Authentication: required
 - Permission: `customers.update`
 - Purpose: update a customer
+
+## Employees
+
+### List employees
+
+- Method: GET
+- Route: `/api/v1/employees`
+- Authentication: required
+- Permission: `employees.read`
+- Purpose: list employees with pagination, search, sorting, and filtering
+- Query parameters: `status`, `search`, `sort`, `page`, `limit`
+
+### Create employee
+
+- Method: POST
+- Route: `/api/v1/employees`
+- Authentication: required
+- Permission: `employees.create`
+- Purpose: create an employee
+- Body: `name`, `phone`, `employmentStartDate`, `employmentEndDate` (optional), `status` (optional)
+
+### Get employee by id
+
+- Method: GET
+- Route: `/api/v1/employees/:id`
+- Authentication: required
+- Permission: `employees.read`
+- Purpose: fetch a specific employee
+
+### Update employee
+
+- Method: PATCH
+- Route: `/api/v1/employees/:id`
+- Authentication: required
+- Permission: `employees.update`
+- Purpose: update an employee's information
+- Body: `name` (optional), `phone` (optional), `employmentStartDate` (optional), `employmentEndDate` (optional), `status` (optional)
+
+## Employee Rates
+
+### List employee rates
+
+- Method: GET
+- Route: `/api/v1/employee-rates`
+- Authentication: required
+- Permission: `employeeRates.read`
+- Purpose: list employee rates with pagination, search, sorting, and filtering
+- Query parameters: `employee`, `search`, `sort`, `page`, `limit`
+
+### Create employee rate
+
+- Method: POST
+- Route: `/api/v1/employee-rates`
+- Authentication: required
+- Permission: `employeeRates.create`
+- Purpose: record a new daily rate for an employee
+- Body: `employee`, `dailyRate`, `effectiveDate`, `note` (optional)
+
+### Get employee rate by id
+
+- Method: GET
+- Route: `/api/v1/employee-rates/:id`
+- Authentication: required
+- Permission: `employeeRates.read`
+- Purpose: fetch a specific employee rate record
+
+## Attendances
+
+### List attendances
+
+- Method: GET
+- Route: `/api/v1/attendances`
+- Authentication: required
+- Permission: `attendances.read`
+- Purpose: list attendance records with pagination, search, sorting, and filtering
+- Query parameters: `employee`, `workDate`, `from`, `to`, `search`, `sort`, `page`, `limit`
+
+### Create attendance
+
+- Method: POST
+- Route: `/api/v1/attendances`
+- Authentication: required
+- Permission: `attendances.create`
+- Purpose: record a day's attendance for an employee
+- Body: `employee`, `workDate`, `morningStatus`, `afternoonStatus`
+
+### Get attendance by id
+
+- Method: GET
+- Route: `/api/v1/attendances/:id`
+- Authentication: required
+- Permission: `attendances.read`
+- Purpose: fetch a specific attendance record
+
+### Update attendance
+
+- Method: PATCH
+- Route: `/api/v1/attendances/:id`
+- Authentication: required
+- Permission: `attendances.update`
+- Purpose: update an existing attendance record
+- Body: `morningStatus` (optional), `afternoonStatus` (optional)
+
+## Overtimes
+
+### List overtimes
+
+- Method: GET
+- Route: `/api/v1/overtimes`
+- Authentication: required
+- Permission: `overtimes.read`
+- Purpose: list overtime records with pagination, search, sorting, and filtering
+- Query parameters: `employee`, `workDate`, `from`, `to`, `search`, `sort`, `page`, `limit`
+
+### Create overtime
+
+- Method: POST
+- Route: `/api/v1/overtimes`
+- Authentication: required
+- Permission: `overtimes.create`
+- Purpose: record overtime for an employee
+- Body: `employee`, `workDate`, `duration`, `note` (optional)
+
+### Get overtime by id
+
+- Method: GET
+- Route: `/api/v1/overtimes/:id`
+- Authentication: required
+- Permission: `overtimes.read`
+- Purpose: fetch a specific overtime record
+
+### Update overtime
+
+- Method: PATCH
+- Route: `/api/v1/overtimes/:id`
+- Authentication: required
+- Permission: `overtimes.update`
+- Purpose: update an overtime record
+- Body: `duration` (optional), `note` (optional)
+
+## WeeklyPayrolls
+
+### List weekly payrolls
+
+- Method: GET
+- Route: `/api/v1/weekly-payrolls`
+- Authentication: required
+- Permission: `weeklyPayrolls.read`
+- Purpose: list closed weekly payrolls with pagination, search, sorting, and filtering
+- Query parameters: `employee`, `from`, `to`, `status`, `search`, `sort`, `page`, `limit`
+
+### Get weekly payroll by id
+
+- Method: GET
+- Route: `/api/v1/weekly-payrolls/:id`
+- Authentication: required
+- Permission: `weeklyPayrolls.read`
+- Purpose: fetch a specific closed weekly payroll
+
+### Get current payroll calculation
+
+- Method: GET
+- Route: `/api/v1/weekly-payrolls/employees/:employeeId/current`
+- Authentication: required
+- Permission: `weeklyPayrolls.read`
+- Purpose: dynamically calculate the current, unclosed payroll period for an employee
+
+### Close weekly payroll
+
+- Method: POST
+- Route: `/api/v1/weekly-payrolls/employees/:employeeId/close`
+- Authentication: required
+- Permission: `weeklyPayrolls.close`
+- Purpose: finalize the current payroll period and create a permanent CLOSED snapshot
+
+## Payments
+
+### List payments
+
+- Method: GET
+- Route: `/api/v1/payments`
+- Authentication: required
+- Permission: `payments.read`
+- Purpose: list payment records with pagination, search, sorting, and filtering
+- Query parameters: `employee`, `from`, `to`, `search`, `sort`, `page`, `limit`
+
+### Create payment
+
+- Method: POST
+- Route: `/api/v1/payments`
+- Authentication: required
+- Permission: `payments.create`
+- Purpose: record a payment to an employee
+- Body: `employee`, `amount`, `paymentDate`, `note` (optional)
+
+### Get payment by id
+
+- Method: GET
+- Route: `/api/v1/payments/:id`
+- Authentication: required
+- Permission: `payments.read`
+- Purpose: fetch a specific payment record
+
+### Update payment
+
+- Method: PATCH
+- Route: `/api/v1/payments/:id`
+- Authentication: required
+- Permission: `payments.update`
+- Purpose: update a payment record
+- Body: `employee` (optional), `amount` (optional), `paymentDate` (optional), `note` (optional)
+
+### Delete payment
+
+- Method: DELETE
+- Route: `/api/v1/payments/:id`
+- Authentication: required
+- Permission: `payments.delete`
+- Purpose: delete a payment record

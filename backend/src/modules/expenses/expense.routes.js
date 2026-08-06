@@ -8,12 +8,13 @@ import {
   createExpenseController,
   getExpenseByIdController,
   updateExpenseController,
-  deleteExpenseController,
+  voidExpenseController,
 } from "./expense.controller.js";
 import {
   createExpenseSchema,
   updateExpenseSchema,
   expenseIdSchema,
+  voidExpenseSchema,
   expenseQuerySchema,
 } from "./expense.validation.js";
 
@@ -50,11 +51,12 @@ router.patch(
   updateExpenseController,
 );
 
-router.delete(
-  "/:id",
-  authorize("expenses.delete"),
+router.patch(
+  "/:id/void",
+  authorize("expenses.void"),
   validate(expenseIdSchema, "Please check the expense id.", "params"),
-  deleteExpenseController,
+  validate(voidExpenseSchema, "Please check the void reason."),
+  voidExpenseController,
 );
 
 export default router;

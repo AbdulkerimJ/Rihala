@@ -34,6 +34,29 @@ const expenseSchema = new mongoose.Schema(
       ref: "User",
       required: [true, "Expense creator is required"],
     },
+
+    status: {
+      type: String,
+      enum: {
+        values: ["active", "voided"],
+        message: "Status must be either active or voided",
+      },
+      default: "active",
+    },
+
+    voidReason: {
+      type: String,
+      trim: true,
+    },
+
+    voidedAt: {
+      type: Date,
+    },
+
+    voidedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
   },
   {
     timestamps: true,

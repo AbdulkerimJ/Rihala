@@ -4,7 +4,7 @@ import {
   getExpensesService,
   getExpenseByIdService,
   updateExpenseService,
-  deleteExpenseService,
+  voidExpenseService,
 } from "./expense.service.js";
 
 const getAllExpensesController = catchAsync(async (req, res) => {
@@ -47,12 +47,12 @@ const updateExpenseController = catchAsync(async (req, res) => {
   });
 });
 
-const deleteExpenseController = catchAsync(async (req, res) => {
-  await deleteExpenseService(req.validatedParams.id);
+const voidExpenseController = catchAsync(async (req, res) => {
+  const expense = await voidExpenseService(req.validatedParams.id, req.validatedBody.voidReason, req.user.id);
 
   res.status(200).json({
     status: "success",
-    message: "Expense deleted successfully.",
+    data: expense,
   });
 });
 
@@ -61,5 +61,5 @@ export {
   createExpenseController,
   getExpenseByIdController,
   updateExpenseController,
-  deleteExpenseController,
+  voidExpenseController,
 };

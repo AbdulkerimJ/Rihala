@@ -11,15 +11,17 @@ const createPaymentSchema = z
     paymentDate: z.coerce.date({
       error: "Payment date must be a valid date.",
     }),
+    type: z.enum(["regular", "overtime", "bonus", "advance", "other"], {
+      errorMap: () => ({ message: "Payment type must be regular, overtime, bonus, advance, or other." }),
+    }),
     note: z.string().trim().optional(),
   })
   .strict({
-    error: "Only employee, amount, paymentDate, and note can be submitted.",
+    error: "Only employee, amount, paymentDate, type, and note can be submitted.",
   });
 
 const updatePaymentSchema = z
   .object({
-    employee: z.string().regex(mongoIdRegex, "Invalid employee id.").optional(),
     amount: z
       .number()
       .positive("Payment amount must be positive.")
@@ -29,10 +31,13 @@ const updatePaymentSchema = z
         error: "Payment date must be a valid date.",
       })
       .optional(),
+    type: z.enum(["regular", "overtime", "bonus", "advance", "other"], {
+      errorMap: () => ({ message: "Payment type must be regular, overtime, bonus, advance, or other." }),
+    }).optional(),
     note: z.string().trim().optional(),
   })
   .strict({
-    error: "Only employee, amount, paymentDate, and note can be updated.",
+    error: "Only amount, paymentDate, type, and note can be updated.",
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "At least one field is required for update.",
@@ -52,13 +57,14 @@ const paymentQuerySchema = z
       .date({ error: "The to date must be a valid date." })
       .optional(),
     search: z.string().trim().optional(),
+    type: z.enum(["regular", "overtime", "bonus", "advance", "other"]).optional(),
     sort: z.string().trim().optional(),
     page: z.coerce.number().int().positive().optional(),
     limit: z.coerce.number().int().positive().optional(),
   })
   .strict({
     error:
-      "Only employee, from, to, search, sort, page, and limit are allowed.",
+      "Only employee, from, to, search, type, sort, page, and limit are allowed.",
   });
 
 export {

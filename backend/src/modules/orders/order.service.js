@@ -39,14 +39,36 @@ const ensureCustomerCanBeUsed = async (customerId) => {
   return customer;
 };
 
+const generateOrderNumber = async () => {
+  const count = await Order.countDocuments();
+  return `ORD-${(count + 1001).toString()}`;
+};
+
 const createOrderService = async (data, userId) => {
+  const customer = await ensureCustomerCanBeUsed(data.customer);
+
+  const orderNumber = await generateOrderNumber();
+
+  const existing = await Order.findOne({ orderNumber });
+  if (existing) {
+    throw new ConflictError("Order number already exists.");
+  }
+
   const normalizedData = {
     ...data,
+    orderNumber,
+    customerName: customer.name,
+    customerPhone: customer.phone,
     createdBy: userId,
+    date: data.date || new Date(),
     status: "pending",
+    statusHistory: [
+      {
+        status: "pending",
+        changedBy: userId,
+      },
+    ],
   };
-
-  await ensureCustomerCanBeUsed(normalizedData.customer);
 
   const order = await Order.create(normalizedData);
 
@@ -72,32 +94,41 @@ const getOrderByIdService = async (orderId) => {
   return order;
 };
 
-const updateOrderService = async (orderId, updateData) => {
+const updateOrderService = async (orderId, updateData, userId) => {
   const order = await Order.findById(orderId);
 
   if (!order) {
     throw new NotFoundError("Order not found.");
   }
 
-  if (updateData.customer !== undefined) {
-    await ensureCustomerCanBeUsed(updateData.customer);
+  if (order.status === "completed" || order.status === "cancelled") {
+    throw new ValidationError("Cannot modify a completed or cancelled order.");
   }
 
-  if (updateData.status !== undefined) {
+  if (updateData.customer !== undefined && updateData.customer.toString() !== order.customer.toString()) {
+    const customer = await ensureCustomerCanBeUsed(updateData.customer);
+    order.customerName = customer.name;
+    order.customerPhone = customer.phone;
+    order.customer = customer._id;
+  }
+
+  if (updateData.status !== undefined && updateData.status !== order.status) {
     if (!isValidStatusTransition(order.status, updateData.status)) {
       throw new ValidationError("Invalid order status transition.");
     }
+    order.statusHistory.push({
+      status: updateData.status,
+      changedBy: userId,
+    });
+    order.status = updateData.status;
   }
 
-  if (updateData.createdBy !== undefined) {
-    throw new ValidationError("createdBy cannot be changed.");
-  }
+  if (updateData.date) order.date = updateData.date;
+  if (updateData.items) order.items = updateData.items;
+  if (updateData.agreedAmount !== undefined) order.agreedAmount = updateData.agreedAmount;
+  if (updateData.expectedCompletionDate) order.expectedCompletionDate = updateData.expectedCompletionDate;
+  if (updateData.notes !== undefined) order.notes = updateData.notes;
 
-  if (updateData.createdAt !== undefined) {
-    throw new ValidationError("createdAt cannot be changed.");
-  }
-
-  Object.assign(order, updateData);
   await order.save();
 
   return order.populate(["customer", "createdBy"]);

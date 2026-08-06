@@ -92,17 +92,11 @@ Important fields:
 
 Customers are separate from users and do not have a userId relationship.
 
----
-
-## Planned future entities
-
-The following concepts are discussed in the business documents but are not implemented in the current backend.
-
 ### Employee
 
 Represents a regular worker employed directly by the workshop.
 
-Planned fields:
+Important fields:
 
 - name
 - contact details
@@ -110,13 +104,13 @@ Planned fields:
 - employmentEndDate (optional)
 - status: active or inactive
 
-An employee is separate from a system user and separate from a contractor. Employees participate in the daily-rate attendance and weekly settlement workflow.
+An employee is separate from a system user and separate from a contractor. Employees participate in the daily-rate attendance and payroll workflow.
 
 ### EmployeeRate
 
 Represents a daily rate record for an employee, including a history of rate changes.
 
-Planned fields:
+Important fields:
 
 - employee reference
 - dailyRate (e.g., 500 ETB)
@@ -128,7 +122,7 @@ A new rate record is created each time the daily rate changes. Historical attend
 
 Represents a single day's attendance record for an employee.
 
-Planned fields:
+Important fields:
 
 - employee reference
 - workDate
@@ -139,7 +133,6 @@ Constraints:
 
 - One record per employee per date.
 - Only created for employees (not contractors).
-- Not created for Sunday as a normal attendance record.
 - Must fall within the employee's employment period.
 
 The daily paid portion is derived from the two status fields:
@@ -152,7 +145,7 @@ The daily paid portion is derived from the two status fields:
 
 Represents an overtime record for an employee on a specific date.
 
-Planned fields:
+Important fields:
 
 - employee reference
 - workDate
@@ -161,53 +154,46 @@ Planned fields:
 
 Overtime is separate from attendance. An employee may have both an attendance record and an overtime record on the same date. The overtime rate is 2× the applicable daily rate.
 
-### WeeklySettlement
+### WeeklyPayroll
 
-Represents the finalized financial result for one employee for one Monday–Sunday period.
+Represents a finalized financial result for one employee for a dynamically calculated period.
 
-Planned fields:
+Important fields:
 
 - employee reference
-- weekStartDate (Monday)
-- weekEndDate (Sunday)
-- status: `OPEN` or `SETTLED`
-- calculated earnings snapshot fields as needed for historical consistency
+- startDate
+- endDate
+- normalEarnings
+- overtimeEarnings
+- totalEarnings
+- status: `CLOSED`
+- closedAt
 
 Constraints:
 
-- One settlement record per employee per week.
-- A settled record is not reopened by subsequent payments.
-- Post-settlement corrections are handled through SettlementAdjustment records.
-
-### SettlementAdjustment
-
-Represents a post-settlement correction or adjustment for an employee.
-
-Planned fields:
-
-- employee reference
-- weeklySettlement reference (optional, for traceability)
-- amount (positive for credit, negative for debit)
-- reason
-- createdAt
-- createdBy
-
-The original settlement remains intact; the adjustment affects the employee's current financial position.
+- The payroll period is sequential and continuous (calculated from the employment start date or the last closed payroll).
+- Missing required attendance blocks payroll closure.
+- There is no persistent `OPEN` state in the database; `OPEN` is only returned dynamically during calculations.
+- Closing creates a permanent snapshot of the calculated earnings.
 
 ### Payment
 
 Represents actual money given to an employee on a specific date.
 
-Planned fields:
+Important fields:
 
 - employee reference
 - paymentDate
 - amount
 - note (optional)
 
-Payments are allocated to outstanding balances using oldest-outstanding-balance-first. If a payment exceeds the current outstanding amount, the excess is recorded as an advance that carries forward.
+Payments are independent of `WeeklyPayroll` and simply record money paid.
 
-A payment does not reopen a settled week.
+---
+
+## Planned future entities
+
+The following concepts are discussed in the business documents but are not implemented in the current backend.
 
 ### Contractor
 

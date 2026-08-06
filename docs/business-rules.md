@@ -54,8 +54,6 @@ The current planned design is:
 - The business expects an agreed amount and expected completion date to be captured on the order.
 - Payments are planned as a separate concept and should not be represented as a single paidAmount field on a Customer Order.
 
----
-
 ## Employees
 
 ### General
@@ -100,9 +98,8 @@ The current planned design is:
 
 ### Missing Attendance
 
-- A missing attendance record for a required day (Mon–Sat, within employment period) does **not** automatically default to absence.
-- When calculating a week, missing required attendance must be detected and must block settlement until resolved.
-- Unnecessary `PENDING` attendance records must not be created proactively; missing records are detected at review/calculation time.
+- A missing attendance record for a required workday (Mon–Sat, within active employment period) does **not** automatically default to absence.
+- When closing a payroll, missing required attendance must be detected and must block the payroll closure until resolved.
 
 ### Overtime
 
@@ -120,33 +117,29 @@ The current planned design is:
 
 ---
 
-## Weekly Period
+## WeeklyPayroll
 
-- The employee payroll period is **Monday–Sunday**.
-- Example: 2026-08-03 (Monday) → 2026-08-09 (Sunday).
-- Attendance and overtime belong to the week determined by their actual work date, not the date the record was entered.
-- Sunday is part of the weekly period but is an overtime-only day, not a normal attendance day.
+- "WeeklyPayroll" is the module/concept name; we do not enforce a literal seven-day Monday–Sunday period.
+- The payroll period is calculated dynamically for an individual employee.
+- **Start Date:**
+  - If the employee has no previous closed payroll, the period starts on their employment start date.
+  - If the employee has a previous closed payroll, the period starts the day after the latest closed payroll's end date.
+- **End Date:**
+  - The current period ends at the current applicable date, limited by the employee's employment end date if one exists.
+- Payroll periods are continuous and sequential.
 
 ---
 
-## Weekly Settlement
+## Payroll Calculation and Closing
 
-- Settlement is calculated **per employee per week**.
-- There is no single workshop-wide settlement record.
-- Settlement calculation includes:
-  - Normal attendance earnings
-  - Overtime earnings
-  - Applicable previous outstanding balances or financial adjustments
-  - Minus payments allocated to the employee
-- The settlement preserves the finalized financial result for historical consistency.
-- Do not duplicate information that can be derived from the underlying records.
-
-### Settlement Status
-
-- Settlement lifecycle: `OPEN → SETTLED`.
-- **OPEN**: The week is still in progress. Attendance, overtime, and payments may be recorded or corrected.
-- **SETTLED**: The weekly earning calculation is finalized. A settled week is not reopened for payment adjustments or corrections.
-- No additional statuses such as `APPROVED`, `REJECTED`, or `CANCELLED` are used.
+- Payroll calculation is a dynamic runtime projection. There is no persistent `OPEN` WeeklyPayroll database record.
+- The API may return `status: "OPEN"` to represent that the current period calculation is not finalized.
+- When an employee's payroll is closed:
+  - Earnings are calculated based on normal earnings (attendance × historical applicable rates) and overtime earnings.
+  - Total earnings = normal earnings + overtime earnings.
+  - A historical snapshot is created as a persistent database record.
+  - The record receives `status: "CLOSED"` and records the `closedAt` timestamp.
+  - The closed payroll becomes a permanent part of the payroll history.
 
 ---
 
@@ -154,46 +147,15 @@ The current planned design is:
 
 - A payment represents actual money given to an employee.
 - Each payment records: employee, payment date, amount, and an optional note.
-- The payment date is when the employee actually received the money. It does not determine which week's earnings the payment covers.
-- Payments may occur before, during, or after settlement.
-- A payment does not reopen a settled week.
-
-### Payment Allocation
-
-- When an employee has multiple outstanding balances, payments are allocated using **oldest outstanding balance first**.
-- Example:
-  - Week 1 outstanding = 500; Week 2 outstanding = 1,000; Payment = 1,200
-  - Allocation: Week 1 → 500 (fully settled), Week 2 → 700 (partially settled)
-
-### Advances
-
-- If a payment exceeds the employee's current total outstanding balance, the excess is treated as an **advance**.
-- The advance carries forward and reduces future amounts owed.
-- Example: Outstanding = 1,000; Payment = 1,500 → 1,000 settles outstanding; 500 becomes an advance.
+- Payments are completely independent from WeeklyPayroll.
+- Payments do not require a WeeklyPayroll reference and are not part of the WeeklyPayroll document.
+- Employees can receive partial payments.
 
 ---
 
-## Outstanding Balances
+# Planned Rules
 
-- Previous unpaid balances are not merged into the new week's earnings.
-- Weekly earnings are kept historically separate.
-- Example:
-  - Week 1: Earned = 3,000, Paid = 2,000, Outstanding = 1,000
-  - Week 2: Earned = 3,500
-  - Total currently owed = 4,500 (1,000 from Week 1 + 3,500 from Week 2)
-
----
-
-## Post-Settlement Corrections
-
-- Settled records are not silently modified.
-- Errors discovered after settlement are recorded as explicit **adjustments** with a reason.
-- The original settlement record remains historically intact.
-- The adjustment affects the employee's current financial position.
-- Adjustments may correct attendance errors, overtime errors, rate application errors, or other payroll calculation errors.
-- There is no approval workflow for adjustments at this stage.
-
----
+## Customer Orders
 
 ## Contractors
 

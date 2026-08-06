@@ -1,7 +1,7 @@
 const expenseQueryConfig = {
   searchableFields: ["description"],
   sortableFields: ["date", "amount", "createdAt"],
-  filterableFields: ["category"],
+  filterableFields: ["category", "status"],
   defaultSort: "-date",
   filterTransforms: {
     from: (value) => ({
@@ -13,6 +13,16 @@ const expenseQueryConfig = {
       field: "date",
       operator: "$lte",
       value: new Date(value),
+    }),
+    minAmount: (value) => ({
+      field: "amount",
+      operator: "$gte",
+      value: Number(value),
+    }),
+    maxAmount: (value) => ({
+      field: "amount",
+      operator: "$lte",
+      value: Number(value),
     }),
   },
 };

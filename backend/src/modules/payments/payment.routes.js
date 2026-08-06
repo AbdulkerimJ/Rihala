@@ -8,7 +8,6 @@ import {
   createPaymentController,
   getPaymentByIdController,
   updatePaymentController,
-  deletePaymentController,
 } from "./payment.controller.js";
 import {
   createPaymentSchema,
@@ -48,13 +47,6 @@ router.patch(
   validate(paymentIdSchema, "Please check the payment id.", "params"),
   validate(updatePaymentSchema, "Please check the payment information."),
   updatePaymentController,
-);
-
-router.delete(
-  "/:id",
-  authorize("payments.delete"),
-  validate(paymentIdSchema, "Please check the payment id.", "params"),
-  deletePaymentController,
 );
 
 export default router;

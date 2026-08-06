@@ -4,7 +4,6 @@ import {
   getPaymentsService,
   getPaymentByIdService,
   updatePaymentService,
-  deletePaymentService,
 } from "./payment.service.js";
 
 const getAllPaymentsController = catchAsync(async (req, res) => {
@@ -47,19 +46,9 @@ const updatePaymentController = catchAsync(async (req, res) => {
   });
 });
 
-const deletePaymentController = catchAsync(async (req, res) => {
-  await deletePaymentService(req.validatedParams.id);
-
-  res.status(200).json({
-    status: "success",
-    message: "Payment deleted successfully.",
-  });
-});
-
 export {
   getAllPaymentsController,
   createPaymentController,
   getPaymentByIdController,
   updatePaymentController,
-  deletePaymentController,
 };

@@ -69,6 +69,26 @@ const ALL_PERMISSIONS = [
   { name: "payments.create", description: "Create payments" },
   { name: "payments.update", description: "Update payments" },
   { name: "payments.delete", description: "Delete payments" },
+
+  // Supplier module permissions
+  { name: "suppliers.read", description: "View suppliers" },
+  { name: "suppliers.create", description: "Create suppliers" },
+  { name: "suppliers.update", description: "Update suppliers" },
+
+  // Material module permissions
+  { name: "materials.read", description: "View materials" },
+  { name: "materials.create", description: "Create materials" },
+  { name: "materials.update", description: "Update materials" },
+
+  // Purchase module permissions
+  { name: "purchases.read", description: "View purchases" },
+  { name: "purchases.create", description: "Create purchases" },
+  { name: "purchases.update", description: "Update purchases" },
+
+  // Supplier Payment module permissions
+  { name: "supplier_payments.read", description: "View supplier payments" },
+  { name: "supplier_payments.create", description: "Create supplier payments" },
+  { name: "supplier_payments.update", description: "Update supplier payments" },
 ];
 
 const ADMIN_ROLE_NAME = "Admin";

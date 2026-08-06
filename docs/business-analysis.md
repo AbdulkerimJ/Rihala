@@ -64,16 +64,19 @@ Implemented business areas:
 - Role and permission management
 - Operating expense management
 - Customer management
+- Employee management
+- Employee rate history
+- Attendance and overtime
+- Payroll calculation (WeeklyPayroll)
+- Payment tracking
 
 Planned business areas:
 
-- employee management
 - contractor management
 - contract management
 - supplier management
 - purchase management
 - order management
-- payment management
 - dashboard and reporting
 
 ---
@@ -82,7 +85,7 @@ Planned business areas:
 
 ## Employee
 
-An Employee is a regular worker employed directly by the workshop. Employees work under an agreed daily rate and are subject to the weekly attendance and settlement workflow.
+An Employee is a regular worker employed directly by the workshop. Employees work under an agreed daily rate and are subject to the daily attendance and payroll workflow.
 
 Employees are distinct from system users. An employee is a workshop worker; a system user is someone who logs into the Rihala application.
 
@@ -90,7 +93,7 @@ Employees are distinct from system users. An employee is a workshop worker; a sy
 
 ## Contractor
 
-A Contractor is a person who works with the workshop under a negotiated contract/deal rather than through the daily-rate attendance model. Contractors do not participate in the employee attendance, overtime, or weekly settlement workflow.
+A Contractor is a person who works with the workshop under a negotiated contract/deal rather than through the daily-rate attendance model. Contractors do not participate in the employee attendance, overtime, or payroll workflow.
 
 ---
 
@@ -158,8 +161,8 @@ An operating expense is money spent by the business that is not represented as a
   - `PRESENT + PRESENT` = 1 full day
   - `PRESENT + REST` or `REST + PRESENT` = 0.5 day
   - `REST + REST` = 0 days
-- Normal attendance is required Monday–Saturday. Sunday is not a normal attendance day.
-- Missing attendance records for an active employee during their employment period should block settlement rather than default to absence.
+- Normal attendance is required Monday–Saturday. Sunday is not a required attendance day.
+- Missing attendance records for an active employee during their employment period blocks payroll closure.
 
 ## Employment Period
 
@@ -175,35 +178,34 @@ An operating expense is money spent by the business that is not represented as a
 - There is one overtime type for the MVP. There are no separate Sunday, night, or other overtime categories.
 - Overtime uses the applicable daily rate for the date it occurred.
 
-## Weekly Period
+## Payroll Period
 
-- The payroll period is **Monday–Sunday**.
-- Attendance and overtime belong to the week determined by their actual work date.
+- The payroll period is sequential and continuous.
+- It starts on the employee's employment start date (if no previous closed payroll exists) or the day after the latest closed payroll's end date.
+- It ends at the current applicable date, limited by the employee's employment end date if one exists.
 
-## Weekly Settlement
+## WeeklyPayroll
 
-- Settlement is calculated **per employee per week**.
-- There is no single workshop-wide settlement record.
-- Settlement status lifecycle: `OPEN → SETTLED`.
-- A settled week is not reopened when a later payment is made.
-- Post-settlement corrections are handled through adjustments, not by reopening.
+- The current payroll calculation is a dynamic runtime projection.
+- There is no persistent `OPEN` WeeklyPayroll database record.
+- When an employee's payroll is closed, a permanent historical snapshot is created with `status: "CLOSED"`.
+- Total earnings equal normal earnings plus overtime earnings.
 
 ## Payments
 
 - A payment represents actual money given to an employee on a specific date.
-- Payments are allocated using **oldest outstanding balance first**.
-- If a payment exceeds the current outstanding amount, the excess is treated as an **advance** that carries forward.
-- Payments may occur before, during, or after settlement.
+- Payments simply record money paid, and they may represent partial payments.
+- Payments are completely independent from WeeklyPayroll and do not require a WeeklyPayroll reference.
+- Any advanced payment allocation/accounting (e.g., tracking oldest-outstanding-balance or advances) is not implemented in the current functionality.
 
-## Post-Settlement Adjustments
+## Post-Payroll Corrections
 
-- Settled records are not silently modified.
-- Errors discovered after settlement are recorded as explicit adjustments with a reason.
-- The adjustment affects the employee's current financial position without altering the original settlement record.
+- Handling post-payroll corrections is not currently defined as a separate domain entity in the codebase.
+- `SettlementAdjustment` and similar correction workflows do not exist in the current implementation.
 
 ## Out of Scope for Current Phase
 
-- Bonuses and penalties are intentionally out of scope for this payroll implementation step.
+- Bonuses and penalties are intentionally out of scope for the current MVP.
 - Contractor payment rules will be designed separately and are not covered here.
 
 ---

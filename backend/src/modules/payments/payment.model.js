@@ -9,6 +9,12 @@ const paymentSchema = new mongoose.Schema(
       index: true,
     },
 
+    employeeName: {
+      type: String,
+      required: [true, "Employee name snapshot is required"],
+      trim: true,
+    },
+
     amount: {
       type: Number,
       required: [true, "Payment amount is required"],
@@ -18,6 +24,15 @@ const paymentSchema = new mongoose.Schema(
     paymentDate: {
       type: Date,
       required: [true, "Payment date is required"],
+    },
+
+    type: {
+      type: String,
+      required: [true, "Payment type is required"],
+      enum: {
+        values: ["regular", "overtime", "bonus", "advance", "other"],
+        message: "Payment type must be regular, overtime, bonus, advance, or other",
+      },
     },
 
     note: {

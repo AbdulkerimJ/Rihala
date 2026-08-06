@@ -14,6 +14,8 @@ const createExpenseSchema = z.object({
   date: z.coerce.date({
     error: "Expense date must be a valid date.",
   }),
+}).strict({
+  error: "Invalid fields in creation payload.",
 });
 
 const updateExpenseSchema = z
@@ -23,16 +25,10 @@ const updateExpenseSchema = z
         error: "Please select a valid expense category.",
       })
       .optional(),
-    amount: z.number().positive("Expense amount must be positive.").optional(),
     description: z.string().trim().optional(),
-    date: z.coerce
-      .date({
-        error: "Expense date must be a valid date.",
-      })
-      .optional(),
   })
   .strict({
-    error: "Only category, amount, description, and date can be updated.",
+    error: "Only category and description can be updated.",
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "At least one field is required for update.",
@@ -40,6 +36,12 @@ const updateExpenseSchema = z
 
 const expenseIdSchema = z.object({
   id: z.string().regex(mongoIdRegex, "Invalid expense id."),
+});
+
+const voidExpenseSchema = z.object({
+  voidReason: z.string().trim().min(1, "Void reason is required."),
+}).strict({
+  error: "Only voidReason is allowed.",
 });
 
 const expenseQuerySchema = z
@@ -59,15 +61,19 @@ const expenseQuerySchema = z
     sort: z.string().trim().optional(),
     page: z.coerce.number().int().positive().optional(),
     limit: z.coerce.number().int().positive().optional(),
+    status: z.enum(["active", "voided"]).optional(),
+    minAmount: z.coerce.number().positive().optional(),
+    maxAmount: z.coerce.number().positive().optional(),
   })
   .strict({
     error:
-      "Only category, from, to, search, sort, page, and limit are allowed.",
+      "Invalid query parameters.",
   });
 
 export {
   createExpenseSchema,
   updateExpenseSchema,
   expenseIdSchema,
+  voidExpenseSchema,
   expenseQuerySchema,
 };

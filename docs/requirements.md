@@ -76,21 +76,28 @@ The system currently supports:
 - customer phone normalization for Ethiopian numbers
 - customer status management
 
+### Employee Management
+
+The system currently supports:
+
+- managing employee profiles (name, contact details, employment start and end dates)
+- maintaining a history of daily-rate changes per employee
+- recording and tracking daily attendance (morning and afternoon half-day records)
+- recording overtime with date, duration, and optional note
+- dynamically calculating current WeeklyPayroll based on attendance, overtime, and a continuous period (since employment start or last closure)
+- identifying missing required attendance
+- closing payroll to create a permanent historical snapshot
+
+### Payment Management
+
+The system currently supports:
+
+- recording actual payments made to employees
+- tracking payment history independently from WeeklyPayroll
+
 ---
 
 ## Planned
-
-### Employee Management
-
-Planned future functionality includes:
-
-- managing employee profiles (name, contact details, employment start and end dates)
-- recording and tracking daily attendance (morning and afternoon half-day records)
-- recording overtime with date, duration, and optional note
-- maintaining a history of daily-rate changes per employee
-- calculating weekly earnings based on attendance and overtime
-- weekly settlement per employee (Monday–Sunday period)
-- recording post-settlement adjustments and corrections
 
 ### Contractor Management
 
@@ -129,15 +136,6 @@ Planned future functionality includes:
 - capturing customer furniture requests as orders
 - storing agreed amounts and expected completion dates
 - tracking order status
-
-### Payment Management
-
-Planned future functionality includes:
-
-- recording actual payments made to employees
-- oldest-outstanding-balance-first payment allocation
-- advance handling when payment exceeds current outstanding balance
-- separate payment tracking for other business transactions
 
 ### Dashboard
 
