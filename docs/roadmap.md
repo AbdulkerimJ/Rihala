@@ -4,7 +4,7 @@
 >
 > **Type:** Furniture Workshop Management System
 >
-> **Status:** Planning
+> **Status:** Active Development
 >
 > **Current Version:** MVP (v1.0)
 
@@ -14,22 +14,45 @@
 
 Rihala aims to become a complete management system for furniture manufacturing businesses. The first version focuses on solving the company's daily operational problems while providing a scalable foundation for future growth.
 
-The roadmap remains phased, but the current backend implementation already covers the foundation, authentication, access control, expenses, and customers. Future work continues from that base.
+---
+
+# Current Implementation Status
+
+The current backend includes the following fully implemented modules:
+
+- Foundation infrastructure (Express, MongoDB, validation, error handling, shared query utilities)
+- Authentication and refresh-token management
+- User lifecycle management, including invited-user onboarding
+- Role and permission management
+- Expense management (with void support, hardcoded categories)
+- Customer management
+- Order management (full lifecycle, status state machine, status history)
+- Customer Payment management (Order-referenced, balance enforcement, void, transactions)
+- Employee management (profiles, employment period)
+- Employee rate history (EmployeeRate — daily-rate model, effective dates)
+- Attendance recording (morning/afternoon, Mon–Sat)
+- Overtime recording (HALF_DAY / FULL_DAY, 2× rate)
+- WeeklyPayroll calculation (dynamic open calc → CLOSED snapshots)
+- Employee Payment management (EmployeePayment — type-classified, void supported)
+- Supplier management (profiles, active/inactive)
+- Material catalog management (categories, units)
+- Purchase management (structured items, allocation-tracked, paymentStatus)
+- Supplier Payment management (SPECIFIC/GENERAL types, Allocation Engine, transactions)
 
 ---
 
-# Current implementation status
+# Audit and Hardening Status
 
-The current backend already includes:
+```
+Module-level audit + hardening
+→ completed
 
-- foundation infrastructure for Express, MongoDB, validation, error handling, and shared query utilities
-- authentication and refresh-token management
-- user lifecycle management, including invited-user onboarding
-- role and permission management
-- expense management
-- customer management
+Documentation synchronization
+→ current task (in progress)
 
-The remaining roadmap areas are still planned or in progress rather than implemented.
+Cross-module consistency audit
+→ next phase / pending
+```
 
 ---
 
@@ -144,68 +167,68 @@ The remaining roadmap areas are still planned or in progress rather than impleme
 
 # Phase 4 — Core Business Modules (MVP)
 
-## Implemented
-
-### Users
+## Users
 
 - [x] User management
 - [x] Roles
 - [x] Account status
 
-### Customers
+## Customers
 
 - [x] CRUD
 - [x] Customer details
-- [ ] Customer history
+- [x] Status management (active/inactive)
+- [ ] Customer history view (frontend)
 
-### Operating Expenses
+## Operating Expenses
 
 - [x] Record expenses
 - [x] Categorize expenses
 - [x] Edit expenses
-- [x] Delete expenses
+- [x] Void expenses (replaced hard delete)
 
-## Planned next
+## Orders
 
-### Customer Orders
+- [x] Create customer order
+- [x] Update customer order
+- [x] Order status lifecycle (pending → in_progress → ready → completed / cancelled)
+- [x] Status history audit log
+- [x] Customer identity snapshot
 
-- [ ] Create customer order
-- [ ] Update customer order
-- [ ] Order status
-- [ ] Order history
+## Customer Payments
 
-### Employees
+- [x] Record payment against an Order
+- [x] Balance enforcement (cannot exceed remaining balance)
+- [x] Void payment workflow
+- [x] Snapshot customerName and orderNumber
+- [x] Transaction-bounded creation
 
-> Domain decisions finalized. Core modules implemented.
+## Employees
 
 - [x] Employee profiles (name, contact, employment period)
-- [x] Employee daily-rate records with effective dates
+- [x] Employee daily-rate records with effective dates (EmployeeRate)
 - [x] Attendance recording (morning + afternoon, Mon–Sat)
 - [x] Overtime recording (HALF_DAY / FULL_DAY, 2× rate)
 - [x] WeeklyPayroll calculation (dynamic continuous periods)
-- [x] Employee payment recording
+- [x] Payroll closure (permanent CLOSED snapshot)
+- [x] Employee Payment recording (EmployeePayment — type-classified)
+- [x] Employee Payment void workflow
 
-### Contractors
+## Suppliers and Purchasing
 
-- [ ] Contractor profiles
-- [ ] Contract (agreement/deal) management
+- [x] Supplier management (profiles, active/inactive)
+- [x] Material catalog management (categories, units)
+- [x] Purchase management (structured items, totalAmount, paymentStatus)
+- [x] Supplier Payment management (SPECIFIC / GENERAL)
+- [x] Supplier Payment Allocation Engine (auto-allocation, credit, reconciliation)
+- [x] Transaction-bounded payment operations
 
-### Suppliers
-
-- [ ] CRUD
-- [ ] Supplier information
-
-### Purchases
-
-- [ ] Material purchases
-- [ ] Purchase status
-- [ ] Outstanding balance
-
-### Payments (non-employee)
+## Contractors
 
 > **Deferred**
 
-The payment model for non-employee transactions will be finalized after the complete business domain is fully understood.
+- [ ] Contractor profiles
+- [ ] Contract (agreement/deal) management
 
 ---
 
@@ -215,8 +238,8 @@ The payment model for non-employee transactions will be finalized after the comp
 
 - [ ] Monthly expenses
 - [ ] Outstanding employee balances
-- [ ] Active contracts
 - [ ] Customer orders in progress
+- [ ] Supplier payment summaries
 - [ ] Recent activities
 - [ ] Quick statistics
 
@@ -247,12 +270,12 @@ The payment model for non-employee transactions will be finalized after the comp
 
 ## Backend
 
-- [ ] Validation
-- [ ] Logging
-- [ ] Error handling
-- [ ] Pagination
-- [ ] Filtering
-- [ ] Searching
+- [x] Validation (Zod)
+- [x] Logging (Morgan)
+- [x] Error handling (centralized)
+- [x] Pagination
+- [x] Filtering
+- [x] Searching
 
 ## Frontend
 
@@ -269,6 +292,8 @@ The payment model for non-employee transactions will be finalized after the comp
 
 - [ ] Unit tests
 - [ ] Integration tests
+
+> Note: Transaction-dependent tests require a MongoDB replica set. Local standalone MongoDB instances do not support multi-document transactions. Tests that depend on transactions may be skipped in the local development environment.
 
 ## Frontend
 
@@ -425,9 +450,11 @@ The MVP is considered successful when:
 
 - Users can securely log in.
 - The business can manage customers.
-- The business can manage employees (attendance, overtime, weekly settlements).
-- Customer orders can be tracked.
+- Customer orders can be tracked through their full production lifecycle.
+- Customer payments can be recorded against orders with balance enforcement.
+- The business can manage employees (attendance, overtime, weekly payroll, employee payments).
 - Supplier purchases can be recorded.
+- Supplier payments can be recorded and auto-allocated.
 - Operating expenses can be managed.
 - Core business information is available from the dashboard.
 - The system is responsive and usable on both desktop and mobile browsers.
@@ -444,3 +471,4 @@ The MVP is considered successful when:
 - Document important architectural decisions.
 - Use modern software engineering practices.
 - Solve real business problems, not hypothetical ones.
+- Financial records must not be silently rewritten or physically deleted in a way that destroys historical truth.

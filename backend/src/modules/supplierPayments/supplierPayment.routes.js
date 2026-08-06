@@ -22,28 +22,31 @@ router.use(authenticate);
 
 router.get(
   "/",
-  authorize("supplier_payments.read"),
-  validate(supplierPaymentQuerySchema, "Please check the payment filters.", "query"),
+  authorize("supplierPayments.read"),
+  validate(supplierPaymentQuerySchema, "Please check the filters.", "query"),
   getAllSupplierPaymentsController,
 );
 
 router.post(
   "/",
-  authorize("supplier_payments.create"),
-  validate(createSupplierPaymentSchema, "Please check the payment information."),
+  authorize("supplierPayments.create"),
+  validate(
+    createSupplierPaymentSchema,
+    "Please check the payment information.",
+  ),
   createSupplierPaymentController,
 );
 
 router.get(
   "/:id",
-  authorize("supplier_payments.read"),
+  authorize("supplierPayments.read"),
   validate(supplierPaymentIdSchema, "Please check the payment id.", "params"),
   getSupplierPaymentByIdController,
 );
 
 router.patch(
   "/:id",
-  authorize("supplier_payments.update"),
+  authorize("supplierPayments.update"),
   validate(supplierPaymentIdSchema, "Please check the payment id.", "params"),
   validate(updateSupplierPaymentSchema, "Please check the payment information."),
   updateSupplierPaymentController,

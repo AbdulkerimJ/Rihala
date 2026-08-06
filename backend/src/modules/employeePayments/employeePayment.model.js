@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const paymentSchema = new mongoose.Schema(
+const employeePaymentSchema = new mongoose.Schema(
   {
     employee: {
       type: mongoose.Schema.Types.ObjectId,
@@ -46,8 +46,8 @@ const paymentSchema = new mongoose.Schema(
   },
 );
 
-paymentSchema.index({ employee: 1, paymentDate: 1 });
+employeePaymentSchema.index({ employee: 1, paymentDate: 1 });
 
-const Payment = mongoose.model("Payment", paymentSchema);
+const EmployeePayment = mongoose.model("EmployeePayment", employeePaymentSchema);
 
-export default Payment;
+export default EmployeePayment;

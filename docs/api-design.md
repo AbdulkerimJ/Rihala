@@ -2,6 +2,10 @@
 
 This document summarizes the API surface that currently exists in the backend. It is based on the implemented routes and middleware, not on planned modules.
 
+Route permission names match the permission seeds in `admin.seed.js`.
+
+---
+
 ## Authentication
 
 ### Login
@@ -13,7 +17,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Purpose: authenticate with email and password and receive an access token
 - Body: `email`, `password`
 
-### Refresh access token
+### Refresh Access Token
 
 - Method: POST
 - Route: `/api/v1/auth/refresh`
@@ -30,7 +34,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: none
 - Purpose: revoke a refresh token and clear the cookie for web clients
 
-### Forgot password
+### Forgot Password
 
 - Method: POST
 - Route: `/api/v1/auth/forgot-password`
@@ -39,7 +43,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Purpose: initiate a password reset flow
 - Body: `email`
 
-### Reset password
+### Reset Password
 
 - Method: POST
 - Route: `/api/v1/auth/reset-password`
@@ -48,7 +52,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Purpose: complete a password reset using a verification token
 - Body: `token`, `newPassword`
 
-### Validate invitation
+### Validate Invitation
 
 - Method: GET
 - Route: `/api/v1/auth/invitation/validate/:token`
@@ -56,7 +60,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: none
 - Purpose: validate an invitation token
 
-### Accept invitation
+### Accept Invitation
 
 - Method: POST
 - Route: `/api/v1/auth/invitation/accept`
@@ -65,9 +69,11 @@ This document summarizes the API surface that currently exists in the backend. I
 - Purpose: complete invitation onboarding by setting password and activating the user
 - Body: `token`, `code`, `password`, `confirmPassword`
 
+---
+
 ## Users
 
-### List users
+### List Users
 
 - Method: GET
 - Route: `/api/v1/users`
@@ -75,7 +81,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: none at the route level; protected by authentication
 - Purpose: list active users
 
-### List deleted users
+### List Deleted Users
 
 - Method: GET
 - Route: `/api/v1/users/deleted`
@@ -83,7 +89,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: none at the route level
 - Purpose: list soft-deleted users
 
-### Create invited user
+### Create Invited User
 
 - Method: POST
 - Route: `/api/v1/users`
@@ -92,7 +98,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Purpose: create a user in invited status and issue an invitation flow
 - Body: `name`, `email`, `roles`
 
-### Update user
+### Update User
 
 - Method: PATCH
 - Route: `/api/v1/users/:id`
@@ -100,7 +106,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: none at the route level
 - Purpose: update a user record
 
-### Get user by id
+### Get User by ID
 
 - Method: GET
 - Route: `/api/v1/users/:id`
@@ -108,7 +114,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: none at the route level
 - Purpose: fetch a single user
 
-### Deactivate user
+### Deactivate User
 
 - Method: PATCH
 - Route: `/api/v1/users/:id/deactivate`
@@ -116,7 +122,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: none at the route level
 - Purpose: set a user to inactive
 
-### Activate user
+### Activate User
 
 - Method: PATCH
 - Route: `/api/v1/users/:id/activate`
@@ -124,7 +130,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: none at the route level
 - Purpose: set a user to active
 
-### Restore user
+### Restore User
 
 - Method: PATCH
 - Route: `/api/v1/users/:id/restore`
@@ -132,7 +138,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: none at the route level
 - Purpose: restore a soft-deleted user
 
-### Soft delete user
+### Soft Delete User
 
 - Method: DELETE
 - Route: `/api/v1/users/:id`
@@ -140,7 +146,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: none at the route level
 - Purpose: soft-delete a user
 
-### Assign roles to user
+### Assign Roles to User
 
 - Method: POST
 - Route: `/api/v1/users/:id/roles`
@@ -148,7 +154,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: `users.assign-role`
 - Purpose: assign roles to a user
 
-### Remove role from user
+### Remove Role from User
 
 - Method: DELETE
 - Route: `/api/v1/users/:id/roles/:roleId`
@@ -156,9 +162,11 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: `users.assign-role`
 - Purpose: remove a role from a user
 
+---
+
 ## Roles
 
-### List roles
+### List Roles
 
 - Method: GET
 - Route: `/api/v1/roles`
@@ -166,7 +174,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: `roles.read`
 - Purpose: list roles with populated permissions
 
-### Create role
+### Create Role
 
 - Method: POST
 - Route: `/api/v1/roles`
@@ -174,7 +182,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: `roles.create`
 - Purpose: create a role
 
-### Get role by id
+### Get Role by ID
 
 - Method: GET
 - Route: `/api/v1/roles/:id`
@@ -182,7 +190,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: `roles.read`
 - Purpose: fetch a role
 
-### Update role
+### Update Role
 
 - Method: PATCH
 - Route: `/api/v1/roles/:id`
@@ -190,7 +198,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: `roles.update`
 - Purpose: update role details
 
-### Delete role
+### Delete Role
 
 - Method: DELETE
 - Route: `/api/v1/roles/:id`
@@ -198,7 +206,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: `roles.delete`
 - Purpose: delete a role
 
-### Add permissions to role
+### Add Permissions to Role
 
 - Method: POST
 - Route: `/api/v1/roles/:id/permissions`
@@ -206,7 +214,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: `roles.assign-permission`
 - Purpose: assign permissions to a role
 
-### Remove permissions from role
+### Remove Permissions from Role
 
 - Method: DELETE
 - Route: `/api/v1/roles/:id/permissions`
@@ -214,9 +222,11 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: `roles.assign-permission`
 - Purpose: remove permissions from a role
 
+---
+
 ## Permissions
 
-### List permissions
+### List Permissions
 
 - Method: GET
 - Route: `/api/v1/permissions`
@@ -224,18 +234,22 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: `permissions.read`
 - Purpose: list all permissions
 
+---
+
 ## Expenses
 
-### List expenses
+> Expenses use voiding instead of hard deletion. No DELETE endpoint exists.
+
+### List Expenses
 
 - Method: GET
 - Route: `/api/v1/expenses`
 - Authentication: required
 - Permission: `expenses.read`
-- Purpose: list expenses with pagination, search, sorting, and filtering
-- Query parameters: `category`, `from`, `to`, `search`, `sort`, `page`, `limit`
+- Purpose: list expenses with pagination, search, sorting, and filtering; defaults to `status=active`
+- Query parameters: `category`, `from`, `to`, `search`, `sort`, `page`, `limit`, `status`
 
-### Create expense
+### Create Expense
 
 - Method: POST
 - Route: `/api/v1/expenses`
@@ -244,7 +258,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Purpose: create an expense
 - Body: `category`, `amount`, `description`, `date`
 
-### Get expense by id
+### Get Expense by ID
 
 - Method: GET
 - Route: `/api/v1/expenses/:id`
@@ -252,25 +266,28 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: `expenses.read`
 - Purpose: fetch a specific expense
 
-### Update expense
+### Update Expense
 
 - Method: PATCH
 - Route: `/api/v1/expenses/:id`
 - Authentication: required
 - Permission: `expenses.update`
-- Purpose: update an expense
+- Purpose: update an active expense
 
-### Delete expense
+### Void Expense
 
-- Method: DELETE
-- Route: `/api/v1/expenses/:id`
+- Method: PATCH
+- Route: `/api/v1/expenses/:id/void`
 - Authentication: required
-- Permission: `expenses.delete`
-- Purpose: delete an expense
+- Permission: `expenses.void`
+- Purpose: void an expense — sets status to `voided`, records `voidReason`, `voidedBy`, `voidedAt`
+- Body: `voidReason`
+
+---
 
 ## Customers
 
-### List customers
+### List Customers
 
 - Method: GET
 - Route: `/api/v1/customers`
@@ -279,7 +296,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Purpose: list customers with pagination, search, sorting, and filtering
 - Query parameters: `status`, `search`, `sort`, `page`, `limit`
 
-### Create customer
+### Create Customer
 
 - Method: POST
 - Route: `/api/v1/customers`
@@ -288,7 +305,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Purpose: create a customer
 - Body: `name`, `phone`, `email`, `address`, `notes`, `status`
 
-### Get customer by id
+### Get Customer by ID
 
 - Method: GET
 - Route: `/api/v1/customers/:id`
@@ -296,7 +313,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: `customers.read`
 - Purpose: fetch a specific customer
 
-### Update customer
+### Update Customer
 
 - Method: PATCH
 - Route: `/api/v1/customers/:id`
@@ -304,9 +321,101 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: `customers.update`
 - Purpose: update a customer
 
+---
+
+## Orders
+
+### List Orders
+
+- Method: GET
+- Route: `/api/v1/orders`
+- Authentication: required
+- Permission: `orders.read`
+- Purpose: list orders with pagination, search, sorting, and filtering
+- Query parameters: `status`, `customer`, `from`, `to`, `search`, `sort`, `page`, `limit`
+
+### Create Order
+
+- Method: POST
+- Route: `/api/v1/orders`
+- Authentication: required
+- Permission: `orders.create`
+- Purpose: create an Order for an active customer; snapshots customer identity; generates sequential orderNumber
+- Body: `customer`, `date`, `items[]`, `agreedAmount`, `expectedCompletionDate`, `notes`
+
+### Get Order by ID
+
+- Method: GET
+- Route: `/api/v1/orders/:id`
+- Authentication: required
+- Permission: `orders.read`
+- Purpose: fetch a specific order
+
+### Update Order
+
+- Method: PATCH
+- Route: `/api/v1/orders/:id`
+- Authentication: required
+- Permission: `orders.update`
+- Purpose: update an order (status, items, dates, etc.); completed/cancelled orders cannot be modified
+- Body: `customer` (optional), `date` (optional), `items` (optional), `agreedAmount` (optional), `expectedCompletionDate` (optional), `status` (optional), `notes` (optional)
+
+---
+
+## Customer Payments
+
+> Customer Payments use voiding instead of hard deletion. No DELETE endpoint exists.
+> Payments are always made against a specific Order.
+
+### List Customer Payments
+
+- Method: GET
+- Route: `/api/v1/customer-payments`
+- Authentication: required
+- Permission: `customerPayments.read`
+- Purpose: list customer payments; defaults to `status=active`
+- Query parameters: `order`, `status`, `from`, `to`, `search`, `sort`, `page`, `limit`
+
+### Create Customer Payment
+
+- Method: POST
+- Route: `/api/v1/customer-payments`
+- Authentication: required
+- Permission: `customerPayments.create`
+- Purpose: record a payment against an Order; validates remaining balance; snapshots customerName and orderNumber; transaction-bounded
+- Body: `order`, `amount`, `paymentDate`, `note` (optional)
+
+### Get Customer Payment by ID
+
+- Method: GET
+- Route: `/api/v1/customer-payments/:id`
+- Authentication: required
+- Permission: `customerPayments.read`
+- Purpose: fetch a specific customer payment
+
+### Update Customer Payment
+
+- Method: PATCH
+- Route: `/api/v1/customer-payments/:id`
+- Authentication: required
+- Permission: `customerPayments.update`
+- Purpose: update only the `note` field of an active payment; voided payments cannot be updated
+- Body: `note`
+
+### Void Customer Payment
+
+- Method: PATCH
+- Route: `/api/v1/customer-payments/:id/void`
+- Authentication: required
+- Permission: `customerPayments.void`
+- Purpose: void an active customer payment; records `voidReason`, `voidedBy`, `voidedAt`
+- Body: `voidReason`
+
+---
+
 ## Employees
 
-### List employees
+### List Employees
 
 - Method: GET
 - Route: `/api/v1/employees`
@@ -315,7 +424,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Purpose: list employees with pagination, search, sorting, and filtering
 - Query parameters: `status`, `search`, `sort`, `page`, `limit`
 
-### Create employee
+### Create Employee
 
 - Method: POST
 - Route: `/api/v1/employees`
@@ -324,7 +433,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Purpose: create an employee
 - Body: `name`, `phone`, `employmentStartDate`, `employmentEndDate` (optional), `status` (optional)
 
-### Get employee by id
+### Get Employee by ID
 
 - Method: GET
 - Route: `/api/v1/employees/:id`
@@ -332,7 +441,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: `employees.read`
 - Purpose: fetch a specific employee
 
-### Update employee
+### Update Employee
 
 - Method: PATCH
 - Route: `/api/v1/employees/:id`
@@ -341,9 +450,11 @@ This document summarizes the API surface that currently exists in the backend. I
 - Purpose: update an employee's information
 - Body: `name` (optional), `phone` (optional), `employmentStartDate` (optional), `employmentEndDate` (optional), `status` (optional)
 
+---
+
 ## Employee Rates
 
-### List employee rates
+### List Employee Rates
 
 - Method: GET
 - Route: `/api/v1/employee-rates`
@@ -352,7 +463,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Purpose: list employee rates with pagination, search, sorting, and filtering
 - Query parameters: `employee`, `search`, `sort`, `page`, `limit`
 
-### Create employee rate
+### Create Employee Rate
 
 - Method: POST
 - Route: `/api/v1/employee-rates`
@@ -361,7 +472,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Purpose: record a new daily rate for an employee
 - Body: `employee`, `dailyRate`, `effectiveDate`, `note` (optional)
 
-### Get employee rate by id
+### Get Employee Rate by ID
 
 - Method: GET
 - Route: `/api/v1/employee-rates/:id`
@@ -369,9 +480,11 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: `employeeRates.read`
 - Purpose: fetch a specific employee rate record
 
+---
+
 ## Attendances
 
-### List attendances
+### List Attendances
 
 - Method: GET
 - Route: `/api/v1/attendances`
@@ -380,7 +493,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Purpose: list attendance records with pagination, search, sorting, and filtering
 - Query parameters: `employee`, `workDate`, `from`, `to`, `search`, `sort`, `page`, `limit`
 
-### Create attendance
+### Create Attendance
 
 - Method: POST
 - Route: `/api/v1/attendances`
@@ -389,7 +502,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Purpose: record a day's attendance for an employee
 - Body: `employee`, `workDate`, `morningStatus`, `afternoonStatus`
 
-### Get attendance by id
+### Get Attendance by ID
 
 - Method: GET
 - Route: `/api/v1/attendances/:id`
@@ -397,7 +510,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: `attendances.read`
 - Purpose: fetch a specific attendance record
 
-### Update attendance
+### Update Attendance
 
 - Method: PATCH
 - Route: `/api/v1/attendances/:id`
@@ -406,9 +519,11 @@ This document summarizes the API surface that currently exists in the backend. I
 - Purpose: update an existing attendance record
 - Body: `morningStatus` (optional), `afternoonStatus` (optional)
 
+---
+
 ## Overtimes
 
-### List overtimes
+### List Overtimes
 
 - Method: GET
 - Route: `/api/v1/overtimes`
@@ -417,7 +532,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Purpose: list overtime records with pagination, search, sorting, and filtering
 - Query parameters: `employee`, `workDate`, `from`, `to`, `search`, `sort`, `page`, `limit`
 
-### Create overtime
+### Create Overtime
 
 - Method: POST
 - Route: `/api/v1/overtimes`
@@ -426,7 +541,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Purpose: record overtime for an employee
 - Body: `employee`, `workDate`, `duration`, `note` (optional)
 
-### Get overtime by id
+### Get Overtime by ID
 
 - Method: GET
 - Route: `/api/v1/overtimes/:id`
@@ -434,7 +549,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: `overtimes.read`
 - Purpose: fetch a specific overtime record
 
-### Update overtime
+### Update Overtime
 
 - Method: PATCH
 - Route: `/api/v1/overtimes/:id`
@@ -443,9 +558,11 @@ This document summarizes the API surface that currently exists in the backend. I
 - Purpose: update an overtime record
 - Body: `duration` (optional), `note` (optional)
 
-## WeeklyPayrolls
+---
 
-### List weekly payrolls
+## Weekly Payrolls
+
+### List Weekly Payrolls
 
 - Method: GET
 - Route: `/api/v1/weekly-payrolls`
@@ -454,7 +571,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Purpose: list closed weekly payrolls with pagination, search, sorting, and filtering
 - Query parameters: `employee`, `from`, `to`, `status`, `search`, `sort`, `page`, `limit`
 
-### Get weekly payroll by id
+### Get Weekly Payroll by ID
 
 - Method: GET
 - Route: `/api/v1/weekly-payrolls/:id`
@@ -462,7 +579,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: `weeklyPayrolls.read`
 - Purpose: fetch a specific closed weekly payroll
 
-### Get current payroll calculation
+### Get Current Payroll Calculation
 
 - Method: GET
 - Route: `/api/v1/weekly-payrolls/employees/:employeeId/current`
@@ -470,7 +587,7 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: `weeklyPayrolls.read`
 - Purpose: dynamically calculate the current, unclosed payroll period for an employee
 
-### Close weekly payroll
+### Close Weekly Payroll
 
 - Method: POST
 - Route: `/api/v1/weekly-payrolls/employees/:employeeId/close`
@@ -478,47 +595,233 @@ This document summarizes the API surface that currently exists in the backend. I
 - Permission: `weeklyPayrolls.close`
 - Purpose: finalize the current payroll period and create a permanent CLOSED snapshot
 
-## Payments
+---
 
-### List payments
+## Employee Payments
+
+> Employee Payments use voiding instead of hard deletion. No DELETE endpoint exists.
+> Route: `/api/v1/employee-payments` (not `/api/v1/payments`)
+> Permission namespace: `employeePayments.*` (not `payments.*`)
+
+### List Employee Payments
 
 - Method: GET
-- Route: `/api/v1/payments`
+- Route: `/api/v1/employee-payments`
 - Authentication: required
-- Permission: `payments.read`
-- Purpose: list payment records with pagination, search, sorting, and filtering
-- Query parameters: `employee`, `from`, `to`, `search`, `sort`, `page`, `limit`
+- Permission: `employeePayments.read`
+- Purpose: list employee payment records with pagination, search, sorting, and filtering
+- Query parameters: `employee`, `from`, `to`, `type`, `search`, `sort`, `page`, `limit`
 
-### Create payment
+### Create Employee Payment
 
 - Method: POST
-- Route: `/api/v1/payments`
+- Route: `/api/v1/employee-payments`
 - Authentication: required
-- Permission: `payments.create`
-- Purpose: record a payment to an employee
-- Body: `employee`, `amount`, `paymentDate`, `note` (optional)
+- Permission: `employeePayments.create`
+- Purpose: record a payment to an active employee; snapshots `employeeName`
+- Body: `employee`, `amount`, `paymentDate`, `type`, `note` (optional)
 
-### Get payment by id
+### Get Employee Payment by ID
 
 - Method: GET
-- Route: `/api/v1/payments/:id`
+- Route: `/api/v1/employee-payments/:id`
 - Authentication: required
-- Permission: `payments.read`
-- Purpose: fetch a specific payment record
+- Permission: `employeePayments.read`
+- Purpose: fetch a specific employee payment record
 
-### Update payment
+### Update Employee Payment
 
 - Method: PATCH
-- Route: `/api/v1/payments/:id`
+- Route: `/api/v1/employee-payments/:id`
 - Authentication: required
-- Permission: `payments.update`
-- Purpose: update a payment record
-- Body: `employee` (optional), `amount` (optional), `paymentDate` (optional), `note` (optional)
+- Permission: `employeePayments.update`
+- Purpose: update an employee payment record (note, type, amount, paymentDate)
+- Body: `amount` (optional), `paymentDate` (optional), `type` (optional), `note` (optional)
 
-### Delete payment
+---
 
-- Method: DELETE
-- Route: `/api/v1/payments/:id`
+## Suppliers
+
+### List Suppliers
+
+- Method: GET
+- Route: `/api/v1/suppliers`
 - Authentication: required
-- Permission: `payments.delete`
-- Purpose: delete a payment record
+- Permission: `suppliers.read`
+- Purpose: list suppliers with pagination, search, sorting, and filtering
+- Query parameters: `status`, `search`, `sort`, `page`, `limit`
+
+### Create Supplier
+
+- Method: POST
+- Route: `/api/v1/suppliers`
+- Authentication: required
+- Permission: `suppliers.create`
+- Purpose: create a supplier
+- Body: `name`, `phone`, `address` (optional), `note` (optional), `status` (optional)
+
+### Get Supplier by ID
+
+- Method: GET
+- Route: `/api/v1/suppliers/:id`
+- Authentication: required
+- Permission: `suppliers.read`
+- Purpose: fetch a specific supplier
+
+### Update Supplier
+
+- Method: PATCH
+- Route: `/api/v1/suppliers/:id`
+- Authentication: required
+- Permission: `suppliers.update`
+- Purpose: update a supplier's information
+
+---
+
+## Materials
+
+### List Materials
+
+- Method: GET
+- Route: `/api/v1/materials`
+- Authentication: required
+- Permission: `materials.read`
+- Purpose: list materials with pagination, search, sorting, and filtering
+- Query parameters: `category`, `status`, `search`, `sort`, `page`, `limit`
+
+### Create Material
+
+- Method: POST
+- Route: `/api/v1/materials`
+- Authentication: required
+- Permission: `materials.create`
+- Purpose: create a material catalog entry
+- Body: `name`, `category`, `unit`, `status` (optional)
+
+### Get Material by ID
+
+- Method: GET
+- Route: `/api/v1/materials/:id`
+- Authentication: required
+- Permission: `materials.read`
+- Purpose: fetch a specific material
+
+### Update Material
+
+- Method: PATCH
+- Route: `/api/v1/materials/:id`
+- Authentication: required
+- Permission: `materials.update`
+- Purpose: update a material's information
+
+---
+
+## Purchases
+
+### List Purchases
+
+- Method: GET
+- Route: `/api/v1/purchases`
+- Authentication: required
+- Permission: `purchases.read`
+- Purpose: list purchases with pagination, search, sorting, and filtering
+- Query parameters: `supplier`, `paymentStatus`, `from`, `to`, `search`, `sort`, `page`, `limit`
+
+### Create Purchase
+
+- Method: POST
+- Route: `/api/v1/purchases`
+- Authentication: required
+- Permission: `purchases.create`
+- Purpose: create a purchase with structured items; triggers credit allocation if supplier has unallocated credit
+- Body: `supplier`, `date`, `items[]`, `note` (optional)
+
+### Get Purchase by ID
+
+- Method: GET
+- Route: `/api/v1/purchases/:id`
+- Authentication: required
+- Permission: `purchases.read`
+- Purpose: fetch a specific purchase
+
+### Update Purchase
+
+- Method: PATCH
+- Route: `/api/v1/purchases/:id`
+- Authentication: required
+- Permission: `purchases.update`
+- Purpose: update a purchase; amount changes trigger allocation reconciliation
+- Body: `date` (optional), `items` (optional), `note` (optional)
+
+---
+
+## Supplier Payments
+
+> Supplier Payments cannot be hard-deleted. No DELETE endpoint exists.
+> `allocations` and `unallocatedAmount` are backend-controlled; do not submit them in requests.
+
+### List Supplier Payments
+
+- Method: GET
+- Route: `/api/v1/supplier-payments`
+- Authentication: required
+- Permission: `supplierPayments.read`
+- Purpose: list supplier payment records with pagination, search, sorting, and filtering
+- Query parameters: `supplier`, `type`, `from`, `to`, `search`, `sort`, `page`, `limit`
+
+### Create Supplier Payment
+
+- Method: POST
+- Route: `/api/v1/supplier-payments`
+- Authentication: required
+- Permission: `supplierPayments.create`
+- Purpose: create a SPECIFIC or GENERAL supplier payment; allocation engine runs automatically within a transaction
+- Body: `supplier`, `type`, `amount`, `date`, `note` (optional), `paymentReference` (optional), `purchaseId` (required if type=SPECIFIC)
+
+### Get Supplier Payment by ID
+
+- Method: GET
+- Route: `/api/v1/supplier-payments/:id`
+- Authentication: required
+- Permission: `supplierPayments.read`
+- Purpose: fetch a specific supplier payment
+
+### Update Supplier Payment
+
+- Method: PATCH
+- Route: `/api/v1/supplier-payments/:id`
+- Authentication: required
+- Permission: `supplierPayments.update`
+- Purpose: update supplier payment date, note, or amount; amount changes trigger allocation reconciliation within a transaction
+- Body: `date` (optional), `note` (optional), `amount` (optional)
+
+---
+
+## Permission Reference
+
+The following is the complete current permission namespace as defined in the permission seed:
+
+| Namespace             | Permissions                                                  |
+|-----------------------|--------------------------------------------------------------|
+| `users.*`             | read, create, update, delete, restore, assign-role           |
+| `roles.*`             | read, create, update, delete, assign-permission              |
+| `permissions.*`       | read                                                         |
+| `expenses.*`          | read, create, update, void                                   |
+| `customers.*`         | read, create, update                                         |
+| `orders.*`            | read, create, update                                         |
+| `employees.*`         | read, create, update                                         |
+| `employeeRates.*`     | read, create, update                                         |
+| `attendances.*`       | read, create, update                                         |
+| `overtimes.*`         | read, create, update                                         |
+| `weeklyPayrolls.*`    | read, close                                                  |
+| `employeePayments.*`  | read, create, update, void                                   |
+| `suppliers.*`         | read, create, update                                         |
+| `materials.*`         | read, create, update                                         |
+| `purchases.*`         | read, create, update                                         |
+| `supplierPayments.*`  | read, create, update, void                                   |
+| `customerPayments.*`  | read, create, update, void                                   |
+
+**Notes:**
+- `expenses.delete` no longer exists; voiding replaced hard deletion.
+- `payments.*` no longer exists; the employee payment namespace is `employeePayments.*`.
+- No `delete` permission exists for CustomerPayments, SupplierPayments, or EmployeePayments; hard deletion was not implemented for these financial domains.

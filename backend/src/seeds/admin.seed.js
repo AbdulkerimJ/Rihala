@@ -64,11 +64,11 @@ const ALL_PERMISSIONS = [
   { name: "weeklyPayrolls.read", description: "View weekly payrolls" },
   { name: "weeklyPayrolls.close", description: "Close weekly payrolls" },
 
-  // Payment module permissions
-  { name: "payments.read", description: "View payments" },
-  { name: "payments.create", description: "Create payments" },
-  { name: "payments.update", description: "Update payments" },
-  { name: "payments.delete", description: "Delete payments" },
+  // Employee Payment module permissions
+  { name: "employeePayments.read", description: "View employee payments" },
+  { name: "employeePayments.create", description: "Create employee payments" },
+  { name: "employeePayments.update", description: "Update employee payments" },
+  { name: "employeePayments.void", description: "Void employee payments" },
 
   // Supplier module permissions
   { name: "suppliers.read", description: "View suppliers" },
@@ -86,9 +86,16 @@ const ALL_PERMISSIONS = [
   { name: "purchases.update", description: "Update purchases" },
 
   // Supplier Payment module permissions
-  { name: "supplier_payments.read", description: "View supplier payments" },
-  { name: "supplier_payments.create", description: "Create supplier payments" },
-  { name: "supplier_payments.update", description: "Update supplier payments" },
+  { name: "supplierPayments.read", description: "View supplier payments" },
+  { name: "supplierPayments.create", description: "Create supplier payments" },
+  { name: "supplierPayments.update", description: "Update supplier payments" },
+  { name: "supplierPayments.void", description: "Void supplier payments" },
+
+  // Customer Payment module permissions
+  { name: "customerPayments.read", description: "View customer payments" },
+  { name: "customerPayments.create", description: "Create customer payments" },
+  { name: "customerPayments.update", description: "Update customer payments" },
+  { name: "customerPayments.void", description: "Void customer payments" },
 ];
 
 const ADMIN_ROLE_NAME = "Admin";

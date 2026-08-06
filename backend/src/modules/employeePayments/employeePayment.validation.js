@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const mongoIdRegex = /^[0-9a-fA-F]{24}$/;
 
-const createPaymentSchema = z
+const createEmployeePaymentSchema = z
   .object({
     employee: z.string().regex(mongoIdRegex, "Invalid employee id."),
     amount: z
@@ -20,7 +20,7 @@ const createPaymentSchema = z
     error: "Only employee, amount, paymentDate, type, and note can be submitted.",
   });
 
-const updatePaymentSchema = z
+const updateEmployeePaymentSchema = z
   .object({
     amount: z
       .number()
@@ -43,11 +43,11 @@ const updatePaymentSchema = z
     message: "At least one field is required for update.",
   });
 
-const paymentIdSchema = z.object({
+const employeePaymentIdSchema = z.object({
   id: z.string().regex(mongoIdRegex, "Invalid payment id."),
 });
 
-const paymentQuerySchema = z
+const employeePaymentQuerySchema = z
   .object({
     employee: z.string().regex(mongoIdRegex, "Invalid employee id.").optional(),
     from: z.coerce
@@ -68,8 +68,8 @@ const paymentQuerySchema = z
   });
 
 export {
-  createPaymentSchema,
-  updatePaymentSchema,
-  paymentIdSchema,
-  paymentQuerySchema,
+  createEmployeePaymentSchema,
+  updateEmployeePaymentSchema,
+  employeePaymentIdSchema,
+  employeePaymentQuerySchema,
 };

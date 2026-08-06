@@ -1,4 +1,4 @@
-const paymentQueryConfig = {
+const employeePaymentQueryConfig = {
   searchableFields: ["note"],
   sortableFields: ["paymentDate", "amount", "createdAt"],
   filterableFields: ["employee", "type"],
@@ -17,4 +17,4 @@ const paymentQueryConfig = {
   },
 };
 
-export default paymentQueryConfig;
+export default employeePaymentQueryConfig;

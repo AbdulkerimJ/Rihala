@@ -1,12 +1,12 @@
-import Payment from "./payment.model.js";
+import EmployeePayment from "./employeePayment.model.js";
 import { ensureEmployeeExists } from "../employees/employee.service.js";
-import paymentQueryConfig from "./payment.query.js";
+import employeePaymentQueryConfig from "./employeePayment.query.js";
 import NotFoundError from "../../core/errors/NotFoundError.js";
 import ValidationError from "../../core/errors/ValidationError.js";
 import { getPaginatedQueryResult } from "../../core/utils/query.js";
 import { normalizeDateValue } from "../../core/utils/date.js";
 
-const createPaymentService = async (data) => {
+const createEmployeePaymentService = async (data) => {
   const employee = await ensureEmployeeExists(data.employee);
 
   if (employee.status !== "active") {
@@ -19,19 +19,19 @@ const createPaymentService = async (data) => {
     employeeName: employee.name,
   };
 
-  const payment = await Payment.create(normalizedData);
+  const payment = await EmployeePayment.create(normalizedData);
 
   return payment.populate("employee", "name phone");
 };
 
-const getPaymentsService = async (filters = {}) => {
-  return getPaginatedQueryResult(Payment, filters, paymentQueryConfig, {
+const getEmployeePaymentsService = async (filters = {}) => {
+  return getPaginatedQueryResult(EmployeePayment, filters, employeePaymentQueryConfig, {
     populate: ["employee"],
   });
 };
 
-const getPaymentByIdService = async (paymentId) => {
-  const payment = await Payment.findById(paymentId).populate(
+const getEmployeePaymentByIdService = async (paymentId) => {
+  const payment = await EmployeePayment.findById(paymentId).populate(
     "employee",
     "name phone",
   );
@@ -43,8 +43,8 @@ const getPaymentByIdService = async (paymentId) => {
   return payment;
 };
 
-const updatePaymentService = async (paymentId, updateData) => {
-  const payment = await Payment.findById(paymentId);
+const updateEmployeePaymentService = async (paymentId, updateData) => {
+  const payment = await EmployeePayment.findById(paymentId);
 
   if (!payment) {
     throw new NotFoundError("Payment not found.");
@@ -64,8 +64,8 @@ const updatePaymentService = async (paymentId, updateData) => {
 };
 
 export {
-  createPaymentService,
-  getPaymentsService,
-  getPaymentByIdService,
-  updatePaymentService,
+  createEmployeePaymentService,
+  getEmployeePaymentsService,
+  getEmployeePaymentByIdService,
+  updateEmployeePaymentService,
 };

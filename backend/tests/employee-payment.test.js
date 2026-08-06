@@ -2,30 +2,30 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
 import Employee from "../src/modules/employees/employee.model.js";
-import Payment from "../src/modules/payments/payment.model.js";
+import EmployeePayment from "../src/modules/employeePayments/employeePayment.model.js";
 import {
-  createPaymentService,
-  getPaymentByIdService,
-  updatePaymentService,
-  getPaymentsService,
-} from "../src/modules/payments/payment.service.js";
+  createEmployeePaymentService,
+  getEmployeePaymentByIdService,
+  updateEmployeePaymentService,
+  getEmployeePaymentsService,
+} from "../src/modules/employeePayments/employeePayment.service.js";
 import {
-  createPaymentSchema,
-  updatePaymentSchema,
-  paymentQuerySchema,
-} from "../src/modules/payments/payment.validation.js";
-import paymentRoutes from "../src/modules/payments/payment.routes.js";
+  createEmployeePaymentSchema,
+  updateEmployeePaymentSchema,
+  employeePaymentQuerySchema,
+} from "../src/modules/employeePayments/employeePayment.validation.js";
+import employeePaymentRoutes from "../src/modules/employeePayments/employeePayment.routes.js";
 
 // 1. Active employee can receive a payment
 // 3. Payment stores the employee name snapshot
 test("1. Active employee can receive a payment & 3. Payment stores the employee name snapshot", async () => {
   const originalFindById = Employee.findById;
-  const originalCreate = Payment.create;
+  const originalCreate = EmployeePayment.create;
 
   Employee.findById = async () => ({ _id: "507f1f77bcf86cd799439011", name: "Ahmed", status: "active" });
   
   let savedPayment = null;
-  Payment.create = async (data) => {
+  EmployeePayment.create = async (data) => {
     savedPayment = data;
     return {
       ...data,
@@ -35,7 +35,7 @@ test("1. Active employee can receive a payment & 3. Payment stores the employee 
   };
 
   try {
-    await createPaymentService({
+    await createEmployeePaymentService({
       employee: "507f1f77bcf86cd799439011",
       amount: 2000,
       paymentDate: "2026-08-08",
@@ -47,7 +47,7 @@ test("1. Active employee can receive a payment & 3. Payment stores the employee 
     assert.equal(savedPayment.employeeName, "Ahmed", "Snapshot should be saved");
   } finally {
     Employee.findById = originalFindById;
-    Payment.create = originalCreate;
+    EmployeePayment.create = originalCreate;
   }
 });
 
@@ -58,7 +58,7 @@ test("2. Inactive employee cannot receive a new payment", async () => {
 
   try {
     await assert.rejects(
-      () => createPaymentService({
+      () => createEmployeePaymentService({
         employee: "507f1f77bcf86cd799439011",
         amount: 2000,
         paymentDate: "2026-08-08",
@@ -72,7 +72,7 @@ test("2. Inactive employee cannot receive a new payment", async () => {
 });
 
 // 4. Changing employee name does not change the payment snapshot
-// (This is conceptually proven by the fact that `employeeName` is explicitly saved as a string, and no code updates it on employee rename, but we can test that `updatePaymentService` does not modify it).
+// (This is conceptually proven by the fact that `employeeName` is explicitly saved as a string, and no code updates it on employee rename, but we can test that `updateEmployeePaymentService` does not modify it).
 test("4. Changing employee name does not change the payment snapshot & 9,10,11,12. Updating properties", async () => {
   const mockPayment = {
     _id: "payment-123",
@@ -86,12 +86,12 @@ test("4. Changing employee name does not change the payment snapshot & 9,10,11,1
     populate: async function() { return this; }
   };
   
-  const originalFindById = Payment.findById;
-  // Return a promise resolving to mockPayment, since updatePaymentService awaits findById
-  Payment.findById = () => Promise.resolve(mockPayment);
+  const originalFindById = EmployeePayment.findById;
+  // Return a promise resolving to mockPayment, since updateEmployeePaymentService awaits findById
+  EmployeePayment.findById = () => Promise.resolve(mockPayment);
 
   try {
-    const updated = await updatePaymentService("payment-123", {
+    const updated = await updateEmployeePaymentService("payment-123", {
       amount: 1500,
       paymentDate: "2026-02-01",
       type: "bonus",
@@ -105,13 +105,13 @@ test("4. Changing employee name does not change the payment snapshot & 9,10,11,1
     
     assert.equal(updated.employeeName, "Old Name", "4. Snapshot remains unchanged");
   } finally {
-    Payment.findById = originalFindById;
+    EmployeePayment.findById = originalFindById;
   }
 });
 
 // 5. Employee cannot be changed after payment creation
 test("5. Employee cannot be changed after payment creation (Zod schema rejects it)", () => {
-  const result = updatePaymentSchema.safeParse({
+  const result = updateEmployeePaymentSchema.safeParse({
     employee: "507f1f77bcf86cd799439012",
     amount: 1500,
   });
@@ -124,7 +124,7 @@ test("5. Employee cannot be changed after payment creation (Zod schema rejects i
 
 // 6. employeeName cannot be manually supplied during creation
 test("6. employeeName cannot be manually supplied during creation (Zod schema rejects it)", () => {
-  const result = createPaymentSchema.safeParse({
+  const result = createEmployeePaymentSchema.safeParse({
     employee: "507f1f77bcf86cd799439011",
     employeeName: "Malicious injection",
     amount: 1500,
@@ -142,7 +142,7 @@ test("6. employeeName cannot be manually supplied during creation (Zod schema re
 test("7. Payment type accepts all valid values", () => {
   const validTypes = ["regular", "overtime", "bonus", "advance", "other"];
   for (const type of validTypes) {
-    const result = createPaymentSchema.safeParse({
+    const result = createEmployeePaymentSchema.safeParse({
       employee: "507f1f77bcf86cd799439011",
       amount: 1500,
       paymentDate: "2026-08-08",
@@ -154,7 +154,7 @@ test("7. Payment type accepts all valid values", () => {
 
 // 8. Invalid payment type is rejected
 test("8. Invalid payment type is rejected", () => {
-  const result = createPaymentSchema.safeParse({
+  const result = createEmployeePaymentSchema.safeParse({
     employee: "507f1f77bcf86cd799439011",
     amount: 1500,
     paymentDate: "2026-08-08",
@@ -165,7 +165,7 @@ test("8. Invalid payment type is rejected", () => {
 
 // 13. Payment cannot be deleted
 test("13. Payment cannot be deleted (No DELETE route)", () => {
-  const hasDeleteRoute = paymentRoutes.stack.some(
+  const hasDeleteRoute = employeePaymentRoutes.stack.some(
     (layer) => layer.route?.methods?.delete
   );
   assert.equal(hasDeleteRoute, false, "Delete route should be removed");
@@ -181,24 +181,24 @@ test("14. Historical payment remains accessible after employee becomes inactive"
     type: "regular"
   };
   
-  const originalFindById = Payment.findById;
-  // Mock findById to return an object with populate, because getPaymentByIdService chains .populate()
-  Payment.findById = () => ({ populate: async () => mockPayment });
+  const originalFindById = EmployeePayment.findById;
+  // Mock findById to return an object with populate, because getEmployeePaymentByIdService chains .populate()
+  EmployeePayment.findById = () => ({ populate: async () => mockPayment });
 
   try {
-    // getPaymentByIdService does NOT check employee status, so it should succeed
-    const payment = await getPaymentByIdService("payment-123");
+    // getEmployeePaymentByIdService does NOT check employee status, so it should succeed
+    const payment = await getEmployeePaymentByIdService("payment-123");
     assert.ok(payment);
     assert.equal(payment.employee.status, "inactive");
     assert.equal(payment.employeeName, "Ahmed");
   } finally {
-    Payment.findById = originalFindById;
+    EmployeePayment.findById = originalFindById;
   }
 });
 
 // 15. Payment type filtering works
 test("15. Payment type filtering works (Zod Schema allows type query)", () => {
-  const result = paymentQuerySchema.safeParse({
+  const result = employeePaymentQuerySchema.safeParse({
     type: "bonus"
   });
   assert.equal(result.success, true);
