@@ -255,17 +255,17 @@ test("Financial transactions test suite", async (t) => {
       date: new Date(),
       items: [{ material: materialId, materialName: "A", materialCategory: "B", quantity: 10, unit: "C", unitPrice: 100, subtotal: 1000 }],
       totalAmount: 1000,
-      allocatedAmount: 1000,
-      paymentStatus: "PAID"
+      allocatedAmount: 500,
+      paymentStatus: "PARTIALLY_PAID"
     });
 
     const payment = await SupplierPayment.create({
       paymentReference: "PAY-100",
       supplier: supplierId,
       type: "SPECIFIC",
-      amount: 1000,
+      amount: 500,
       date: new Date(),
-      allocations: [{ purchase: purchase._id, amount: 1000 }],
+      allocations: [{ purchase: purchase._id, amount: 500 }],
       unallocatedAmount: 0
     });
 
@@ -278,7 +278,7 @@ test("Financial transactions test suite", async (t) => {
     try {
       await assert.rejects(
         () => updatePurchaseService(purchase._id, {
-           items: [{ material: materialId, quantity: 5, unitPrice: 100 }] // total drops to 500
+           items: [{ material: materialId, quantity: 4, unitPrice: 100 }] // total drops to 400
         }),
         /Simulated Reconciliation Failure/
       );
@@ -289,11 +289,11 @@ test("Financial transactions test suite", async (t) => {
     // Verify rollback
     const pAfter = await Purchase.findById(purchase._id);
     assert.equal(pAfter.totalAmount, 1000, "Purchase total amount should be rolled back");
-    assert.equal(pAfter.allocatedAmount, 1000, "Purchase allocated amount should be rolled back");
+    assert.equal(pAfter.allocatedAmount, 500, "Purchase allocated amount should be rolled back");
 
     const payAfter = await SupplierPayment.findById(payment._id);
     assert.equal(payAfter.unallocatedAmount, 0, "Payment unallocated amount should be rolled back");
-    assert.equal(payAfter.allocations[0].amount, 1000, "Payment allocation should be rolled back");
+    assert.equal(payAfter.allocations[0].amount, 500, "Payment allocation should be rolled back");
   });
 
   await t.test("Financial invariants are maintained after complex operations", async (t) => {
@@ -317,11 +317,11 @@ test("Financial transactions test suite", async (t) => {
       note: "Invariant test"
     });
 
-    // 2. Overpay generally (1500) -> 1000 allocated, 500 unallocated
+    // 2. Pay partially (500) -> 500 allocated, 0 unallocated
     const payment = await createSupplierPaymentService({
       supplier: supplierId,
       type: "GENERAL",
-      amount: 1500,
+      amount: 500,
       date: new Date()
     });
 
@@ -351,9 +351,9 @@ test("Financial transactions test suite", async (t) => {
     const p1Remaining = p1.totalAmount - p1.allocatedAmount;
     assert.ok(p1Remaining >= 0);
 
-    // Now let's change purchase total to 800 (decrease) -> drops below allocated
+    // Now let's change purchase total to 400 (decrease) -> drops below allocated
     await updatePurchaseService(p1._id, {
-      items: [{ material: materialId, quantity: 8, unitPrice: 100 }]
+      items: [{ material: materialId, quantity: 4, unitPrice: 100 }]
     });
 
     const p2 = await Purchase.findById(purchase._id);
@@ -361,8 +361,8 @@ test("Financial transactions test suite", async (t) => {
 
     // Check invariants again
     assert.ok(p2.allocatedAmount >= 0);
-    assert.ok(p2.allocatedAmount <= p2.totalAmount); // Should be 800 <= 800
-    assert.ok(pay2.unallocatedAmount >= 0); // Should be 1500 - 800 = 700
+    assert.ok(p2.allocatedAmount <= p2.totalAmount); // Should be 400 <= 400
+    assert.ok(pay2.unallocatedAmount >= 0); // Should be 500 - 400 = 100
     
     for (const alloc of pay2.allocations) {
       assert.ok(alloc.amount > 0);

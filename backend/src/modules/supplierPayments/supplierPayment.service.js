@@ -7,10 +7,15 @@ import ValidationError from "../../core/errors/ValidationError.js";
 import { getPaginatedQueryResult } from "../../core/utils/query.js";
 import Supplier from "../suppliers/supplier.model.js";
 import { allocateSpecificPayment, allocateGeneralPayment, reconcilePaymentAmount, reversePaymentAllocations } from "./allocation.service.js";
+import Counter from "../../core/models/counter.model.js";
 
 const generatePaymentReference = async () => {
-  const count = await SupplierPayment.countDocuments();
-  return `PAY-${(count + 1001).toString()}`;
+  const counter = await Counter.findOneAndUpdate(
+    { _id: "paymentReference" },
+    { $inc: { seq: 1 } },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+  return `PAY-${counter.seq + 1000}`;
 };
 
 const createSupplierPaymentService = async (data) => {

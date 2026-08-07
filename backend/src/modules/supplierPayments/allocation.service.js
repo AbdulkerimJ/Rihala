@@ -7,7 +7,7 @@ import ValidationError from "../../core/errors/ValidationError.js";
  */
 const getPaymentStatus = (totalAmount, allocatedAmount) => {
   const remaining = (totalAmount || 0) - (allocatedAmount || 0);
-  if (allocatedAmount === 0) {
+  if (Math.abs(allocatedAmount || 0) < 0.001) {
     return "UNPAID";
   } else if (remaining <= 0) {
     return "PAID";
@@ -56,6 +56,10 @@ const adjustPurchaseAllocation = async (purchaseId, delta, session = null) => {
   
   purchase.allocatedAmount = (purchase.allocatedAmount || 0) + delta;
   
+  // Round to 2 decimal places to prevent floating-point residuals from accumulating
+  // across many allocation/reversal cycles (e.g., 333.33 - 333.33 → 4.44e-16 instead of 0).
+  purchase.allocatedAmount = Math.round(purchase.allocatedAmount * 100) / 100;
+
   // Explicitly set the paymentStatus!
   purchase.paymentStatus = getPaymentStatus(purchase.totalAmount, purchase.allocatedAmount);
   

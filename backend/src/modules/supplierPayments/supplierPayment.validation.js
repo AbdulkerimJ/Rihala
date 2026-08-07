@@ -40,6 +40,7 @@ const supplierPaymentQuerySchema = z.object({
   sort: z.string().optional(),
   supplier: z.string().regex(/^[0-9a-fA-F]{24}$/).optional(),
   type: z.enum(["SPECIFIC", "GENERAL"]).optional(),
+  status: z.enum(["active", "voided"]).optional(),
   search: z.string().optional(),
 }).strict({ error: "Invalid query parameters" });
 

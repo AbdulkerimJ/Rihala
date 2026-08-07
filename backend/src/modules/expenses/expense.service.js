@@ -9,6 +9,10 @@ import ValidationError from "../../core/errors/ValidationError.js";
 const createExpenseService = async (data, userId) => {
   const creator = await User.findById(userId).select("name");
 
+  if (!creator) {
+    throw new ValidationError("Expense creator not found. Cannot record expense without a valid user.");
+  }
+
   const expense = await Expense.create({
     ...data,
     status: "active",
@@ -16,7 +20,7 @@ const createExpenseService = async (data, userId) => {
     voidedAt: undefined,
     voidedBy: undefined,
     createdBy: userId,
-    createdByName: creator?.name ?? null,
+    createdByName: creator.name,
   });
 
   return expense.populate("createdBy", "name email");

@@ -4,6 +4,7 @@ import connectDatabase from "../core/database/mongodb.js";
 import User from "../modules/users/user.model.js";
 import Role from "../modules/roles/role.model.js";
 import Permission from "../modules/permissions/permission.model.js";
+import Counter from "../core/models/counter.model.js";
 
 // All system-level permissions
 const ALL_PERMISSIONS = [
@@ -175,6 +176,27 @@ const seedAdmin = async () => {
       });
       console.log(`Admin user "${adminEmail}" created successfully!`);
     }
+
+    // ── Step 4: Initialise sequence counters ─────────────────────────────────
+    console.log("Seeding counters...");
+    await Promise.all([
+      Counter.findOneAndUpdate(
+        { _id: "orderNumber" },
+        { $setOnInsert: { seq: 0 } },
+        { upsert: true, new: true },
+      ),
+      Counter.findOneAndUpdate(
+        { _id: "purchaseNumber" },
+        { $setOnInsert: { seq: 0 } },
+        { upsert: true, new: true },
+      ),
+      Counter.findOneAndUpdate(
+        { _id: "paymentReference" },
+        { $setOnInsert: { seq: 0 } },
+        { upsert: true, new: true },
+      ),
+    ]);
+    console.log("Counters seeded.");
 
     console.log("Seed completed successfully.");
   } catch (error) {

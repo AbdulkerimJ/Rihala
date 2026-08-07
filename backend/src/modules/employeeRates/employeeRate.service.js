@@ -1,3 +1,4 @@
+import WeeklyPayroll from "../weeklyPayrolls/weeklyPayroll.model.js";
 import EmployeeRate from "./employeeRate.model.js";
 import { ensureEmployeeExists } from "../employees/employee.service.js";
 import employeeRateQueryConfig from "./employeeRate.query.js";
@@ -17,6 +18,23 @@ const createEmployeeRateService = async (data) => {
 
   if (employee.status !== "active") {
     throw new ValidationError("Cannot create rate for an inactive employee");
+  }
+
+  // Warn if the effective date falls inside an already-closed payroll period.
+  // The historical payroll is immutable, but a backdated rate would create
+  // confusing rate history that contradicts the closed payroll totals.
+  const closedPayrollForPeriod = await WeeklyPayroll.findOne({
+    employee: normalizedData.employee,
+    startDate: { $lte: normalizedData.effectiveDate },
+    endDate: { $gte: normalizedData.effectiveDate },
+    status: "CLOSED",
+  });
+
+  if (closedPayrollForPeriod) {
+    throw new ValidationError(
+      "Cannot create a rate with an effective date that falls inside an already-closed payroll period. " +
+      "The payroll for that period has been finalized and its earnings cannot be retroactively explained by a new rate.",
+    );
   }
 
   const existingRate = await EmployeeRate.findOne({

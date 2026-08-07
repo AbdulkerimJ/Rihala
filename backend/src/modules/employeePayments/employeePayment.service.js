@@ -59,9 +59,10 @@ const updateEmployeePaymentService = async (paymentId, updateData) => {
     throw new ValidationError("Cannot update a voided payment.");
   }
 
-  Object.keys(updateData).forEach((key) => {
-    payment[key] = updateData[key];
-  });
+  // Only `note` may be changed after creation — all financial fields are immutable.
+  if (updateData.note !== undefined) {
+    payment.note = updateData.note;
+  }
 
   await payment.save();
 

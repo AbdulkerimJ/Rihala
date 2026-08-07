@@ -217,10 +217,8 @@ test("Order Concurrency Test Suite", async (t) => {
 
     await voidCustomerPaymentService(payment._id, "Voiding test", userId);
 
-    await assert.rejects(
-      () => updateOrderService(order._id, { customer: customerB }, userId),
-      /Cannot change the customer after customer payment history exists/
-    );
+    const reassignedOrder = await updateOrderService(order._id, { customer: customerB }, userId);
+    assert.equal(reassignedOrder.customer._id.toString(), customerB.toString(), "Should allow reassignment since payment is voided");
   });
 
   await t.test("Teardown database connection", async () => {

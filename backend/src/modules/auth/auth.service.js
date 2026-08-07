@@ -148,6 +148,8 @@ const logoutService = async (refreshToken) => {
     tokenHash: refreshTokenHash,
   });
 
+  // If the token is not found, we treat logout as successful (idempotent).
+  // This prevents timing attacks that could reveal token existence.
   if (refreshTokenDoc) {
     refreshTokenDoc.revokedAt = new Date();
     await refreshTokenDoc.save();

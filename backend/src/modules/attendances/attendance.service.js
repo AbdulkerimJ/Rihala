@@ -6,14 +6,9 @@ import ConflictError from "../../core/errors/ConflictError.js";
 import NotFoundError from "../../core/errors/NotFoundError.js";
 import ValidationError from "../../core/errors/ValidationError.js";
 import { getPaginatedQueryResult } from "../../core/utils/query.js";
-import { normalizeDateValue } from "../../core/utils/date.js";
+import { normalizeDateValue, isWorkday } from "../../core/utils/date.js";
 
 const ATTENDANCE_STATUSES = ["PRESENT", "ABSENT", "PERMISSION"];
-
-const isWorkday = (date) => {
-  const day = date.getDay();
-  return day >= 1 && day <= 6;
-};
 
 const calculateDailyAttendancePortion = (morningStatus, afternoonStatus) => {
   if (morningStatus === "PRESENT" && afternoonStatus === "PRESENT") {

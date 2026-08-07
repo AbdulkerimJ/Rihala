@@ -9,10 +9,15 @@ import Material from "../materials/material.model.js";
 import Supplier from "../suppliers/supplier.model.js";
 import SupplierPayment from "../supplierPayments/supplierPayment.model.js";
 import * as allocationService from "../supplierPayments/allocation.service.js";
+import Counter from "../../core/models/counter.model.js";
 
 const generatePurchaseNumber = async () => {
-  const count = await Purchase.countDocuments();
-  return `PUR-${(count + 1001).toString()}`;
+  const counter = await Counter.findOneAndUpdate(
+    { _id: "purchaseNumber" },
+    { $inc: { seq: 1 } },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+  return `PUR-${counter.seq + 1000}`;
 };
 
 const validateAndPrepareItems = async (items, session = null) => {

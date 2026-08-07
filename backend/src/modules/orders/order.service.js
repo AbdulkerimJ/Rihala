@@ -43,21 +43,10 @@ const ensureCustomerCanBeUsed = async (customerId) => {
 };
 
 const generateOrderNumber = async () => {
-  let counter = await Counter.findById("orderNumber");
-  if (!counter) {
-    // Seed counter safely based on existing orders
-    const count = await Order.countDocuments();
-    try {
-      await Counter.create({ _id: "orderNumber", seq: count });
-    } catch (err) {
-      if (err.code !== 11000) throw err; // Ignore duplicate key if another request just created it
-    }
-  }
-
-  counter = await Counter.findOneAndUpdate(
+  const counter = await Counter.findOneAndUpdate(
     { _id: "orderNumber" },
     { $inc: { seq: 1 } },
-    { upsert: true, new: true }
+    { upsert: true, new: true, setDefaultsOnInsert: true }
   );
 
   return `ORD-${counter.seq + 1000}`;
@@ -127,7 +116,7 @@ const updateOrderService = async (orderId, updateData, userId) => {
       }
 
       if (updateData.customer !== undefined && updateData.customer.toString() !== order.customer.toString()) {
-        const paymentExists = await CustomerPayment.exists({ order: order._id }).session(session);
+        const paymentExists = await CustomerPayment.exists({ order: order._id, status: "active" }).session(session);
         if (paymentExists) {
           throw new ValidationError("Cannot change the customer after customer payment history exists.");
         }

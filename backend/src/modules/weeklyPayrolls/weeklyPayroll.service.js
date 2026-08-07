@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import WeeklyPayroll from "./weeklyPayroll.model.js";
 import { ensureEmployeeExists } from "../employees/employee.service.js";
 import Attendance from "../attendances/attendance.model.js";
@@ -9,18 +10,13 @@ import ConflictError from "../../core/errors/ConflictError.js";
 import NotFoundError from "../../core/errors/NotFoundError.js";
 import ValidationError from "../../core/errors/ValidationError.js";
 import { getPaginatedQueryResult } from "../../core/utils/query.js";
-import { normalizeDateValue } from "../../core/utils/date.js";
+import { normalizeDateValue, isWorkday } from "../../core/utils/date.js";
 
-const isWorkday = (date) => {
-  const day = date.getDay();
-  return day >= 1 && day <= 6;
-};
-
-const getLatestClosedPayroll = async (employeeId) => {
+const getLatestClosedPayroll = async (employeeId, session = null) => {
   return WeeklyPayroll.findOne({
     employee: employeeId,
     status: "CLOSED",
-  }).sort({ endDate: -1 });
+  }).sort({ endDate: -1 }).session(session);
 };
 
 const getPayrollPeriodBounds = (employee, referenceDate = new Date()) => {
@@ -95,6 +91,7 @@ const calculatePayrollData = async (
   employeeId,
   startDate,
   periodEndDate,
+  session = null,
 ) => {
   const requiredDates = buildRequiredAttendanceDates(
     startDate,
@@ -105,7 +102,7 @@ const calculatePayrollData = async (
   const attendanceRecords = await Attendance.find({
     employee: employeeId,
     workDate: { $gte: startDate, $lte: periodEndDate },
-  });
+  }).session(session);
 
   const attendanceMap = new Map(
     attendanceRecords.map((record) => [
@@ -121,7 +118,7 @@ const calculatePayrollData = async (
 
   const rateHistory = await EmployeeRate.find({ employee: employeeId }).sort({
     effectiveDate: -1,
-  });
+  }).session(session);
 
   let normalEarnings = 0;
 
@@ -154,7 +151,7 @@ const calculatePayrollData = async (
   const overtimeRecords = await Overtime.find({
     employee: employeeId,
     workDate: { $gte: startDate, $lte: periodEndDate },
-  });
+  }).session(session);
 
   const overtimeEarnings = overtimeRecords.reduce(
     (sum, record) => sum + (record.amount || 0),
@@ -224,63 +221,83 @@ const getWeeklyPayrollByIdService = async (weeklyPayrollId) => {
 };
 
 const closeEmployeeWeeklyPayrollService = async (employeeId) => {
+  // Resolve employee outside the transaction (read-only, no financial impact).
   const employee = await ensureEmployeeExists(employeeId);
-  const latestClosedPayroll = await getLatestClosedPayroll(employeeId);
 
-  const startDate = await getCurrentPayrollStartDate(
-    employee,
-    latestClosedPayroll,
-  );
-  const { endDate } = getPayrollPeriodBounds(employee, new Date());
-  const periodEndDate = endDate < startDate ? startDate : endDate;
-
-  const existingClosedPayroll = await WeeklyPayroll.findOne({
-    employee: employeeId,
-    startDate,
-    endDate: periodEndDate,
-  });
-
-  if (existingClosedPayroll) {
-    throw new ConflictError("This weekly payroll has already been closed.");
-  }
-
-  const payrollData = await calculatePayrollData(
-    employee,
-    employeeId,
-    startDate,
-    periodEndDate,
-  );
-
-  if (!payrollData.isComplete) {
-    throw new ValidationError(
-      "Payroll cannot be closed because attendance is missing for required dates.",
-      [
-        {
-          field: "attendance",
-          message: `Attendance is missing for the following dates: ${payrollData.missingAttendanceDates.map((date) => date.toISOString().slice(0, 10)).join(", ")}`,
-        },
-      ],
-    );
-  }
-
+  const session = await mongoose.startSession();
   try {
-    const createdPayroll = await WeeklyPayroll.create({
-      employee: employeeId,
-      startDate,
-      endDate: periodEndDate,
-      normalEarnings: payrollData.normalEarnings,
-      overtimeEarnings: payrollData.overtimeEarnings,
-      totalEarnings: payrollData.totalEarnings,
-      status: "CLOSED",
-      closedAt: new Date(),
-    });
+    return await session.withTransaction(async () => {
+      // Re-read the latest closed payroll inside the transaction so the
+      // period boundaries are consistent with the data we're about to snapshot.
+      const latestClosedPayroll = await getLatestClosedPayroll(employeeId, session);
 
-    return createdPayroll.populate("employee");
-  } catch (error) {
-    if (error.code === 11000) {
-      throw new ConflictError("This weekly payroll has already been closed.");
-    }
-    throw error;
+      const startDate = await getCurrentPayrollStartDate(employee, latestClosedPayroll);
+      const { endDate } = getPayrollPeriodBounds(employee, new Date());
+      const periodEndDate = endDate < startDate ? startDate : endDate;
+
+      // Check for existing closed payroll within the transaction (prevents duplicate).
+      const existingClosedPayroll = await WeeklyPayroll.findOne({
+        employee: employeeId,
+        startDate,
+        endDate: periodEndDate,
+      }).session(session);
+
+      if (existingClosedPayroll) {
+        throw new ConflictError("This weekly payroll has already been closed.");
+      }
+
+      // Calculate payroll data inside the transaction so attendance/overtime reads
+      // are consistent with the transaction snapshot — any concurrent modification
+      // will either conflict or be excluded from this snapshot.
+      const payrollData = await calculatePayrollData(
+        employee,
+        employeeId,
+        startDate,
+        periodEndDate,
+        session,
+      );
+
+      if (!payrollData.isComplete) {
+        throw new ValidationError(
+          "Payroll cannot be closed because attendance is missing for required dates.",
+          [
+            {
+              field: "attendance",
+              message: `Attendance is missing for the following dates: ${payrollData.missingAttendanceDates
+                .map((date) => date.toISOString().slice(0, 10))
+                .join(", ")}`,
+            },
+          ],
+        );
+      }
+
+      try {
+        const createdPayroll = await WeeklyPayroll.create(
+          [
+            {
+              employee: employeeId,
+              startDate,
+              endDate: periodEndDate,
+              normalEarnings: payrollData.normalEarnings,
+              overtimeEarnings: payrollData.overtimeEarnings,
+              totalEarnings: payrollData.totalEarnings,
+              status: "CLOSED",
+              closedAt: new Date(),
+            },
+          ],
+          { session },
+        );
+
+        return createdPayroll[0].populate("employee");
+      } catch (error) {
+        if (error.code === 11000) {
+          throw new ConflictError("This weekly payroll has already been closed.");
+        }
+        throw error;
+      }
+    });
+  } finally {
+    session.endSession();
   }
 };
 

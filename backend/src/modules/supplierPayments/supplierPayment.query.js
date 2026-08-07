@@ -1,6 +1,6 @@
 const supplierPaymentQueryConfig = {
-  searchFields: ["paymentReference"],
-  filterableFields: ["supplier", "type"],
+  searchableFields: ["paymentReference"],
+  filterableFields: ["supplier", "type", "status"],
   sortableFields: ["date", "createdAt", "updatedAt", "amount"],
   defaultSort: "-date",
   populate: [
