@@ -1,5 +1,8 @@
 import User from "./user.model.js";
 import VerificationToken from "../auth/verificationToken.model.js";
+import RefreshToken from "../auth/refreshToken.model.js";
+import { getPaginatedQueryResult } from "../../core/utils/query.js";
+import userQueryConfig from "./user.query.js";
 import ConflictError from "../../core/errors/ConflictError.js";
 import NotFoundError from "../../core/errors/NotFoundError.js";
 import ValidationError from "../../core/errors/ValidationError.js";
@@ -84,6 +87,12 @@ const deactivateUserService = async (userId) => {
   user.status = "inactive";
 
   await user.save();
+
+  // Revoke all active refresh tokens for this user
+  await RefreshToken.updateMany(
+    { user: user._id, revokedAt: null },
+    { revokedAt: new Date() },
+  );
 
   return populateUserRoles(user);
 };
@@ -178,6 +187,10 @@ const updateUserService = async (userId, updateData) => {
 
 // Soft delete a user record.
 const softDeleteUserService = async (userId, deletedByUserId) => {
+  if (userId.toString() === deletedByUserId?.toString()) {
+    throw new ValidationError("You cannot delete your own account.");
+  }
+
   const user = await User.findOne({
     _id: userId,
     deletedAt: null,
@@ -192,6 +205,11 @@ const softDeleteUserService = async (userId, deletedByUserId) => {
   user.deletedBy = deletedByUserId ?? null;
 
   await user.save();
+
+  await RefreshToken.updateMany(
+    { user: user._id, revokedAt: null },
+    { revokedAt: new Date() },
+  );
 
   return populateUserRoles(user);
 };
@@ -212,21 +230,25 @@ const getUserByIdService = async (userId) => {
     throw new NotFoundError("User not found.");
   }
 
-  return populateUserRoles(user);
+  return user;
 };
 
 // Get all active users.
-const getAllUsersService = async () => {
-  const users = await User.find({ deletedAt: null }).populate("roles");
-
-  return users;
+const getAllUsersService = async (filters = {}) => {
+  if (filters.deletedAt === undefined) {
+    filters.deletedAt = null;
+  }
+  return getPaginatedQueryResult(User, filters, userQueryConfig, {
+    populate: "roles",
+  });
 };
 
 // Get all soft-deleted users.
-const getDeletedUsersService = async () => {
-  const users = await User.find({ deletedAt: { $ne: null } }).populate("roles");
-
-  return users;
+const getDeletedUsersService = async (filters = {}) => {
+  filters.deletedAt = { $ne: null };
+  return getPaginatedQueryResult(User, filters, userQueryConfig, {
+    populate: "roles",
+  });
 };
 
 // Restore a soft-deleted user.

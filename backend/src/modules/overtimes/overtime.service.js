@@ -1,5 +1,6 @@
 import Overtime from "./overtime.model.js";
 import { ensureEmployeeExists } from "../employees/employee.service.js";
+import WeeklyPayroll from "../weeklyPayrolls/weeklyPayroll.model.js";
 import overtimeQueryConfig from "./overtime.query.js";
 import ConflictError from "../../core/errors/ConflictError.js";
 import NotFoundError from "../../core/errors/NotFoundError.js";
@@ -27,6 +28,20 @@ const ensureEmploymentPeriodIsValid = (employee, workDate) => {
   }
 };
 
+const ensureNotClosedInPayroll = async (employeeId, workDate) => {
+  const normalizedWorkDate = normalizeDateValue(workDate);
+  const closedPayroll = await WeeklyPayroll.findOne({
+    employee: employeeId,
+    startDate: { $lte: normalizedWorkDate },
+    endDate: { $gte: normalizedWorkDate },
+    status: "CLOSED",
+  });
+
+  if (closedPayroll) {
+    throw new ValidationError("Cannot modify overtime for a closed payroll period.");
+  }
+};
+
 const createOvertimeService = async (data) => {
   const normalizedData = {
     ...data,
@@ -34,7 +49,13 @@ const createOvertimeService = async (data) => {
   };
 
   const employee = await ensureEmployeeExists(normalizedData.employee);
+
+  if (employee.status !== "active") {
+    throw new ValidationError("Cannot create overtime for an inactive employee.");
+  }
+
   ensureEmploymentPeriodIsValid(employee, normalizedData.workDate);
+  await ensureNotClosedInPayroll(normalizedData.employee, normalizedData.workDate);
 
   const existingOvertime = await Overtime.findOne({
     employee: normalizedData.employee,
@@ -96,6 +117,8 @@ const updateOvertimeService = async (overtimeId, updateData) => {
   if (!overtime) {
     throw new NotFoundError("Overtime not found.");
   }
+
+  await ensureNotClosedInPayroll(overtime.employee, overtime.workDate);
 
   const normalizedUpdateData = { ...updateData };
 

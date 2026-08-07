@@ -30,17 +30,13 @@ const assignRolesToUserService = async (userId, roleIds, requestingUserId) => {
     );
   }
 
-  const existingIds = user.roles.map((id) => id.toString());
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    { $addToSet: { roles: { $each: roles.map((r) => r._id) } } },
+    { new: true },
+  ).populate("roles");
 
-  const newIds = roles
-    .map((r) => r._id)
-    .filter((id) => !existingIds.includes(id.toString()));
-
-  user.roles.push(...newIds);
-
-  await user.save();
-
-  return user.populate("roles");
+  return updatedUser;
 };
 
 // Remove a single role from a user.

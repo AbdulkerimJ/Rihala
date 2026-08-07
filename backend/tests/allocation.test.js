@@ -13,8 +13,10 @@ import ValidationError from "../src/core/errors/ValidationError.js";
 
 test("allocateSpecificPayment correctly allocates amount and updates purchase", async () => {
   const mockPurchaseId = new mongoose.Types.ObjectId();
+  const supplierId = new mongoose.Types.ObjectId();
   const mockPurchase = {
     _id: mockPurchaseId,
+    supplier: supplierId,
     totalAmount: 10000,
     allocatedAmount: 2000, // Remaining = 8000
     save: async function() {
@@ -23,6 +25,7 @@ test("allocateSpecificPayment correctly allocates amount and updates purchase", 
   };
 
   const mockPayment = {
+    supplier: supplierId,
     amount: 5000,
     allocations: [],
     save: async function() {
@@ -31,12 +34,11 @@ test("allocateSpecificPayment correctly allocates amount and updates purchase", 
     },
   };
 
-  // Override findById temporarily
+  // Override temporarily
+  const originalFindOneAndUpdate = Purchase.findOneAndUpdate;
   const originalFindById = Purchase.findById;
-  Purchase.findById = () => {
-    mockPurchase.session = () => mockPurchase;
-    return mockPurchase;
-  };
+  Purchase.findOneAndUpdate = () => mockPurchase;
+  Purchase.findById = () => ({ session: () => mockPurchase });
 
   try {
     await allocationService.allocateSpecificPayment(mockPayment, mockPurchaseId);
@@ -48,27 +50,61 @@ test("allocateSpecificPayment correctly allocates amount and updates purchase", 
     assert.equal(mockPayment.unallocatedAmount, 0);
     assert.equal(mockPurchase.paymentStatus, "PARTIALLY_PAID");
   } finally {
+    Purchase.findOneAndUpdate = originalFindOneAndUpdate;
     Purchase.findById = originalFindById;
   }
 });
 
 test("allocateSpecificPayment rejects if payment exceeds remaining amount", async () => {
   const mockPurchaseId = new mongoose.Types.ObjectId();
+  const supplierId = new mongoose.Types.ObjectId();
   const mockPurchase = {
     _id: mockPurchaseId,
+    supplier: supplierId,
     totalAmount: 10000,
     allocatedAmount: 9000, // Remaining = 1000
     save: async () => {},
   };
 
   const mockPayment = {
+    supplier: supplierId,
     amount: 2000, // Exceeds 1000
     allocations: [],
     save: async () => {},
   };
 
-  const originalFindById = Purchase.findById;
-  Purchase.findById = () => {
+  const originalFindOneAndUpdate = Purchase.findOneAndUpdate;
+  Purchase.findOneAndUpdate = () => mockPurchase;
+
+  try {
+    await assert.rejects(
+      () => allocationService.allocateSpecificPayment(mockPayment, mockPurchaseId),
+      ValidationError,
+    );
+  } finally {
+    Purchase.findOneAndUpdate = originalFindOneAndUpdate;
+  }
+});
+
+test("allocateSpecificPayment rejects if payment and purchase suppliers do not match", async () => {
+  const mockPurchaseId = new mongoose.Types.ObjectId();
+  const mockPurchase = {
+    _id: mockPurchaseId,
+    supplier: "SUPPLIER_A",
+    totalAmount: 10000,
+    allocatedAmount: 0,
+    save: async () => {},
+  };
+
+  const mockPayment = {
+    supplier: "SUPPLIER_B",
+    amount: 5000,
+    allocations: [],
+    save: async () => {},
+  };
+
+  const originalFindOneAndUpdate = Purchase.findOneAndUpdate;
+  Purchase.findOneAndUpdate = () => {
     const p = { ...mockPurchase };
     p.session = () => p;
     return p;
@@ -78,9 +114,10 @@ test("allocateSpecificPayment rejects if payment exceeds remaining amount", asyn
     await assert.rejects(
       () => allocationService.allocateSpecificPayment(mockPayment, mockPurchaseId),
       ValidationError,
+      /Supplier payment cannot be allocated to a purchase belonging to another supplier/
     );
   } finally {
-    Purchase.findById = originalFindById;
+    Purchase.findOneAndUpdate = originalFindOneAndUpdate;
   }
 });
 
@@ -104,15 +141,15 @@ test("allocateGeneralPayment distributes across multiple outstanding purchases",
   };
 
   const originalFind = Purchase.find;
+  const originalFindOneAndUpdate = Purchase.findOneAndUpdate;
   const originalFindById = Purchase.findById;
 
   Purchase.find = () => ({
     session: () => ({ sort: () => mockPurchases })
   });
 
-  Purchase.findById = (id) => ({
-    session: () => mockPurchases.find(p => p._id === id),
-  });
+  Purchase.findOneAndUpdate = ({ _id }) => mockPurchases.find(p => p._id === _id);
+  Purchase.findById = (id) => ({ session: () => mockPurchases.find(p => p._id === id) });
 
   try {
     await allocationService.allocateGeneralPayment(mockPayment);
@@ -134,6 +171,7 @@ test("allocateGeneralPayment distributes across multiple outstanding purchases",
     assert.equal(mockPurchases[2].paymentStatus, "PARTIALLY_PAID");
   } finally {
     Purchase.find = originalFind;
+    Purchase.findOneAndUpdate = originalFindOneAndUpdate;
     Purchase.findById = originalFindById;
   }
 });
@@ -157,15 +195,15 @@ test("allocateGeneralPayment handles excess amount as supplier credit", async ()
   };
 
   const originalFind = Purchase.find;
+  const originalFindOneAndUpdate = Purchase.findOneAndUpdate;
   const originalFindById = Purchase.findById;
 
   Purchase.find = () => ({
     session: () => ({ sort: () => mockPurchases })
   });
 
-  Purchase.findById = (id) => ({
-    session: () => mockPurchases.find(p => p._id === id),
-  });
+  Purchase.findOneAndUpdate = ({ _id }) => mockPurchases.find(p => p._id === _id);
+  Purchase.findById = (id) => ({ session: () => mockPurchases.find(p => p._id === id) });
 
   try {
     await allocationService.allocateGeneralPayment(mockPayment);
@@ -174,7 +212,7 @@ test("allocateGeneralPayment handles excess amount as supplier credit", async ()
     assert.equal(mockPayment.unallocatedAmount, 5000); // 15000 - 10000 = 5000 credit
   } finally {
     Purchase.find = originalFind;
-    Purchase.findById = originalFindById;
+    Purchase.findOneAndUpdate = originalFindOneAndUpdate;
   }
 });
 
@@ -241,6 +279,7 @@ test("reconcilePaymentAmount increases GENERAL payment amount properly", async (
 
   const originalFindById = Purchase.findById;
   const originalFind = Purchase.find;
+  const originalFindOneAndUpdate = Purchase.findOneAndUpdate;
   
   Purchase.findById = (id) => ({
     session: () => mockPurchases.find(p => p._id === id),
@@ -249,6 +288,8 @@ test("reconcilePaymentAmount increases GENERAL payment amount properly", async (
   Purchase.find = () => ({
     session: () => ({ sort: () => [mockPurchases[1]] })
   });
+
+  Purchase.findOneAndUpdate = ({ _id }) => mockPurchases.find(p => p._id === _id);
 
   try {
     await allocationService.reconcilePaymentAmount(mockPayment, 15000); // +5000
@@ -263,6 +304,7 @@ test("reconcilePaymentAmount increases GENERAL payment amount properly", async (
   } finally {
     Purchase.findById = originalFindById;
     Purchase.find = originalFind;
+    Purchase.findOneAndUpdate = originalFindOneAndUpdate;
   }
 });
 
@@ -299,11 +341,16 @@ test("reconcilePurchaseTotal reduces allocations if purchase total drops below a
   };
 
   const originalFindById = Purchase.findById;
+  const originalFindOneAndUpdate = Purchase.findOneAndUpdate;
   const originalFind = SupplierPayment.find;
   
   Purchase.findById = (id) => {
     mockPurchase.session = () => mockPurchase;
     return mockPurchase;
+  };
+
+  Purchase.findOneAndUpdate = (query, update, options) => {
+    return mockPurchase; // We mock it to just return the purchase
   };
   
   SupplierPayment.find = () => ({
@@ -325,6 +372,7 @@ test("reconcilePurchaseTotal reduces allocations if purchase total drops below a
     
   } finally {
     Purchase.findById = originalFindById;
+    Purchase.findOneAndUpdate = originalFindOneAndUpdate;
     SupplierPayment.find = originalFind;
   }
 });
@@ -349,9 +397,11 @@ test('reconcilePaymentAmount throws ValidationError if SPECIFIC payment is incre
   };
 
   const originalFindById = Purchase.findById;
+  const originalFindOneAndUpdate = Purchase.findOneAndUpdate;
   Purchase.findById = (id) => ({
     session: () => mockPurchases.find(p => p._id === id),
   });
+  Purchase.findOneAndUpdate = ({ _id }) => mockPurchases.find(p => p._id === _id);
 
   try {
     await assert.rejects(
@@ -361,6 +411,7 @@ test('reconcilePaymentAmount throws ValidationError if SPECIFIC payment is incre
     );
   } finally {
     Purchase.findById = originalFindById;
+    Purchase.findOneAndUpdate = originalFindOneAndUpdate;
   }
 });
 
@@ -391,13 +442,17 @@ test('applyCreditToPurchase handles multiple credit payments oldest-first', asyn
     }, amount: 4000 }
   ];
 
+  const originalFindOneAndUpdatePurchase = Purchase.findOneAndUpdate;
   const originalFindById = Purchase.findById;
   const originalFind = SupplierPayment.find;
+  const originalFindOneAndUpdatePayment = SupplierPayment.findOneAndUpdate;
   
+  Purchase.findOneAndUpdate = () => mockPurchase;
   Purchase.findById = () => ({ session: () => mockPurchase });
   SupplierPayment.find = () => ({
     session: () => ({ sort: () => mockPayments }) // Sorted oldest first
   });
+  SupplierPayment.findOneAndUpdate = ({ _id }) => mockPayments.find(p => p._id === _id);
 
   try {
     await allocationService.applyCreditToPurchase(mockPurchaseId);
@@ -414,8 +469,10 @@ test('applyCreditToPurchase handles multiple credit payments oldest-first', asyn
     assert.equal(mockPayments[2].allocations[0].amount, 2000); // Partially consumed
     assert.equal(mockPayments[2].unallocatedAmount, 2000);
   } finally {
+    Purchase.findOneAndUpdate = originalFindOneAndUpdatePurchase;
     Purchase.findById = originalFindById;
     SupplierPayment.find = originalFind;
+    SupplierPayment.findOneAndUpdate = originalFindOneAndUpdatePayment;
   }
 });
 
@@ -431,7 +488,9 @@ test('reconcilePurchaseTotal when purchase total increases does not automaticall
   };
 
   const originalFindById = Purchase.findById;
+  const originalFindOneAndUpdate = Purchase.findOneAndUpdate;
   Purchase.findById = () => ({ session: () => mockPurchase });
+  Purchase.findOneAndUpdate = () => mockPurchase;
 
   try {
     // reconcilePurchaseTotal should just update paymentStatus to PARTIALLY_PAID
@@ -441,5 +500,6 @@ test('reconcilePurchaseTotal when purchase total increases does not automaticall
     assert.equal(mockPurchase.paymentStatus, 'PARTIALLY_PAID');
   } finally {
     Purchase.findById = originalFindById;
+    Purchase.findOneAndUpdate = originalFindOneAndUpdate;
   }
 });

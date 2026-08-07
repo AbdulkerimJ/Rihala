@@ -32,6 +32,10 @@ const supplierPaymentSchema = new mongoose.Schema(
       required: [true, "Supplier is required"],
       index: true,
     },
+    purchaseId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Purchase",
+    },
     amount: {
       type: Number,
       required: [true, "Payment amount is required"],
@@ -54,6 +58,25 @@ const supplierPaymentSchema = new mongoose.Schema(
     allocations: {
       type: [allocationSchema],
       default: [],
+    },
+    status: {
+      type: String,
+      enum: {
+        values: ["active", "voided"],
+        message: "Status must be either active or voided",
+      },
+      default: "active",
+    },
+    voidReason: {
+      type: String,
+      trim: true,
+    },
+    voidedAt: {
+      type: Date,
+    },
+    voidedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
   },
   {

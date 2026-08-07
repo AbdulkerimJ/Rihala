@@ -21,13 +21,30 @@ const getPaymentStatus = (totalAmount, allocatedAmount) => {
  */
 const explicitUpdatePayment = async (payment, session = null) => {
   const totalAllocated = payment.allocations.reduce((sum, alloc) => sum + alloc.amount, 0);
-  payment.unallocatedAmount = payment.amount - totalAllocated;
+  
+  if (payment.status === "voided") {
+    payment.unallocatedAmount = 0;
+  } else {
+    payment.unallocatedAmount = payment.amount - totalAllocated;
+  }
   
   if (payment.unallocatedAmount < 0) {
     throw new ValidationError("Allocations cannot exceed the payment amount");
   }
 
   await payment.save({ session });
+};
+
+/**
+ * Reverse all allocations of a payment and set it to voided state
+ */
+export const reversePaymentAllocations = async (payment, session = null) => {
+  for (let i = payment.allocations.length - 1; i >= 0; i--) {
+    const alloc = payment.allocations[i];
+    await adjustPurchaseAllocation(alloc.purchase, -alloc.amount, session);
+  }
+  payment.allocations = [];
+  await explicitUpdatePayment(payment, session);
 };
 
 /**
@@ -49,7 +66,11 @@ const adjustPurchaseAllocation = async (purchaseId, delta, session = null) => {
  * Apply existing supplier credit to a newly created purchase.
  */
 export const applyCreditToPurchase = async (purchaseId, session = null) => {
-  const purchase = await Purchase.findById(purchaseId).session(session);
+  const purchase = await Purchase.findOneAndUpdate(
+    { _id: purchaseId },
+    { $currentDate: { updatedAt: true } },
+    { new: true, session }
+  );
   if (!purchase) return;
 
   let remainingPurchaseAmount = purchase.totalAmount - (purchase.allocatedAmount || 0);
@@ -58,11 +79,20 @@ export const applyCreditToPurchase = async (purchaseId, session = null) => {
   // Find payments with unallocated credit, oldest first
   const payments = await SupplierPayment.find({
     supplier: purchase.supplier,
+    type: "GENERAL",
+    status: "active",
     unallocatedAmount: { $gt: 0 }
   }).session(session).sort({ date: 1 });
 
-  for (const payment of payments) {
+  for (const p of payments) {
     if (remainingPurchaseAmount <= 0) break;
+
+    const payment = await SupplierPayment.findOneAndUpdate(
+      { _id: p._id },
+      { $currentDate: { updatedAt: true } },
+      { new: true, session }
+    );
+    if (!payment || payment.unallocatedAmount <= 0 || payment.status === "voided") continue;
 
     const allocatable = Math.min(payment.unallocatedAmount, remainingPurchaseAmount);
     
@@ -85,9 +115,17 @@ export const applyCreditToPurchase = async (purchaseId, session = null) => {
  * Create a specific payment for a single purchase.
  */
 export const allocateSpecificPayment = async (payment, purchaseId, session = null) => {
-  const purchase = await Purchase.findById(purchaseId).session(session);
+  const purchase = await Purchase.findOneAndUpdate(
+    { _id: purchaseId },
+    { $currentDate: { updatedAt: true } },
+    { new: true, session }
+  );
   if (!purchase) {
     throw new ValidationError("Purchase not found");
+  }
+
+  if (purchase.supplier.toString() !== payment.supplier.toString()) {
+    throw new ValidationError("Supplier payment cannot be allocated to a purchase belonging to another supplier.");
   }
 
   const remaining = purchase.totalAmount - (purchase.allocatedAmount || 0);
@@ -118,8 +156,15 @@ export const allocateGeneralPayment = async (payment, amountToAllocate = null, s
     paymentStatus: { $in: ["UNPAID", "PARTIALLY_PAID"] }
   }).session(session).sort({ date: 1 });
 
-  for (const purchase of outstandingPurchases) {
+  for (const p of outstandingPurchases) {
     if (remainingPayment <= 0) break;
+
+    const purchase = await Purchase.findOneAndUpdate(
+      { _id: p._id },
+      { $currentDate: { updatedAt: true } },
+      { new: true, session }
+    );
+    if (!purchase) continue;
 
     const purchaseRemaining = purchase.totalAmount - (purchase.allocatedAmount || 0);
     if (purchaseRemaining <= 0) continue;
@@ -163,20 +208,35 @@ export const reconcilePaymentAmount = async (payment, newAmount, session = null)
       await allocateGeneralPayment(payment, difference, session);
     } else {
       // It's a SPECIFIC payment. The original purchase might have remaining balance.
-      // We will try to allocate the difference to the original purchase(s).
+      // We will try to allocate the difference to the original purchase.
       let remainingDiff = difference;
       
-      for (const alloc of payment.allocations) {
-        if (remainingDiff <= 0) break;
-        
-        const purchase = await Purchase.findById(alloc.purchase).session(session);
-        const purchaseRemaining = purchase.totalAmount - (purchase.allocatedAmount || 0);
-        
-        if (purchaseRemaining > 0) {
-          const allocatable = Math.min(remainingDiff, purchaseRemaining);
-          alloc.amount += allocatable;
-          remainingDiff -= allocatable;
-          await adjustPurchaseAllocation(purchase._id, allocatable, session);
+      if (payment.purchaseId) {
+        const purchase = await Purchase.findOneAndUpdate(
+          { _id: payment.purchaseId },
+          { $currentDate: { updatedAt: true } },
+          { new: true, session }
+        );
+
+        if (purchase) {
+          const purchaseRemaining = purchase.totalAmount - (purchase.allocatedAmount || 0);
+          
+          if (purchaseRemaining > 0) {
+            const allocatable = Math.min(remainingDiff, purchaseRemaining);
+            
+            const existingAllocIndex = payment.allocations.findIndex(a => a.purchase.toString() === purchase._id.toString());
+            if (existingAllocIndex > -1) {
+              payment.allocations[existingAllocIndex].amount += allocatable;
+            } else {
+              payment.allocations.push({
+                purchase: purchase._id,
+                amount: allocatable
+              });
+            }
+            
+            remainingDiff -= allocatable;
+            await adjustPurchaseAllocation(purchase._id, allocatable, session);
+          }
         }
       }
       
@@ -230,7 +290,11 @@ export const reconcilePaymentAmount = async (payment, newAmount, session = null)
  * Reconcile allocations when a purchase total drops below its allocated amount.
  */
 export const reconcilePurchaseTotal = async (purchaseId, session = null) => {
-  const purchase = await Purchase.findById(purchaseId).session(session);
+  const purchase = await Purchase.findOneAndUpdate(
+    { _id: purchaseId },
+    { $currentDate: { updatedAt: true } },
+    { new: true, session }
+  );
   if (!purchase) return;
   
   // Set the payment status explicitly based on the current totals

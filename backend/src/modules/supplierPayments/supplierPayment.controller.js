@@ -4,6 +4,7 @@ import {
   getSupplierPaymentsService,
   getSupplierPaymentByIdService,
   updateSupplierPaymentService,
+  voidSupplierPaymentService,
 } from "./supplierPayment.service.js";
 
 const getAllSupplierPaymentsController = catchAsync(async (req, res) => {
@@ -46,9 +47,23 @@ const updateSupplierPaymentController = catchAsync(async (req, res) => {
   });
 });
 
+const voidSupplierPaymentController = catchAsync(async (req, res) => {
+  const payment = await voidSupplierPaymentService(
+    req.validatedParams.id,
+    req.validatedBody.voidReason,
+    req.user.id
+  );
+
+  res.status(200).json({
+    status: "success",
+    data: payment,
+  });
+});
+
 export {
   getAllSupplierPaymentsController,
   createSupplierPaymentController,
   getSupplierPaymentByIdController,
   updateSupplierPaymentController,
+  voidSupplierPaymentController,
 };

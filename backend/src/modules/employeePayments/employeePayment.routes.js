@@ -8,10 +8,12 @@ import {
   createEmployeePaymentController,
   getEmployeePaymentByIdController,
   updateEmployeePaymentController,
+  voidEmployeePaymentController,
 } from "./employeePayment.controller.js";
 import {
   createEmployeePaymentSchema,
   updateEmployeePaymentSchema,
+  voidEmployeePaymentSchema,
   employeePaymentIdSchema,
   employeePaymentQuerySchema,
 } from "./employeePayment.validation.js";
@@ -47,6 +49,14 @@ router.patch(
   validate(employeePaymentIdSchema, "Please check the payment id.", "params"),
   validate(updateEmployeePaymentSchema, "Please check the payment information."),
   updateEmployeePaymentController,
+);
+
+router.patch(
+  "/:id/void",
+  authorize("employeePayments.void"),
+  validate(employeePaymentIdSchema, "Please check the payment id.", "params"),
+  validate(voidEmployeePaymentSchema, "Please check the void reason."),
+  voidEmployeePaymentController,
 );
 
 export default router;

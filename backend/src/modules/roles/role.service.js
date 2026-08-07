@@ -1,5 +1,6 @@
 import Role from "./role.model.js";
 import Permission from "../permissions/permission.model.js";
+import User from "../users/user.model.js";
 import ConflictError from "../../core/errors/ConflictError.js";
 import NotFoundError from "../../core/errors/NotFoundError.js";
 import ForbiddenError from "../../core/errors/ForbiddenError.js";
@@ -84,6 +85,10 @@ const updateRoleService = async (roleId, updateData) => {
       _id: { $in: updateData.permissions },
     }).select("_id");
 
+    if (validPermissions.length !== updateData.permissions.length) {
+      throw new NotFoundError("One or more permission ids are invalid.");
+    }
+
     role.permissions = validPermissions.map((p) => p._id);
   }
 
@@ -106,6 +111,12 @@ const deleteRoleService = async (roleId) => {
   }
 
   await Role.deleteOne({ _id: roleId });
+
+  // Remove the deleted role from all users who held it
+  await User.updateMany(
+    { roles: roleId },
+    { $pull: { roles: roleId } },
+  );
 
   return role;
 };

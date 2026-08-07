@@ -1,5 +1,6 @@
 import Attendance from "./attendance.model.js";
 import { ensureEmployeeExists } from "../employees/employee.service.js";
+import WeeklyPayroll from "../weeklyPayrolls/weeklyPayroll.model.js";
 import attendanceQueryConfig from "./attendance.query.js";
 import ConflictError from "../../core/errors/ConflictError.js";
 import NotFoundError from "../../core/errors/NotFoundError.js";
@@ -49,6 +50,20 @@ const ensureAttendanceDateIsValid = (employee, workDate) => {
   }
 };
 
+const ensureNotClosedInPayroll = async (employeeId, workDate) => {
+  const normalizedWorkDate = normalizeDateValue(workDate);
+  const closedPayroll = await WeeklyPayroll.findOne({
+    employee: employeeId,
+    startDate: { $lte: normalizedWorkDate },
+    endDate: { $gte: normalizedWorkDate },
+    status: "CLOSED",
+  });
+
+  if (closedPayroll) {
+    throw new ValidationError("Cannot modify attendance for a closed payroll period.");
+  }
+};
+
 const createAttendanceService = async (data) => {
   const normalizedData = {
     ...data,
@@ -56,7 +71,13 @@ const createAttendanceService = async (data) => {
   };
 
   const employee = await ensureEmployeeExists(normalizedData.employee);
+
+  if (employee.status !== "active") {
+    throw new ValidationError("Cannot create attendance for an inactive employee.");
+  }
+
   ensureAttendanceDateIsValid(employee, normalizedData.workDate);
+  await ensureNotClosedInPayroll(normalizedData.employee, normalizedData.workDate);
 
   const existingAttendance = await Attendance.findOne({
     employee: normalizedData.employee,
@@ -105,6 +126,8 @@ const updateAttendanceService = async (attendanceId, updateData) => {
   if (!attendance) {
     throw new NotFoundError("Attendance not found.");
   }
+
+  await ensureNotClosedInPayroll(attendance.employee, attendance.workDate);
 
   const normalizedUpdateData = { ...updateData };
 

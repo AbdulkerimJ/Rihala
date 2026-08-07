@@ -35,4 +35,12 @@ const userIdSchema = z.object({
   id: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid user id."),
 });
 
-export { createUserSchema, updateUserSchema, userIdSchema };
+const userQuerySchema = z.object({
+  page: z.string().optional(),
+  limit: z.string().optional(),
+  search: z.string().optional(),
+  sort: z.string().optional(),
+  status: z.enum(["active", "inactive", "invited"]).optional(),
+});
+
+export { createUserSchema, updateUserSchema, userIdSchema, userQuerySchema };

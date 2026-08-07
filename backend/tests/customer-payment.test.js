@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
+import dotenv from "dotenv";
+dotenv.config();
 
 import {
   createCustomerPaymentService,
@@ -41,7 +43,10 @@ test("Customer Payments module test suite", async (t) => {
   let isTransactionSupported = false;
 
   await t.test("Setup database connection", async () => {
-    await mongoose.connect("mongodb://127.0.0.1:27017/rihala_test_cp");
+    if (!process.env.MONGODB_URI) {
+      throw new Error("MONGODB_URI is not set in .env");
+    }
+    await mongoose.connect(process.env.MONGODB_URI, { dbName: "rihala_test_cp_atlas" });
     await CustomerPayment.createCollection();
     await Order.createCollection();
     await Customer.createCollection();
@@ -86,8 +91,8 @@ test("Customer Payments module test suite", async (t) => {
     return { customer, order };
   };
 
-  await t.test("Creation: Valid payment is created and snapshots correctly", async (t) => {
-    if (!isTransactionSupported) return t.skip("Transactions not supported");
+  await t.test("Creation: Valid payment is created and snapshots correctly", async () => {
+    if (!isTransactionSupported) throw new Error("Transactions not supported. Tests require replica set.");
     await CustomerPayment.deleteMany({});
     await Order.deleteMany({});
     await Customer.deleteMany({});
@@ -109,8 +114,7 @@ test("Customer Payments module test suite", async (t) => {
     assert.equal(payment.status, "active");
   });
 
-  await t.test("Creation: Nonexistent Order is rejected", async (t) => {
-    if (!isTransactionSupported) return t.skip("Transactions not supported");
+  await t.test("Creation: Nonexistent Order is rejected", async () => {
     const userId = await setupUser();
     const fakeId = new mongoose.Types.ObjectId();
 
@@ -125,8 +129,7 @@ test("Customer Payments module test suite", async (t) => {
     );
   });
 
-  await t.test("Creation: Cancelled Order cannot receive payment", async (t) => {
-    if (!isTransactionSupported) return t.skip("Transactions not supported");
+  await t.test("Creation: Cancelled Order cannot receive payment", async () => {
     const userId = await setupUser();
     const { order } = await setupOrder(userId, 1000, "cancelled");
 
@@ -141,8 +144,7 @@ test("Customer Payments module test suite", async (t) => {
     );
   });
 
-  await t.test("Creation: Payment cannot exceed remaining amount", async (t) => {
-    if (!isTransactionSupported) return t.skip("Transactions not supported");
+  await t.test("Creation: Payment cannot exceed remaining amount", async () => {
     await CustomerPayment.deleteMany({});
     const userId = await setupUser();
     const { order } = await setupOrder(userId, 1000);
@@ -156,8 +158,7 @@ test("Customer Payments module test suite", async (t) => {
     );
   });
 
-  await t.test("Creation: Fully paid Order cannot receive another payment", async (t) => {
-    if (!isTransactionSupported) return t.skip("Transactions not supported");
+  await t.test("Creation: Fully paid Order cannot receive another payment", async () => {
     await CustomerPayment.deleteMany({});
     const userId = await setupUser();
     const { order } = await setupOrder(userId, 1000);
@@ -171,8 +172,27 @@ test("Customer Payments module test suite", async (t) => {
     );
   });
 
-  await t.test("Historical Integrity: Order/Customer changes do not alter payment snapshot", async (t) => {
-    if (!isTransactionSupported) return t.skip("Transactions not supported");
+  await t.test("Creation: Completed Order can receive payment", async () => {
+    await CustomerPayment.deleteMany({});
+    const userId = await setupUser();
+    const { order } = await setupOrder(userId, 1000, "completed");
+
+    const payment = await createCustomerPaymentService({ order: order._id, amount: 500, paymentDate: new Date() }, userId);
+    assert.equal(payment.amount, 500);
+  });
+
+  await t.test("Creation: Partial payment works", async () => {
+    await CustomerPayment.deleteMany({});
+    const userId = await setupUser();
+    const { order } = await setupOrder(userId, 1000);
+
+    await createCustomerPaymentService({ order: order._id, amount: 400, paymentDate: new Date() }, userId);
+    const p2 = await createCustomerPaymentService({ order: order._id, amount: 600, paymentDate: new Date() }, userId);
+    
+    assert.equal(p2.amount, 600);
+  });
+
+  await t.test("Historical Integrity: Order/Customer changes do not alter payment snapshot", async () => {
     await CustomerPayment.deleteMany({});
     const userId = await setupUser();
     const { order, customer } = await setupOrder(userId, 1000);
@@ -193,8 +213,7 @@ test("Customer Payments module test suite", async (t) => {
     assert.equal(fetchedPayment.customerName, "Test Customer"); // Should be unchanged
   });
 
-  await t.test("Voiding: Active payment can be voided and restores balance", async (t) => {
-    if (!isTransactionSupported) return t.skip("Transactions not supported");
+  await t.test("Voiding: Active payment can be voided and restores balance", async () => {
     await CustomerPayment.deleteMany({});
     const userId = await setupUser();
     const { order } = await setupOrder(userId, 1000);
@@ -211,12 +230,7 @@ test("Customer Payments module test suite", async (t) => {
     assert.equal(newPayment.amount, 1000);
   });
 
-  await t.test("Transactions: Concurrent payments exceeding balance", async (t) => {
-    if (!isTransactionSupported) {
-      t.skip("Transactions not supported");
-      return;
-    }
-
+  await t.test("Transactions: Concurrent payments exceeding balance", async () => {
     await CustomerPayment.deleteMany({});
     const userId = await setupUser();
     const { order } = await setupOrder(userId, 1000);
@@ -238,8 +252,7 @@ test("Customer Payments module test suite", async (t) => {
     assert.equal(totalActive[0].amount, 600);
   });
 
-  await t.test("Queries: default to active status", async (t) => {
-    if (!isTransactionSupported) return t.skip("Transactions not supported");
+  await t.test("Queries: default to active status", async () => {
     await CustomerPayment.deleteMany({});
     const userId = await setupUser();
     const { order } = await setupOrder(userId, 1000);

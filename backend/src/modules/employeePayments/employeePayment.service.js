@@ -25,7 +25,12 @@ const createEmployeePaymentService = async (data) => {
 };
 
 const getEmployeePaymentsService = async (filters = {}) => {
-  return getPaginatedQueryResult(EmployeePayment, filters, employeePaymentQueryConfig, {
+  const queryFilters = { ...filters };
+  if (queryFilters.status === undefined) {
+    queryFilters.status = "active";
+  }
+
+  return getPaginatedQueryResult(EmployeePayment, queryFilters, employeePaymentQueryConfig, {
     populate: ["employee"],
   });
 };
@@ -50,8 +55,8 @@ const updateEmployeePaymentService = async (paymentId, updateData) => {
     throw new NotFoundError("Payment not found.");
   }
 
-  if (updateData.paymentDate) {
-    updateData.paymentDate = normalizeDateValue(updateData.paymentDate);
+  if (payment.status === "voided") {
+    throw new ValidationError("Cannot update a voided payment.");
   }
 
   Object.keys(updateData).forEach((key) => {
@@ -63,9 +68,31 @@ const updateEmployeePaymentService = async (paymentId, updateData) => {
   return payment.populate("employee", "name phone");
 };
 
+const voidEmployeePaymentService = async (paymentId, voidReason, user) => {
+  const payment = await EmployeePayment.findById(paymentId);
+
+  if (!payment) {
+    throw new NotFoundError("Payment not found.");
+  }
+
+  if (payment.status === "voided") {
+    throw new ValidationError("Payment is already voided.");
+  }
+
+  payment.status = "voided";
+  payment.voidReason = voidReason;
+  payment.voidedBy = user.id;
+  payment.voidedAt = new Date();
+
+  await payment.save();
+
+  return payment.populate("employee", "name phone");
+};
+
 export {
   createEmployeePaymentService,
   getEmployeePaymentsService,
   getEmployeePaymentByIdService,
   updateEmployeePaymentService,
+  voidEmployeePaymentService,
 };

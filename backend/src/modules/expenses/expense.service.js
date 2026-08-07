@@ -1,4 +1,5 @@
 import Expense from "./expense.model.js";
+import User from "../users/user.model.js";
 import expenseQueryConfig from "./expense.query.js";
 import NotFoundError from "../../core/errors/NotFoundError.js";
 import { getPaginatedQueryResult } from "../../core/utils/query.js";
@@ -6,6 +7,8 @@ import { getPaginatedQueryResult } from "../../core/utils/query.js";
 import ValidationError from "../../core/errors/ValidationError.js";
 
 const createExpenseService = async (data, userId) => {
+  const creator = await User.findById(userId).select("name");
+
   const expense = await Expense.create({
     ...data,
     status: "active",
@@ -13,6 +16,7 @@ const createExpenseService = async (data, userId) => {
     voidedAt: undefined,
     voidedBy: undefined,
     createdBy: userId,
+    createdByName: creator?.name ?? null,
   });
 
   return expense.populate("createdBy", "name email");
@@ -24,7 +28,7 @@ const getExpensesService = async (filters = {}) => {
   }
 
   return getPaginatedQueryResult(Expense, filters, expenseQueryConfig, {
-    populate: "createdBy",
+    populate: { path: "createdBy", select: "name email" },
   });
 };
 
@@ -52,8 +56,11 @@ const updateExpenseService = async (expenseId, updateData) => {
     throw new ValidationError("Cannot update a voided expense.");
   }
 
+  const ALLOWED_UPDATE_FIELDS = ["category", "description"];
   Object.keys(updateData).forEach((key) => {
-    expense[key] = updateData[key];
+    if (ALLOWED_UPDATE_FIELDS.includes(key)) {
+      expense[key] = updateData[key];
+    }
   });
 
   await expense.save();
@@ -62,22 +69,27 @@ const updateExpenseService = async (expenseId, updateData) => {
 };
 
 const voidExpenseService = async (expenseId, voidReason, userId) => {
-  const expense = await Expense.findById(expenseId);
+  const voider = await User.findById(userId).select("name");
+
+  // Atomic conditional update — only succeeds if status is currently "active"
+  const expense = await Expense.findOneAndUpdate(
+    { _id: expenseId, status: "active" },
+    {
+      status: "voided",
+      voidReason,
+      voidedAt: new Date(),
+      voidedBy: userId,
+      voidedByName: voider?.name ?? null,
+    },
+    { new: true },
+  );
 
   if (!expense) {
-    throw new NotFoundError("Expense not found.");
-  }
-
-  if (expense.status === "voided") {
+    // Could be not-found or already-voided — distinguish with a second read
+    const existing = await Expense.findById(expenseId);
+    if (!existing) throw new NotFoundError("Expense not found.");
     throw new ValidationError("Expense is already voided.");
   }
-
-  expense.status = "voided";
-  expense.voidReason = voidReason;
-  expense.voidedAt = new Date();
-  expense.voidedBy = userId;
-
-  await expense.save();
 
   return expense.populate("createdBy", "name email");
 };

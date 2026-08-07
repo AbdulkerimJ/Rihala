@@ -28,7 +28,7 @@ const ALL_PERMISSIONS = [
   { name: "expenses.read", description: "View expenses" },
   { name: "expenses.create", description: "Create expenses" },
   { name: "expenses.update", description: "Update expenses" },
-  { name: "expenses.delete", description: "Delete expenses" },
+  { name: "expenses.void", description: "Void expenses" },
 
   // Customer module permissions
   { name: "customers.read", description: "View customers" },

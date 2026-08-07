@@ -161,6 +161,9 @@ Rules:
 - A completed Order may still receive Customer Payments provided there is remaining balance.
 - Cancelled Orders cannot receive new Customer Payments.
 - Completed and cancelled Orders cannot be further modified.
+- `agreedAmount` cannot be reduced below the sum of active Customer Payments.
+- An Order cannot transition to `cancelled` if it has active Customer Payments (they must be voided first).
+- The customer reference cannot be changed if the Order has any Customer Payment history.
 
 ---
 
@@ -386,6 +389,8 @@ Important fields:
 - amount
 - unallocatedAmount (backend-controlled; represents supplier credit on GENERAL payments)
 - date (business date)
+- status: `active` or `voided`
+- voidReason, voidedBy, voidedAt
 - note (optional)
 - allocations[] (purchase reference, amount — backend-controlled)
 
@@ -396,8 +401,8 @@ Rules:
 - `allocations` and `unallocatedAmount` are backend-controlled; manual allocation from clients is not accepted.
 - Supplier credit is not a single global balance on the Supplier entity.
 - Credit exists only as `unallocatedAmount` on individual GENERAL payment records.
-- SupplierPayments cannot be hard-deleted.
-- Payment and allocation operations use MongoDB session transactions.
+- SupplierPayments cannot be hard-deleted; they use a voiding workflow to reverse financial impact while preserving audit history.
+- Payment, voiding, and allocation operations use MongoDB session transactions and concurrency write-locks.
 
 ---
 

@@ -10,8 +10,12 @@ const createCustomerPaymentService = async (data, userId) => {
   const session = await mongoose.startSession();
   try {
     return await session.withTransaction(async () => {
-      // 1 & 2. Ensure Order exists
-      const order = await Order.findById(data.order).session(session);
+      // 1 & 2. Ensure Order exists and acquire a write lock for concurrency
+      const order = await Order.findOneAndUpdate(
+        { _id: data.order },
+        { $currentDate: { updatedAt: true } },
+        { new: true, session }
+      );
       if (!order) {
         throw new NotFoundError("Order not found.");
       }
@@ -30,7 +34,7 @@ const createCustomerPaymentService = async (data, userId) => {
       const totalPaid = activePayments.reduce((sum, p) => sum + p.amount, 0);
 
       // 5. Calculate remaining amount
-      const remainingAmount = Math.max(order.agreedAmount - totalPaid, 0);
+      const remainingAmount = order.agreedAmount - totalPaid;
 
       if (remainingAmount <= 0) {
         throw new ValidationError("Order is already fully paid.");

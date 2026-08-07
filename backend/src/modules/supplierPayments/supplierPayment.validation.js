@@ -43,9 +43,14 @@ const supplierPaymentQuerySchema = z.object({
   search: z.string().optional(),
 }).strict({ error: "Invalid query parameters" });
 
+const voidSupplierPaymentSchema = z.object({
+  voidReason: z.string().min(1, "Void reason is required").max(1000, "Void reason too long"),
+}).strict({ error: "Only voidReason is allowed" });
+
 export {
   createSupplierPaymentSchema,
   updateSupplierPaymentSchema,
   supplierPaymentIdSchema,
   supplierPaymentQuerySchema,
+  voidSupplierPaymentSchema,
 };

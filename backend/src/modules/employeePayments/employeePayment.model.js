@@ -35,6 +35,33 @@ const employeePaymentSchema = new mongoose.Schema(
       },
     },
 
+    status: {
+      type: String,
+      enum: {
+        values: ["active", "voided"],
+        message: "Status must be active or voided",
+      },
+      default: "active",
+      index: true,
+    },
+
+    voidReason: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+
+    voidedAt: {
+      type: Date,
+      default: null,
+    },
+
+    voidedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
     note: {
       type: String,
       trim: true,

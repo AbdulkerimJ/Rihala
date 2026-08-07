@@ -3,6 +3,7 @@ import { ensureEmployeeExists } from "../employees/employee.service.js";
 import employeeRateQueryConfig from "./employeeRate.query.js";
 import ConflictError from "../../core/errors/ConflictError.js";
 import NotFoundError from "../../core/errors/NotFoundError.js";
+import ValidationError from "../../core/errors/ValidationError.js";
 import { getPaginatedQueryResult } from "../../core/utils/query.js";
 import { normalizeDateValue } from "../../core/utils/date.js";
 
@@ -12,7 +13,11 @@ const createEmployeeRateService = async (data) => {
     effectiveDate: normalizeDateValue(data.effectiveDate),
   };
 
-  await ensureEmployeeExists(normalizedData.employee);
+  const employee = await ensureEmployeeExists(normalizedData.employee);
+
+  if (employee.status !== "active") {
+    throw new ValidationError("Cannot create rate for an inactive employee");
+  }
 
   const existingRate = await EmployeeRate.findOne({
     employee: normalizedData.employee,

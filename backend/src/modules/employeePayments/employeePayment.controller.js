@@ -4,6 +4,7 @@ import {
   getEmployeePaymentsService,
   getEmployeePaymentByIdService,
   updateEmployeePaymentService,
+  voidEmployeePaymentService,
 } from "./employeePayment.service.js";
 
 const getAllEmployeePaymentsController = catchAsync(async (req, res) => {
@@ -46,9 +47,23 @@ const updateEmployeePaymentController = catchAsync(async (req, res) => {
   });
 });
 
+const voidEmployeePaymentController = catchAsync(async (req, res) => {
+  const payment = await voidEmployeePaymentService(
+    req.validatedParams.id,
+    req.validatedBody.voidReason,
+    req.user,
+  );
+
+  res.status(200).json({
+    status: "success",
+    data: payment,
+  });
+});
+
 export {
   getAllEmployeePaymentsController,
   createEmployeePaymentController,
   getEmployeePaymentByIdController,
   updateEmployeePaymentController,
+  voidEmployeePaymentController,
 };

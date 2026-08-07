@@ -35,6 +35,11 @@ const expenseSchema = new mongoose.Schema(
       required: [true, "Expense creator is required"],
     },
 
+    createdByName: {
+      type: String,
+      trim: true,
+    },
+
     status: {
       type: String,
       enum: {
@@ -56,6 +61,11 @@ const expenseSchema = new mongoose.Schema(
     voidedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+    },
+
+    voidedByName: {
+      type: String,
+      trim: true,
     },
   },
   {

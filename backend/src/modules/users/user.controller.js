@@ -11,9 +11,8 @@ import {
   updateUserService,
 } from "./user.service.js";
 
-// Get all active users.
 const getAllUsersController = catchAsync(async (req, res) => {
-  const users = await getAllUsersService();
+  const users = await getAllUsersService(req.validatedQuery);
 
   res.status(200).json({
     status: "success",
@@ -68,7 +67,7 @@ const getUserByIdController = catchAsync(async (req, res) => {
 
 // Get all soft-deleted users.
 const getDeletedUsersController = catchAsync(async (req, res) => {
-  const users = await getDeletedUsersService();
+  const users = await getDeletedUsersService(req.validatedQuery);
 
   res.status(200).json({
     status: "success",

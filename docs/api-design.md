@@ -795,6 +795,15 @@ Route permission names match the permission seeds in `admin.seed.js`.
 - Purpose: update supplier payment date, note, or amount; amount changes trigger allocation reconciliation within a transaction
 - Body: `date` (optional), `note` (optional), `amount` (optional)
 
+### Void Supplier Payment
+
+- Method: PATCH
+- Route: `/api/v1/supplier-payments/:id/void`
+- Authentication: required
+- Permission: `supplierPayments.void`
+- Purpose: void a supplier payment. This reverses all purchase allocations, clearing unallocated credit, and resets affected purchases' payment status.
+- Body: `voidReason` (required)
+
 ---
 
 ## Permission Reference

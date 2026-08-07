@@ -41,6 +41,12 @@ const loginService = async ({
     throw new UnauthorizedError("Account is inactive.");
   }
 
+  if (user.status === "invited") {
+    throw new UnauthorizedError(
+      "Please accept your invitation before logging in.",
+    );
+  }
+
   if (!user.emailVerified) {
     throw new UnauthorizedError(
       "Please verify your email address before logging in.",
@@ -203,6 +209,7 @@ const resetPasswordService = async (token, newPassword) => {
   const user = await User.findOne({
     _id: verificationToken.user,
     deletedAt: null,
+    status: "active",
   });
 
   if (!user) {
@@ -301,7 +308,7 @@ const acceptInvitationService = async (token, code, password) => {
     throw new ValidationError("Invalid invitation verification code.");
   }
 
-  const user = await User.findById(tokenDoc.user);
+  const user = await User.findOne({ _id: tokenDoc.user, deletedAt: null });
 
   if (!user) {
     throw new NotFoundError("User not found.");

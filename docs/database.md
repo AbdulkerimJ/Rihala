@@ -343,6 +343,10 @@ The current backend uses MongoDB with Mongoose models. The implementation curren
   - amount
   - unallocatedAmount (backend-controlled; supplier credit remainder on GENERAL payments)
   - date (business date)
+  - status (`active`, `voided`)
+  - voidReason (required if voided)
+  - voidedBy (User reference)
+  - voidedAt
   - note (optional)
   - allocations[] (allocationSchema: purchase reference, amount — backend-controlled)
 - Notes:
@@ -350,8 +354,8 @@ The current backend uses MongoDB with Mongoose models. The implementation curren
   - `GENERAL` payments are auto-allocated to outstanding Purchases oldest-first; remainder is `unallocatedAmount`
   - supplier credit is not a global balance on the Supplier entity
   - `allocations` and `unallocatedAmount` are backend-controlled; manual submission is not accepted
-  - cannot be hard-deleted; payment history must remain auditable
-  - creation and amount reconciliation use MongoDB session transactions
+  - cannot be hard-deleted; payment history must remain auditable; uses voiding workflow instead
+  - creation, voiding, and amount reconciliation use MongoDB session transactions and strict `$currentDate` write-locks
 
 ---
 

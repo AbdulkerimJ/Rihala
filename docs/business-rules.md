@@ -77,9 +77,9 @@ This document records the business rules that are implemented in the current bac
 - An Order represents a customer's agreed furniture manufacturing request.
 - Orders have a human-readable sequential `orderNumber` (e.g., `ORD-1001`).
 - Orders require a business `date` (separate from the `createdAt` system timestamp).
-- Orders reference a Customer and snapshot `customerName` and `customerPhone` at creation.
+- Orders reference a Customer and snapshot `customerName` and `customerPhone` at creation. Once any Customer Payments exist for an Order, its customer reference cannot be changed.
 - Orders contain structured `items[]`. Each item has `description`, `quantity`, `unit`, and optional `specifications`. No product catalog or item-level pricing is required.
-- `agreedAmount` is manually negotiated and entered at order creation.
+- `agreedAmount` is manually negotiated and entered at order creation. The `agreedAmount` cannot be updated to a value lower than the total amount of active Customer Payments.
 - Orders require an `expectedCompletionDate`.
 - Only active Customers can be associated with new Orders.
 - Orders cannot be hard-deleted.
@@ -94,7 +94,7 @@ pending → cancelled
 in_progress → cancelled
 ```
 
-Terminal states (`completed`, `cancelled`) cannot be modified further.
+Terminal states (`completed`, `cancelled`) cannot be modified further. An Order cannot transition to `cancelled` if it has active Customer Payments (the payments must be voided first).
 
 - `statusHistory` maintains a full audit log of all status transitions including who changed the status and when.
 
@@ -320,7 +320,8 @@ SupplierPayment
 - Credit is automatically consumed oldest-first when new Purchases are created.
 - Manual allocations are not accepted from clients; `allocations` and `unallocatedAmount` are backend-controlled values.
 - Specific payment increases cannot overpay the corresponding Purchase.
-- Purchase and payment allocation operations use transaction boundaries.
+- Specific payments must precisely match the Supplier of the associated Purchase; mismatch throws a ValidationError.
+- Purchase and payment allocation operations use transaction boundaries and strict concurrency write-locks (`$currentDate`) to serialize conflicting requests.
 - If a payment's amount is decreased below the currently allocated total, allocations are automatically reduced (newest-first).
 - If a GENERAL payment's amount is increased, the difference is automatically allocated to outstanding Purchases.
 - If a SPECIFIC payment's amount is increased, the difference is applied to the associated Purchase's remaining balance.
@@ -356,6 +357,8 @@ Financial operations that affect multiple documents use MongoDB session-based tr
 
 - **CustomerPayment creation**: The active payment sum, remaining balance check, and payment document creation all occur within a single session transaction. If any step fails, the entire operation is rolled back.
 - **SupplierPayment creation and update**: Payment creation, allocation across purchases, and purchase `allocatedAmount`/`paymentStatus` updates all occur within a single transaction boundary. The allocation service receives the session and propagates it into all sub-operations.
+- **SupplierPayment Voiding**: Voiding reverses all purchase allocations and clears unallocated credit within a transaction, preserving the payment record.
+- **Concurrency Locks**: Financial calculations involving shared resource limits (e.g. `unallocatedAmount`, `Purchase.allocatedAmount`) explicitly acquire `$currentDate` write-locks inside the transaction prior to performing mathematical validations to safely reject conflicting parallel requests.
 - **Rollback behavior**: If any operation within a transaction fails (e.g., overpayment validation, purchase not found), the entire transaction is rolled back and no partial state is persisted.
 
 ### Development Limitation

@@ -32,7 +32,7 @@ const authorize = (requiredPermission) => {
         },
       });
 
-      if (!user || user.status === "inactive") {
+      if (!user || user.status === "inactive" || user.status === "invited") {
         throw new UnauthorizedError("User is not authorized or inactive.");
       }
 

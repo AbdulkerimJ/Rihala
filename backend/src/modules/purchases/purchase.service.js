@@ -7,7 +7,7 @@ import ValidationError from "../../core/errors/ValidationError.js";
 import { getPaginatedQueryResult } from "../../core/utils/query.js";
 import Material from "../materials/material.model.js";
 import Supplier from "../suppliers/supplier.model.js";
-// Note: We will implement and import allocationService to handle supplier credit application
+import SupplierPayment from "../supplierPayments/supplierPayment.model.js";
 import * as allocationService from "../supplierPayments/allocation.service.js";
 
 const generatePurchaseNumber = async () => {
@@ -119,8 +119,15 @@ const updatePurchaseService = async (purchaseId, updateData) => {
       }
 
       if (updateData.supplier && updateData.supplier.toString() !== purchase.supplier.toString()) {
-        if (purchase.allocatedAmount > 0) {
-            throw new ValidationError("Cannot change supplier after financial activity has occurred on this purchase.");
+        const hasFinancialHistory = await SupplierPayment.exists({
+          $or: [
+            { "allocations.purchase": purchase._id },
+            { purchaseId: purchase._id }
+          ]
+        }).session(session);
+
+        if (hasFinancialHistory) {
+            throw new ValidationError("Cannot change supplier after financial history exists for this purchase.");
         }
         const supplier = await Supplier.findById(updateData.supplier).session(session);
         if (!supplier) {
@@ -133,6 +140,9 @@ const updatePurchaseService = async (purchaseId, updateData) => {
       if (updateData.note !== undefined) purchase.note = updateData.note;
 
       if (updateData.items) {
+        if (purchase.paymentStatus === "PAID") {
+          throw new ValidationError("Cannot modify items of a fully paid purchase. Financial history is locked.");
+        }
         const { preparedItems, totalAmount } = await validateAndPrepareItems(updateData.items, session);
         purchase.items = preparedItems;
         purchase.totalAmount = totalAmount;

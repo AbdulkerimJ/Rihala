@@ -39,10 +39,29 @@ test("createEmployeeRateService rejects when the employee does not exist", async
   }
 });
 
+test("createEmployeeRateService rejects when the employee is inactive", async () => {
+  const originalFindById = Employee.findById;
+  Employee.findById = async () => ({ _id: "507f1f77bcf86cd799439011", status: "inactive" });
+
+  try {
+    await assert.rejects(
+      () =>
+        createEmployeeRateService({
+          employee: "507f1f77bcf86cd799439011",
+          dailyRate: 500,
+          effectiveDate: "2026-09-01",
+        }),
+      /Cannot create rate for an inactive employee/,
+    );
+  } finally {
+    Employee.findById = originalFindById;
+  }
+});
+
 test("createEmployeeRateService rejects duplicate effective dates for an employee", async () => {
   const originalFindById = Employee.findById;
   const originalFindOne = EmployeeRate.findOne;
-  Employee.findById = async () => ({ _id: "507f1f77bcf86cd799439011" });
+  Employee.findById = async () => ({ _id: "507f1f77bcf86cd799439011", status: "active" });
   EmployeeRate.findOne = async () => ({ _id: "existing-rate" });
 
   try {
@@ -108,6 +127,29 @@ test("getApplicableRateService throws when no applicable rate exists", async () 
       () => getApplicableRateService("507f1f77bcf86cd799439011", "2026-07-31"),
       /No applicable employee rate found/i,
     );
+  } finally {
+    EmployeeRate.findOne = originalFindOne;
+  }
+});
+
+test("Existing EmployeeRate remains accessible after employee deactivation", async () => {
+  // Applicability of old rates shouldn't care about the employee's current active status
+  // since getApplicableRateService only queries by effectiveDate, it natively supports this.
+  const originalFindOne = EmployeeRate.findOne;
+  EmployeeRate.findOne = () => ({
+    sort: () => ({
+      populate: async () => ({
+        dailyRate: 700,
+        effectiveDate: new Date("2026-09-01"),
+        employee: { name: "Ahmed", status: "inactive" },
+      }),
+    }),
+  });
+
+  try {
+    const rate = await getApplicableRateService("507f1f77bcf86cd799439011", "2026-09-15");
+    assert.equal(rate.dailyRate, 700);
+    assert.equal(rate.employee.status, "inactive");
   } finally {
     EmployeeRate.findOne = originalFindOne;
   }

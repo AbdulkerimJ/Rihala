@@ -9,31 +9,10 @@ import ConflictError from "../../core/errors/ConflictError.js";
 import NotFoundError from "../../core/errors/NotFoundError.js";
 import ValidationError from "../../core/errors/ValidationError.js";
 import { getPaginatedQueryResult } from "../../core/utils/query.js";
-
-const normalizeDateValue = (value) => {
-  if (!value) {
-    return null;
-  }
-
-  const parsedDate = new Date(value);
-
-  if (Number.isNaN(parsedDate.getTime())) {
-    return null;
-  }
-
-  const normalizedDate = new Date(
-    Date.UTC(
-      parsedDate.getUTCFullYear(),
-      parsedDate.getUTCMonth(),
-      parsedDate.getUTCDate(),
-    ),
-  );
-
-  return normalizedDate;
-};
+import { normalizeDateValue } from "../../core/utils/date.js";
 
 const isWorkday = (date) => {
-  const day = date.getUTCDay();
+  const day = date.getDay();
   return day >= 1 && day <= 6;
 };
 
@@ -76,7 +55,7 @@ const getCurrentPayrollStartDate = async (employee, latestClosedPayroll) => {
 
   const normalizedEndDate = normalizeDateValue(latestClosedPayroll.endDate);
   const nextStartDate = new Date(normalizedEndDate.getTime());
-  nextStartDate.setUTCDate(nextStartDate.getUTCDate() + 1);
+  nextStartDate.setDate(nextStartDate.getDate() + 1);
 
   return nextStartDate;
 };
@@ -105,7 +84,7 @@ const buildRequiredAttendanceDates = (startDate, endDate, employee) => {
       }
     }
 
-    cursor.setUTCDate(cursor.getUTCDate() + 1);
+    cursor.setDate(cursor.getDate() + 1);
   }
 
   return dates;

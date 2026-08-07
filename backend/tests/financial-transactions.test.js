@@ -1,10 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
+import dotenv from "dotenv";
+dotenv.config();
 
 import { createPurchaseService, updatePurchaseService } from "../src/modules/purchases/purchase.service.js";
-import { createSupplierPaymentService, updateSupplierPaymentService } from "../src/modules/supplierPayments/supplierPayment.service.js";
+import { createSupplierPaymentService, updateSupplierPaymentService, voidSupplierPaymentService } from "../src/modules/supplierPayments/supplierPayment.service.js";
 import * as allocationService from "../src/modules/supplierPayments/allocation.service.js";
+import User from "../src/modules/users/user.model.js";
 
 import Supplier from "../src/modules/suppliers/supplier.model.js";
 import Material from "../src/modules/materials/material.model.js";
@@ -38,11 +41,15 @@ test("Financial transactions test suite", async (t) => {
   let isTransactionSupported = false;
 
   await t.test("Setup database connection", async () => {
-    await mongoose.connect("mongodb://127.0.0.1:27017/rihala_tx_test");
+    if (!process.env.MONGODB_URI) {
+      throw new Error("MONGODB_URI is not set in .env");
+    }
+    await mongoose.connect(process.env.MONGODB_URI, { dbName: "rihala_tx_test_atlas" });
     await Supplier.createCollection();
     await Material.createCollection();
     await Purchase.createCollection();
     await SupplierPayment.createCollection();
+    await User.createCollection();
     
     isTransactionSupported = await checkTransactionSupport();
   });
@@ -71,7 +78,17 @@ test("Financial transactions test suite", async (t) => {
       minQuantity: 1,
       status: "active"
     });
-    return { supplierId: supplier._id, materialId: material._id };
+    
+    await User.deleteMany({});
+    const user = await User.create({
+      name: "Test Admin",
+      email: "admin@rihala.local",
+      password: "password123",
+      role: "admin",
+      status: "active"
+    });
+    
+    return { supplierId: supplier._id, materialId: material._id, userId: user._id };
   };
 
   await t.test("Successful purchase creation commits all related changes", async (t) => {
@@ -354,6 +371,114 @@ test("Financial transactions test suite", async (t) => {
     const sumAlloc2 = pay2.allocations.reduce((sum, a) => sum + a.amount, 0);
     assert.ok(sumAlloc2 + pay2.unallocatedAmount <= pay2.amount);
     assert.ok(p2.totalAmount - p2.allocatedAmount >= 0);
+  });
+
+  await t.test("Voiding a supplier payment reverses allocations and clears unallocated credit", async (t) => {
+    if (!isTransactionSupported) {
+      t.skip("Transactions not supported");
+      return;
+    }
+
+    await Supplier.deleteMany({});
+    await Material.deleteMany({});
+    await Purchase.deleteMany({});
+    await SupplierPayment.deleteMany({});
+
+    const { supplierId, materialId, userId } = await setupData();
+
+    // Create a purchase (1000)
+    const purchase = await createPurchaseService({
+      supplier: supplierId,
+      date: new Date(),
+      items: [{ material: materialId, quantity: 10, unitPrice: 100 }],
+      note: "Purchase to be voided against"
+    });
+
+    // Create a SPECIFIC payment (1000)
+    const payment = await createSupplierPaymentService({
+      supplier: supplierId,
+      type: "SPECIFIC",
+      amount: 1000,
+      purchaseId: purchase._id,
+      date: new Date()
+    });
+
+    // Check pre-void state
+    let pBefore = await Purchase.findById(purchase._id);
+    assert.equal(pBefore.allocatedAmount, 1000);
+    assert.equal(pBefore.paymentStatus, "PAID");
+
+    // Void the payment
+    const voidedPayment = await voidSupplierPaymentService(payment._id, "Entered by mistake", userId);
+    
+    assert.equal(voidedPayment.status, "voided");
+    assert.equal(voidedPayment.unallocatedAmount, 0);
+    assert.equal(voidedPayment.allocations.length, 0);
+    assert.equal(voidedPayment.voidReason, "Entered by mistake");
+    assert.equal(voidedPayment.voidedBy._id.toString(), userId.toString());
+
+    // Check post-void state on Purchase
+    let pAfter = await Purchase.findById(purchase._id);
+    assert.equal(pAfter.allocatedAmount, 0);
+    assert.equal(pAfter.paymentStatus, "UNPAID");
+
+    // Try voiding again
+    await assert.rejects(
+      () => voidSupplierPaymentService(payment._id, "Double void", userId),
+      /Payment is already voided/
+    );
+  });
+
+  await t.test("Concurrent specific payments to same purchase are safely serialized", async (t) => {
+    if (!isTransactionSupported) {
+      t.skip("Transactions not supported");
+      return;
+    }
+
+    await Supplier.deleteMany({});
+    await Material.deleteMany({});
+    await Purchase.deleteMany({});
+    await SupplierPayment.deleteMany({});
+
+    const { supplierId, materialId } = await setupData();
+
+    // Create a purchase (1000)
+    const purchase = await createPurchaseService({
+      supplier: supplierId,
+      date: new Date(),
+      items: [{ material: materialId, quantity: 10, unitPrice: 100 }],
+      note: "Concurrent specific purchase"
+    });
+
+    // Attempt two specific payments of 700 concurrently
+    const p1 = createSupplierPaymentService({
+      supplier: supplierId,
+      type: "SPECIFIC",
+      amount: 700,
+      purchaseId: purchase._id,
+      date: new Date()
+    });
+    const p2 = createSupplierPaymentService({
+      supplier: supplierId,
+      type: "SPECIFIC",
+      amount: 700,
+      purchaseId: purchase._id,
+      date: new Date()
+    });
+
+    const results = await Promise.allSettled([p1, p2]);
+    
+    const fulfilled = results.filter(r => r.status === "fulfilled");
+    const rejected = results.filter(r => r.status === "rejected");
+
+    assert.equal(fulfilled.length, 1, "Only one payment should succeed");
+    assert.equal(rejected.length, 1, "One payment must fail due to insufficient remaining balance");
+
+    assert.match(rejected[0].reason.message, /Payment amount \(700\) exceeds purchase remaining amount/);
+
+    const finalPurchase = await Purchase.findById(purchase._id);
+    assert.equal(finalPurchase.allocatedAmount, 700, "Purchase allocation must not exceed total amount");
+    assert.equal(finalPurchase.paymentStatus, "PARTIALLY_PAID");
   });
 
   await t.test("Teardown database connection", async () => {

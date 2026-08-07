@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import mongoose from "mongoose";
 
 import Order from "../src/modules/orders/order.model.js";
+import CustomerPayment from "../src/modules/customerPayments/customerPayment.model.js";
 import Customer from "../src/modules/customers/customer.model.js";
 import {
   isValidStatusTransition,
@@ -154,6 +155,9 @@ test("updateOrderService properly records status history and validates transitio
   Order.findById = () => mockOrder;
 
   try {
+    const originalPaymentFind = CustomerPayment.find;
+    CustomerPayment.find = async () => []; // no active payments for this test
+
     await updateOrderService(mockOrder._id, { status: "in_progress" }, userId);
     
     assert.equal(saved, true);
@@ -161,6 +165,8 @@ test("updateOrderService properly records status history and validates transitio
     assert.equal(mockOrder.statusHistory.length, 2);
     assert.equal(mockOrder.statusHistory[1].status, "in_progress");
     assert.equal(mockOrder.statusHistory[1].changedBy, userId);
+
+    CustomerPayment.find = originalPaymentFind;
   } finally {
     Order.findById = originalFindById;
   }
@@ -192,6 +198,9 @@ test("updateOrderService updates customer snapshots when customer changes", asyn
   const originalCustomerFindById = Customer.findById;
   Customer.findById = () => mockCustomer;
 
+  const originalPaymentExists = CustomerPayment.exists;
+  CustomerPayment.exists = async () => false;
+
   try {
     await updateOrderService(mockOrder._id, { customer: newCustomerId }, new mongoose.Types.ObjectId());
     
@@ -202,5 +211,140 @@ test("updateOrderService updates customer snapshots when customer changes", asyn
   } finally {
     Order.findById = originalOrderFindById;
     Customer.findById = originalCustomerFindById;
+    CustomerPayment.exists = originalPaymentExists;
+  }
+});
+
+test("updateOrderService blocks agreed amount reduction below paid amount", async () => {
+  const mockOrder = {
+    _id: new mongoose.Types.ObjectId(),
+    status: "pending",
+    agreedAmount: 100000,
+    save: async () => {},
+    populate: async () => mockOrder,
+  };
+
+  const originalFindById = Order.findById;
+  Order.findById = () => mockOrder;
+  
+  const originalPaymentFind = CustomerPayment.find;
+  CustomerPayment.find = async () => [{ amount: 80000 }];
+
+  try {
+    await assert.rejects(
+      () => updateOrderService(mockOrder._id, { agreedAmount: 70000 }, new mongoose.Types.ObjectId()),
+      ValidationError,
+      /Cannot reduce agreed amount below the amount already paid/
+    );
+  } finally {
+    Order.findById = originalFindById;
+    CustomerPayment.find = originalPaymentFind;
+  }
+});
+
+test("updateOrderService allows agreed amount equal to paid amount or higher", async () => {
+  const mockOrder = {
+    _id: new mongoose.Types.ObjectId(),
+    status: "pending",
+    agreedAmount: 100000,
+    save: async () => {},
+    populate: async () => mockOrder,
+  };
+
+  const originalFindById = Order.findById;
+  Order.findById = () => mockOrder;
+  
+  const originalPaymentFind = CustomerPayment.find;
+  CustomerPayment.find = async () => [{ amount: 80000 }];
+
+  try {
+    // Equal to paid amount
+    await updateOrderService(mockOrder._id, { agreedAmount: 80000 }, new mongoose.Types.ObjectId());
+    assert.equal(mockOrder.agreedAmount, 80000);
+
+    // Increase agreed amount
+    await updateOrderService(mockOrder._id, { agreedAmount: 120000 }, new mongoose.Types.ObjectId());
+    assert.equal(mockOrder.agreedAmount, 120000);
+  } finally {
+    Order.findById = originalFindById;
+    CustomerPayment.find = originalPaymentFind;
+  }
+});
+
+test("updateOrderService blocks cancel with active payment", async () => {
+  const mockOrder = {
+    _id: new mongoose.Types.ObjectId(),
+    status: "pending",
+    statusHistory: [],
+    save: async () => {},
+    populate: async () => mockOrder,
+  };
+
+  const originalFindById = Order.findById;
+  Order.findById = () => mockOrder;
+  
+  const originalPaymentFind = CustomerPayment.find;
+  CustomerPayment.find = async () => [{ amount: 40000 }];
+
+  try {
+    await assert.rejects(
+      () => updateOrderService(mockOrder._id, { status: "cancelled" }, new mongoose.Types.ObjectId()),
+      ValidationError,
+      /Cannot cancel an order with active customer payments/
+    );
+  } finally {
+    Order.findById = originalFindById;
+    CustomerPayment.find = originalPaymentFind;
+  }
+});
+
+test("updateOrderService allows cancel after payments are voided", async () => {
+  const mockOrder = {
+    _id: new mongoose.Types.ObjectId(),
+    status: "pending",
+    statusHistory: [],
+    save: async () => {},
+    populate: async () => mockOrder,
+  };
+
+  const originalFindById = Order.findById;
+  Order.findById = () => mockOrder;
+  
+  const originalPaymentFind = CustomerPayment.find;
+  CustomerPayment.find = async () => []; // No active payments
+
+  try {
+    await updateOrderService(mockOrder._id, { status: "cancelled" }, new mongoose.Types.ObjectId());
+    assert.equal(mockOrder.status, "cancelled");
+  } finally {
+    Order.findById = originalFindById;
+    CustomerPayment.find = originalPaymentFind;
+  }
+});
+
+test("updateOrderService blocks customer reassignment after payment exists", async () => {
+  const mockOrder = {
+    _id: new mongoose.Types.ObjectId(),
+    customer: new mongoose.Types.ObjectId(),
+    status: "pending",
+    save: async () => {},
+    populate: async () => mockOrder,
+  };
+
+  const originalFindById = Order.findById;
+  Order.findById = () => mockOrder;
+  
+  const originalPaymentExists = CustomerPayment.exists;
+  CustomerPayment.exists = async () => true;
+
+  try {
+    await assert.rejects(
+      () => updateOrderService(mockOrder._id, { customer: new mongoose.Types.ObjectId() }, new mongoose.Types.ObjectId()),
+      ValidationError,
+      /Cannot change the customer after customer payment history exists/
+    );
+  } finally {
+    Order.findById = originalFindById;
+    CustomerPayment.exists = originalPaymentExists;
   }
 });

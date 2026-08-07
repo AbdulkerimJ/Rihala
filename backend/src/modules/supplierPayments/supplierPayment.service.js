@@ -6,7 +6,7 @@ import NotFoundError from "../../core/errors/NotFoundError.js";
 import ValidationError from "../../core/errors/ValidationError.js";
 import { getPaginatedQueryResult } from "../../core/utils/query.js";
 import Supplier from "../suppliers/supplier.model.js";
-import { allocateSpecificPayment, allocateGeneralPayment, reconcilePaymentAmount } from "./allocation.service.js";
+import { allocateSpecificPayment, allocateGeneralPayment, reconcilePaymentAmount, reversePaymentAllocations } from "./allocation.service.js";
 
 const generatePaymentReference = async () => {
   const count = await SupplierPayment.countDocuments();
@@ -44,6 +44,10 @@ const createSupplierPaymentService = async (data) => {
         unallocatedAmount: data.amount, // Default before hooks
       });
 
+      if (data.type === "SPECIFIC") {
+        payment.purchaseId = data.purchaseId;
+      }
+
       // We don't save it yet, we pass it to the allocation engine which will save it.
       
       if (data.type === "SPECIFIC") {
@@ -61,11 +65,14 @@ const createSupplierPaymentService = async (data) => {
 };
 
 const getSupplierPaymentsService = async (filters = {}) => {
-  return getPaginatedQueryResult(SupplierPayment, filters, supplierPaymentQueryConfig);
+  if (!filters.status) {
+    filters.status = "active";
+  }
+  return getPaginatedQueryResult(SupplierPayment, filters, supplierPaymentQueryConfig, { populate: "voidedBy" });
 };
 
 const getSupplierPaymentByIdService = async (paymentId) => {
-  const payment = await SupplierPayment.findById(paymentId).populate(supplierPaymentQueryConfig.populate);
+  const payment = await SupplierPayment.findById(paymentId).populate(supplierPaymentQueryConfig.populate).populate("voidedBy", "name email");
 
   if (!payment) {
     throw new NotFoundError("Payment not found.");
@@ -78,10 +85,18 @@ const updateSupplierPaymentService = async (paymentId, updateData) => {
   const session = await mongoose.startSession();
   try {
     return await session.withTransaction(async () => {
-      const payment = await SupplierPayment.findById(paymentId).session(session);
+      const payment = await SupplierPayment.findOneAndUpdate(
+        { _id: paymentId },
+        { $currentDate: { updatedAt: true } },
+        { new: true, session }
+      );
 
       if (!payment) {
         throw new NotFoundError("Payment not found.");
+      }
+
+      if (payment.status === "voided") {
+        throw new ValidationError("Cannot update a voided payment.");
       }
 
       if (updateData.date) payment.date = updateData.date;
@@ -102,9 +117,49 @@ const updateSupplierPaymentService = async (paymentId, updateData) => {
   }
 };
 
+const voidSupplierPaymentService = async (paymentId, voidReason, userId) => {
+  const session = await mongoose.startSession();
+  try {
+    return await session.withTransaction(async () => {
+      // Lock payment
+      const payment = await SupplierPayment.findOneAndUpdate(
+        { _id: paymentId },
+        { $currentDate: { updatedAt: true } },
+        { new: true, session }
+      );
+
+      if (!payment) {
+        throw new NotFoundError("Payment not found.");
+      }
+
+      if (payment.status === "voided") {
+        throw new ValidationError("Payment is already voided.");
+      }
+
+      payment.status = "voided";
+      payment.voidReason = voidReason;
+      payment.voidedAt = new Date();
+      payment.voidedBy = userId;
+
+      // Reverse allocations and update unallocatedAmount to 0
+      await reversePaymentAllocations(payment, session);
+
+      const finalPayment = await SupplierPayment.findById(payment._id)
+        .populate(supplierPaymentQueryConfig.populate)
+        .populate("voidedBy", "name email")
+        .session(session);
+
+      return finalPayment;
+    });
+  } finally {
+    session.endSession();
+  }
+};
+
 export {
   createSupplierPaymentService,
   getSupplierPaymentsService,
   getSupplierPaymentByIdService,
   updateSupplierPaymentService,
+  voidSupplierPaymentService,
 };

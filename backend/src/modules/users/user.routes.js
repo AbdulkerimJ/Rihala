@@ -22,6 +22,7 @@ import {
   createUserSchema,
   updateUserSchema,
   userIdSchema,
+  userQuerySchema,
 } from "./user.validation.js";
 import {
   assignRolesToUserSchema,
@@ -34,14 +35,25 @@ const router = express.Router();
 router.use(authenticate);
 
 // Get all active users.
-router.get("/", getAllUsersController);
+router.get(
+  "/",
+  authorize("users.read"),
+  validate(userQuerySchema, "Please check the user filters.", "query"),
+  getAllUsersController,
+);
 
 // Get all soft-deleted users.
-router.get("/deleted", getDeletedUsersController);
+router.get(
+  "/deleted",
+  authorize("users.read"),
+  validate(userQuerySchema, "Please check the user filters.", "query"),
+  getDeletedUsersController,
+);
 
 // Create a new user.
 router.post(
   "/",
+  authorize("users.create"),
   validate(createUserSchema, "Please check the user information."),
   createUserController,
 );
@@ -49,6 +61,7 @@ router.post(
 // Update an existing user.
 router.patch(
   "/:id",
+  authorize("users.update"),
   validate(userIdSchema, "Please check the user id.", "params"),
   validate(updateUserSchema, "Please check the user information."),
   updateUserController,
@@ -57,6 +70,7 @@ router.patch(
 // Get a user by id.
 router.get(
   "/:id",
+  authorize("users.read"),
   validate(userIdSchema, "Please check the user id.", "params"),
   getUserByIdController,
 );
@@ -64,6 +78,7 @@ router.get(
 // Deactivate a user account.
 router.patch(
   "/:id/deactivate",
+  authorize("users.update"),
   validate(userIdSchema, "Please check the user id.", "params"),
   deactivateUserController,
 );
@@ -71,6 +86,7 @@ router.patch(
 // Activate a user account.
 router.patch(
   "/:id/activate",
+  authorize("users.update"),
   validate(userIdSchema, "Please check the user id.", "params"),
   activateUserController,
 );
@@ -78,6 +94,7 @@ router.patch(
 // Restore a soft-deleted user.
 router.patch(
   "/:id/restore",
+  authorize("users.restore"),
   validate(userIdSchema, "Please check the user id.", "params"),
   restoreUserController,
 );
@@ -85,6 +102,7 @@ router.patch(
 // Soft delete a user account.
 router.delete(
   "/:id",
+  authorize("users.delete"),
   validate(userIdSchema, "Please check the user id.", "params"),
   softDeleteUserController,
 );

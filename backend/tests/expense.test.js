@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
+import dotenv from "dotenv";
+dotenv.config();
 
 import {
   createExpenseService,
@@ -16,7 +18,10 @@ import ValidationError from "../src/core/errors/ValidationError.js";
 
 test("Expenses module test suite", async (t) => {
   await t.test("Setup database connection", async () => {
-    await mongoose.connect("mongodb://127.0.0.1:27017/rihala_test_expenses");
+    if (!process.env.MONGODB_URI) {
+      throw new Error("MONGODB_URI is not set in .env");
+    }
+    await mongoose.connect(process.env.MONGODB_URI, { dbName: "rihala_test_expenses_atlas" });
     await Expense.createCollection();
     await User.createCollection();
   });
@@ -50,6 +55,7 @@ test("Expenses module test suite", async (t) => {
     assert.equal(expense.category, "Transport");
     assert.equal(expense.amount, 50);
     assert.equal(expense.createdBy._id.toString(), userId.toString());
+    assert.equal(expense.createdByName, "Test User");
     
     // Status should be active despite the attempt to inject voided
     assert.equal(expense.status, "active");
@@ -76,6 +82,27 @@ test("Expenses module test suite", async (t) => {
     assert.equal(updated.amount, 100); // Unchanged
   });
 
+  await t.test("Service-level amount and date fields are ignored on update", async () => {
+    await Expense.deleteMany({});
+    const userId = await setupUser();
+
+    const initialDate = new Date();
+    const expense = await createExpenseService({
+      category: "Maintenance",
+      amount: 100,
+      description: "Oil change",
+      date: initialDate,
+    }, userId);
+
+    const updated = await updateExpenseService(expense._id, {
+      amount: 9999,
+      date: new Date(Date.now() + 100000),
+    });
+
+    assert.equal(updated.amount, 100);
+    assert.equal(updated.date.getTime(), initialDate.getTime());
+  });
+
   await t.test("Active expense can be voided successfully", async () => {
     await Expense.deleteMany({});
     const userId = await setupUser();
@@ -91,6 +118,7 @@ test("Expenses module test suite", async (t) => {
     assert.equal(voided.status, "voided");
     assert.equal(voided.voidReason, "Incorrect amount");
     assert.equal(voided.voidedBy._id.toString(), userId.toString());
+    assert.equal(voided.voidedByName, "Test User");
     assert.ok(voided.voidedAt instanceof Date);
     
     // Financial data remains intact
@@ -150,6 +178,13 @@ test("Expenses module test suite", async (t) => {
     const defaultRes = await getExpensesService({});
     assert.equal(defaultRes.data.length, 2);
     assert.ok(defaultRes.data.every(e => e.status === "active"));
+
+    // Check populate selection
+    const firstDoc = defaultRes.data[0];
+    assert.equal(firstDoc.createdBy.name, "Test User");
+    assert.ok(firstDoc.createdBy.email);
+    assert.equal(firstDoc.createdBy.password, undefined);
+    assert.equal(firstDoc.createdBy.status, undefined);
 
     // Explicit void query
     const voidedRes = await getExpensesService({ status: "voided" });
