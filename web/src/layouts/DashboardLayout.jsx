@@ -88,10 +88,10 @@ export const DashboardLayout = () => {
           key={item.name}
           to={item.path}
           className={({ isActive }) =>
-            `group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+            `group flex items-center rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 ${
               isActive
-                ? "bg-brand/10 text-brand"
-                : "text-secondary hover:bg-black/5 hover:text-primary dark:hover:bg-white/5"
+                ? "bg-brand/10 text-brand shadow-none border border-transparent"
+                : "text-secondary hover:bg-black/5 hover:text-primary border border-transparent dark:hover:bg-white/5"
             }`
           }
           onClick={() => setSidebarOpen(false)}
@@ -129,12 +129,9 @@ export const DashboardLayout = () => {
         }`}
       >
         <div className="flex h-16 items-center justify-between px-6">
-          <div>
-            <span className="block text-xl font-semibold tracking-tight text-primary">
-              Rihala Admin
-            </span>
-            <span className="block text-xs text-secondary">
-              Operations console
+          <div className="flex flex-col justify-center">
+            <span className="block text-2xl font-bold tracking-tight text-primary font-display leading-none">
+              Rihala
             </span>
           </div>
           <Button
@@ -175,10 +172,10 @@ export const DashboardLayout = () => {
 
           <div className="flex min-w-0 flex-1 items-center justify-between gap-4 pl-2 lg:pl-0">
             <div className="min-w-0">
-              <div className="truncate text-sm font-medium text-secondary">
+              <div className="truncate text-xs font-semibold uppercase tracking-wider text-secondary">
                 {sectionTitle}
               </div>
-              <div className="truncate text-lg font-semibold tracking-tight text-primary">
+              <div className="truncate text-lg font-bold tracking-tight text-primary">
                 {currentUser?.name || "Team member"}
               </div>
             </div>

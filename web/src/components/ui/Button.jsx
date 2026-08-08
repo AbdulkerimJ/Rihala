@@ -1,12 +1,12 @@
 import React from 'react';
 
 const variantStyles = {
-  primary: 'border border-transparent bg-brand text-white shadow-sm hover:bg-brand-hover focus:ring-brand',
-  secondary: 'border border-border bg-surface text-primary hover:bg-main',
-  danger: 'border border-transparent bg-danger text-white shadow-sm hover:bg-danger-hover focus:ring-danger',
-  ghost: 'text-muted hover:text-primary bg-transparent',
-  ghostPrimary: 'text-brand hover:text-brand-hover bg-transparent',
-  ghostDanger: 'text-muted hover:text-danger bg-transparent transition-colors',
+  primary: 'bg-accent text-white shadow-sm hover:bg-accent-hover focus:ring-accent',
+  secondary: 'border border-border bg-surface text-primary shadow-sm hover:bg-main hover:border-muted focus:ring-accent',
+  danger: 'bg-danger text-white shadow-sm hover:bg-danger-hover focus:ring-danger',
+  ghost: 'text-muted hover:text-primary bg-transparent hover:bg-black/5 dark:hover:bg-white/5',
+  ghostPrimary: 'text-brand hover:text-brand-hover bg-transparent hover:bg-brand/10',
+  ghostDanger: 'text-muted hover:text-danger bg-transparent hover:bg-danger/10',
 };
 
 const sizeStyles = {
@@ -28,7 +28,7 @@ export const Button = ({
   onClick,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseStyles = 'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none';
   
   const combinedClassName = `
     ${baseStyles}

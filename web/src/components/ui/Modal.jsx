@@ -23,8 +23,8 @@ export const Modal = ({
         className={`w-full ${maxWidth} rounded-2xl border border-border bg-surface shadow-2xl ${className}`}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-border px-5 py-4 sm:px-6">
-          <h3 className="text-lg font-semibold text-primary">{title}</h3>
+        <div className="flex items-center justify-between border-b border-border px-5 py-4 sm:px-6 bg-surface">
+          <h3 className="text-2xl font-bold tracking-tight text-primary font-display">{title}</h3>
           <Button
             variant="ghost"
             size="icon"

@@ -40,11 +40,11 @@ api.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 // Delay response to simulate network latency for testing purposes only
-const delayResponse = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+// const delayResponse = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 api.interceptors.response.use(
   async (response) => {
-    await delayResponse(1000);
+    // await delayResponse(1000);
     return response;
   },
   async (error) => {

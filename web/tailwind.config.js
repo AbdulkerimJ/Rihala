@@ -4,6 +4,10 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+        display: ['Inter', 'sans-serif'],
+      },
       colors: {
         main: 'rgb(var(--bg-main) / <alpha-value>)',
         surface: 'rgb(var(--bg-surface) / <alpha-value>)',
@@ -41,12 +45,12 @@ export default {
       borderRadius: {
         'none': '0',
         'sm': '0.125rem',
-        DEFAULT: '0.25rem',
-        'md': '0.25rem', // 4px - Crisp buttons and inputs
-        'lg': '0.375rem', // 6px - Sharp, professional cards and sidebars
-        'xl': '0.5rem',
-        '2xl': '0.75rem',
-        '3xl': '1rem',
+        DEFAULT: '0.375rem', /* 6px */
+        'md': '0.375rem', /* 6px */
+        'lg': '0.5rem', /* 8px */
+        'xl': '0.75rem', /* 12px */
+        '2xl': '1rem',
+        '3xl': '1.5rem',
         'full': '9999px',
       }
     },

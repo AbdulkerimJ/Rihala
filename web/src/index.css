@@ -4,21 +4,45 @@
 
 @layer base {
   :root {
-    /* Light Theme (Soft Monochromatic Grays) */
-    --bg-main: 255 255 255; /* #FFFFFF */
-    --bg-surface: 250 250 250; /* #FAFAFA */
+    /* Light Theme (Blue & Grey) */
+    --bg-main: 236 238 255; /* Soft Blue Background */
+    --bg-surface: 255 255 255; /* #FFFFFF - White */
 
-    --color-primary: 64 64 64; /* #404040 (Neutral 700) */
-    --color-primary-hover: 38 38 38; /* #262626 (Neutral 800) */
+    --color-primary: 19 19 19; /* #131313 - Grey Black */
+    --color-primary-hover: 53 53 53; /* #353535 - Grey */
 
-    --color-accent: 115 115 115; /* #737373 (Neutral 500) */
-    --color-accent-hover: 82 82 82; /* #525252 (Neutral 600) */
+    --color-accent: 51 95 255; /* #335FFF - Blue */
+    --color-accent-hover: 98 123 255; /* #627BFF - Blue Lite (Color 1) */
 
-    --text-primary: 23 23 23; /* #171717 (Neutral 900) */
-    --text-secondary: 115 115 115; /* #737373 (Neutral 500) */
-    --text-muted: 163 163 163; /* #A3A3A3 (Neutral 400) */
+    --text-primary: 19 19 19; /* #131313 - Grey Black */
+    --text-secondary: 104 104 104; /* #686868 - Light Grey 2 */
+    --text-muted: 212 212 212; /* #D4D4D4 - Light Grey 1 */
 
-    --border-color: 229 229 229; /* #E5E5E5 (Neutral 200) */
+    --border-color: 212 212 212; /* #D4D4D4 - Light Grey 1 */
+
+    /* Semantic Colors */
+    --color-success: 16 185 129; /* Emerald-500 */
+    --color-warning: 245 158 11; /* Amber-500 */
+    --color-danger: 239 68 68; /* Red-500 */
+    --color-danger-hover: 220 38 38; /* Red-600 */
+  }
+
+  .dark {
+    /* Dark Theme (Blue & Grey) */
+    --bg-main: 19 19 19; /* #131313 - Grey Black */
+    --bg-surface: 53 53 53; /* #353535 - Grey */
+
+    --color-primary: 255 255 255; /* #FFFFFF - White */
+    --color-primary-hover: 212 212 212; /* #D4D4D4 - Light Grey 1 */
+
+    --color-accent: 98 123 255; /* #627BFF - Blue Lite (Color 1) */
+    --color-accent-hover: 225 228 255; /* #E1E4FF - Lite Blue (Color 2) */
+
+    --text-primary: 255 255 255; /* #FFFFFF - White */
+    --text-secondary: 212 212 212; /* #D4D4D4 - Light Grey 1 */
+    --text-muted: 104 104 104; /* #686868 - Light Grey 2 */
+
+    --border-color: 104 104 104; /* #686868 - Light Grey 2 */
 
     /* Semantic Colors */
     --color-success: 16 185 129;
@@ -27,31 +51,7 @@
     --color-danger-hover: 220 38 38;
   }
 
-  .dark {
-    /* Dark Theme (Charcoal & Slate) */
-    --bg-main: 24 26 27; /* #181A1B (Charcoal) */
-    --bg-surface: 39 42 46; /* #272A2E (Dark Slate) */
-
-    --color-primary: 6 78 59; /* #064E3B */
-    --color-primary-hover: 4 47 46; /* #042F2E */
-
-    --color-accent: 212 175 55; /* #D4AF37 */
-    --color-accent-hover: 234 179 8;
-
-    --text-primary: 243 244 246; /* #F3F4F6 (Off-White) */
-    --text-secondary: 156 163 175; /* #9CA3AF (Light Gray) */
-    --text-muted: 107 114 128; /* #6B7280 */
-
-    --border-color: 55 65 81; /* #374151 */
-
-    /* Semantic Colors remain mostly the same, or slightly adjusted for dark mode */
-    --color-success: 52 211 153;
-    --color-warning: 251 191 36;
-    --color-danger: 248 113 113;
-    --color-danger-hover: 239 68 68;
-  }
-
   body {
-    @apply antialiased text-primary bg-main transition-colors duration-300;
+    @apply bg-main text-primary font-sans antialiased;
   }
 }

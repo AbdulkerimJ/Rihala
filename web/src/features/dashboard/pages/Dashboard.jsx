@@ -5,12 +5,13 @@ export const Dashboard = () => {
   const { currentUser } = useAuth();
 
   return (
-    <div>
-      <h1 className="text-2xl font-semibold text-primary">Dashboard</h1>
-      <p className="mt-4 max-w-2xl text-secondary">
-        Welcome back, {currentUser?.name || "there"}. This is the Rihala
-        Furniture Workshop Management System.
-      </p>
+    <div className="space-y-6">
+      <div className="rounded-xl border border-border bg-surface p-8 shadow-sm">
+        <h1 className="text-3xl font-bold tracking-tight text-primary font-display mb-1">Welcome to Rihala</h1>
+        <p className="max-w-2xl text-secondary text-base">
+          Hello, {currentUser?.name || "there"}. Your workshop management system is ready.
+        </p>
+      </div>
     </div>
   );
 };

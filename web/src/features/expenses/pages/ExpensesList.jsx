@@ -200,7 +200,7 @@ export const ExpensesList = () => {
           </Can>
         }
       />
-      <div className="grid gap-3 rounded-2xl border border-border bg-surface p-4 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-3 rounded-xl border border-border bg-surface p-4 sm:grid-cols-2 xl:grid-cols-5 shadow-sm">
         <input
           placeholder="Search description"
           value={filters.search}
@@ -254,40 +254,40 @@ export const ExpensesList = () => {
           onAction={() => setIsOpen(true)}
         />
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
           <table className="min-w-full divide-y divide-border">
-            <thead className="bg-main">
+            <thead className="bg-surface">
               <tr>
-                <th className="px-6 py-3 text-left text-xs uppercase text-secondary">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-secondary">
                   Category
                 </th>
-                <th className="px-6 py-3 text-left text-xs uppercase text-secondary">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-secondary">
                   Amount
                 </th>
-                <th className="px-6 py-3 text-left text-xs uppercase text-secondary">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-secondary">
                   Description
                 </th>
-                <th className="px-6 py-3 text-left text-xs uppercase text-secondary">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-secondary">
                   Date
                 </th>
-                <th className="px-6 py-3 text-left text-xs uppercase text-secondary">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-secondary">
                   Created by
                 </th>
-                <th className="px-6 py-3 text-right text-xs uppercase text-secondary">
+                <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-secondary">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {expenses.map((expense) => (
-                <tr key={expense._id}>
+                <tr key={expense._id} className="transition-colors hover:bg-main group">
                   <td className="px-6 py-4">
                     <StatusBadge
                       status={expense.category}
                       label={expense.category}
                     />
                   </td>
-                  <td className="px-6 py-4 text-sm text-primary">
+                  <td className="px-6 py-4 text-sm font-medium text-primary">
                     {formatCurrency(expense.amount)}
                   </td>
                   <td className="px-6 py-4 text-sm text-secondary">
@@ -303,8 +303,9 @@ export const ExpensesList = () => {
                     <div className="flex justify-end gap-2">
                       <Can permission="expenses.update">
                         <Button
-                          variant="secondary"
+                          variant="ghost"
                           size="sm"
+                          className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
                           onClick={() => {
                             setEditingExpense(expense);
                             setIsOpen(true);
@@ -315,8 +316,9 @@ export const ExpensesList = () => {
                       </Can>
                       <Can permission="expenses.delete">
                         <Button
-                          variant="danger"
+                          variant="ghostDanger"
                           size="sm"
+                          className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
                           onClick={() => deleteMutation.mutate(expense._id)}
                         >
                           Delete
