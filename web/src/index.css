@@ -5,44 +5,44 @@
 @layer base {
   :root {
     /* Light Theme (Blue & Grey) */
-    --bg-main: 236 238 255; /* Soft Blue Background */
+    --bg-main: 243 244 246; /* Slightly softer grey-blue */
     --bg-surface: 255 255 255; /* #FFFFFF - White */
 
-    --color-primary: 19 19 19; /* #131313 - Grey Black */
-    --color-primary-hover: 53 53 53; /* #353535 - Grey */
+    --color-primary: 15 23 42; /* Deeper slate for text */
+    --color-primary-hover: 51 65 85; 
 
-    --color-accent: 51 95 255; /* #335FFF - Blue */
-    --color-accent-hover: 98 123 255; /* #627BFF - Blue Lite (Color 1) */
+    --color-accent: 37 99 235; /* Crisp, modern blue */
+    --color-accent-hover: 59 130 246; 
 
-    --text-primary: 19 19 19; /* #131313 - Grey Black */
-    --text-secondary: 104 104 104; /* #686868 - Light Grey 2 */
-    --text-muted: 212 212 212; /* #D4D4D4 - Light Grey 1 */
+    --text-primary: 15 23 42; 
+    --text-secondary: 71 85 105; 
+    --text-muted: 148 163 184; 
 
-    --border-color: 212 212 212; /* #D4D4D4 - Light Grey 1 */
+    --border-color: 226 232 240; 
 
     /* Semantic Colors */
-    --color-success: 16 185 129; /* Emerald-500 */
-    --color-warning: 245 158 11; /* Amber-500 */
-    --color-danger: 239 68 68; /* Red-500 */
-    --color-danger-hover: 220 38 38; /* Red-600 */
+    --color-success: 16 185 129; /* Emerald */
+    --color-warning: 245 158 11; /* Amber */
+    --color-danger: 239 68 68; /* Red */
+    --color-danger-hover: 220 38 38;
   }
 
   .dark {
     /* Dark Theme (Blue & Grey) */
-    --bg-main: 19 19 19; /* #131313 - Grey Black */
-    --bg-surface: 53 53 53; /* #353535 - Grey */
+    --bg-main: 15 23 42; 
+    --bg-surface: 30 41 59; 
 
-    --color-primary: 255 255 255; /* #FFFFFF - White */
-    --color-primary-hover: 212 212 212; /* #D4D4D4 - Light Grey 1 */
+    --color-primary: 248 250 252; 
+    --color-primary-hover: 226 232 240; 
 
-    --color-accent: 98 123 255; /* #627BFF - Blue Lite (Color 1) */
-    --color-accent-hover: 225 228 255; /* #E1E4FF - Lite Blue (Color 2) */
+    --color-accent: 59 130 246; 
+    --color-accent-hover: 96 165 250; 
 
-    --text-primary: 255 255 255; /* #FFFFFF - White */
-    --text-secondary: 212 212 212; /* #D4D4D4 - Light Grey 1 */
-    --text-muted: 104 104 104; /* #686868 - Light Grey 2 */
+    --text-primary: 248 250 252; 
+    --text-secondary: 148 163 184; 
+    --text-muted: 100 116 139; 
 
-    --border-color: 104 104 104; /* #686868 - Light Grey 2 */
+    --border-color: 51 65 85; 
 
     /* Semantic Colors */
     --color-success: 16 185 129;

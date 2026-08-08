@@ -4,6 +4,7 @@ import { useAuth } from "../hooks/useAuth";
 import { Can } from "../components/Can";
 import { Button } from "../components/ui/Button";
 import { ThemeToggle } from "../components/ui/ThemeToggle";
+import { Header } from "../components/Header";
 import {
   LayoutDashboard,
   Users,
@@ -15,6 +16,13 @@ import {
   LogOut,
   Menu,
   X,
+  Package,
+  ShoppingCart,
+  CreditCard,
+  Briefcase,
+  Clock,
+  CalendarDays,
+  Wallet,
 } from "lucide-react";
 
 export const DashboardLayout = () => {
@@ -46,69 +54,93 @@ export const DashboardLayout = () => {
     navigate("/login");
   };
 
-  const navItems = [
-    { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-    { name: "Users", path: "/users", icon: Users, permission: "users.read" },
+  const navGroups = [
     {
-      name: "Roles",
-      path: "/roles",
-      icon: ShieldCheck,
-      permission: "roles.read",
+      title: "Main",
+      items: [
+        { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+      ]
     },
     {
-      name: "Permissions",
-      path: "/permissions",
-      icon: Key,
-      permission: "permissions.read",
+      title: "Sales",
+      items: [
+        { name: "Customers", path: "/customers", icon: Contact, permission: "customers.read" },
+        { name: "Orders", path: "/orders", icon: ShoppingCart, permission: "orders.read" },
+        { name: "Payments", path: "/customer-payments", icon: CreditCard, permission: "customerPayments.read" },
+      ]
     },
     {
-      name: "Expenses",
-      path: "/expenses",
-      icon: Receipt,
-      permission: "expenses.read",
+      title: "Supply Chain",
+      items: [
+        { name: "Suppliers", path: "/suppliers", icon: Briefcase, permission: "suppliers.read" },
+        { name: "Materials", path: "/materials", icon: Package, permission: "materials.read" },
+        { name: "Purchases", path: "/purchases", icon: ClipboardList, permission: "purchases.read" },
+        { name: "Supplier Payments", path: "/supplier-payments", icon: Wallet, permission: "supplierPayments.read" },
+      ]
     },
     {
-      name: "Customers",
-      path: "/customers",
-      icon: Contact,
-      permission: "customers.read",
+      title: "HR & Payroll",
+      items: [
+        { name: "Employees", path: "/employees", icon: Users, permission: "employees.read" },
+        { name: "Attendance", path: "/attendances", icon: CalendarDays, permission: "attendances.read" },
+        { name: "Overtime", path: "/overtimes", icon: Clock, permission: "overtimes.read" },
+        { name: "Weekly Payroll", path: "/weekly-payrolls", icon: Receipt, permission: "weeklyPayrolls.read" },
+        { name: "Employee Payments", path: "/employee-payments", icon: CreditCard, permission: "employeePayments.read" },
+      ]
     },
     {
-      name: "Orders",
-      path: "/orders",
-      icon: ClipboardList,
-      permission: "orders.read",
-    },
+      title: "Admin",
+      items: [
+        { name: "Expenses", path: "/expenses", icon: Wallet, permission: "expenses.read" },
+        { name: "Users", path: "/users", icon: Users, permission: "users.read" },
+        { name: "Roles", path: "/roles", icon: ShieldCheck, permission: "roles.read" },
+        { name: "Permissions", path: "/permissions", icon: Key, permission: "permissions.read" },
+      ]
+    }
   ];
 
   const renderNavLinks = () => {
-    return navItems.map((item) => {
-      const link = (
-        <NavLink
-          key={item.name}
-          to={item.path}
-          className={({ isActive }) =>
-            `group flex items-center rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 ${
-              isActive
-                ? "bg-brand/10 text-brand shadow-none border border-transparent"
-                : "text-secondary hover:bg-black/5 hover:text-primary border border-transparent dark:hover:bg-white/5"
-            }`
-          }
-          onClick={() => setSidebarOpen(false)}
-        >
-          <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
-          {item.name}
-        </NavLink>
-      );
+    return navGroups.map((group, groupIndex) => {
+      // Filter items based on permissions
+      // (Simplified: we'll just render Can wrappers, if a group is empty it might show a title, but we can live with that for now)
+      
+      return (
+        <div key={groupIndex} className="mb-6 last:mb-0">
+          <h3 className="px-3 mb-2 text-xs font-semibold tracking-wider text-muted uppercase">
+            {group.title}
+          </h3>
+          <div className="space-y-1">
+            {group.items.map((item) => {
+              const link = (
+                <NavLink
+                  key={item.name}
+                  to={item.path}
+                  className={({ isActive }) =>
+                    `group flex items-center rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 ${
+                      isActive
+                        ? "bg-brand/10 text-brand shadow-none border border-transparent"
+                        : "text-secondary hover:bg-black/5 hover:text-primary border border-transparent dark:hover:bg-white/5"
+                    }`
+                  }
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <item.icon className="mr-3 h-4 w-4 flex-shrink-0" />
+                  {item.name}
+                </NavLink>
+              );
 
-      if (item.permission) {
-        return (
-          <Can key={item.name} permission={item.permission}>
-            {link}
-          </Can>
-        );
-      }
-      return link;
+              if (item.permission) {
+                return (
+                  <Can key={item.name} permission={item.permission}>
+                    {link}
+                  </Can>
+                );
+              }
+              return link;
+            })}
+          </div>
+        </div>
+      );
     });
   };
 
@@ -160,37 +192,11 @@ export const DashboardLayout = () => {
       {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Header */}
-        <header className="flex h-16 items-center justify-between border-b border-border bg-surface/95 px-4 backdrop-blur-sm sm:px-6">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <Menu className="h-6 w-6" />
-          </Button>
-
-          <div className="flex min-w-0 flex-1 items-center justify-between gap-4 pl-2 lg:pl-0">
-            <div className="min-w-0">
-              <div className="truncate text-xs font-semibold uppercase tracking-wider text-secondary">
-                {sectionTitle}
-              </div>
-              <div className="truncate text-lg font-bold tracking-tight text-primary">
-                {currentUser?.name || "Team member"}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <ThemeToggle />
-              <div className="hidden text-right sm:block">
-                <div className="truncate text-sm font-medium text-primary capitalize">
-                  {currentUser?.roles?.[0]?.name || "Operations"}
-                </div>
-                <div className="truncate text-xs text-secondary">Signed in</div>
-              </div>
-            </div>
-          </div>
-        </header>
+        <Header
+          sectionTitle={sectionTitle}
+          currentUser={currentUser}
+          onMobileMenuToggle={() => setSidebarOpen(true)}
+        />
 
         {/* Main section */}
         <main className="flex-1 overflow-y-auto bg-main p-4 sm:p-6 lg:p-8">

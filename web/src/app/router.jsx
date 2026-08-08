@@ -18,6 +18,20 @@ import { ExpensesList } from "../features/expenses/pages/ExpensesList";
 import { CustomersList } from "../features/customers/pages/CustomersList";
 import { OrdersList } from "../features/orders/pages/OrdersList";
 import { OrderDetail } from "../features/orders/pages/OrderDetail";
+import { SuppliersList } from "../features/suppliers/pages/SuppliersList";
+import { SupplierDetail } from "../features/suppliers/pages/SupplierDetail";
+import { MaterialsList } from "../features/materials/pages/MaterialsList";
+import { PurchasesList } from "../features/purchases/pages/PurchasesList";
+import { PurchaseDetail } from "../features/purchases/pages/PurchaseDetail";
+import { CustomerPaymentsList } from "../features/customer-payments/pages/CustomerPaymentsList";
+import { SupplierPaymentsList } from "../features/supplier-payments/pages/SupplierPaymentsList";
+import { EmployeesList } from "../features/employees/pages/EmployeesList";
+import { EmployeeDetail } from "../features/employees/pages/EmployeeDetail";
+import { EmployeePaymentsList } from "../features/employee-payments/pages/EmployeePaymentsList";
+import { AttendancesList } from "../features/attendances/pages/AttendancesList";
+import { OvertimesList } from "../features/overtimes/pages/OvertimesList";
+import { WeeklyPayrollsList } from "../features/weekly-payrolls/pages/WeeklyPayrollsList";
+import { WeeklyPayrollDetail } from "../features/weekly-payrolls/pages/WeeklyPayrollDetail";
 
 export const router = createBrowserRouter([
   {
@@ -107,6 +121,14 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: "customer-payments",
+        element: (
+          <RequirePermission permission="customerPayments.read">
+            <CustomerPaymentsList />
+          </RequirePermission>
+        ),
+      },
+      {
         path: "orders",
         element: (
           <RequirePermission permission="orders.read">
@@ -119,6 +141,110 @@ export const router = createBrowserRouter([
         element: (
           <RequirePermission permission="orders.read">
             <OrderDetail />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "suppliers",
+        element: (
+          <RequirePermission permission="suppliers.read">
+            <SuppliersList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "suppliers/:id",
+        element: (
+          <RequirePermission permission="suppliers.read">
+            <SupplierDetail />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "supplier-payments",
+        element: (
+          <RequirePermission permission="supplierPayments.read">
+            <SupplierPaymentsList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "materials",
+        element: (
+          <RequirePermission permission="materials.read">
+            <MaterialsList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "purchases",
+        element: (
+          <RequirePermission permission="purchases.read">
+            <PurchasesList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "purchases/:id",
+        element: (
+          <RequirePermission permission="purchases.read">
+            <PurchaseDetail />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "employees",
+        element: (
+          <RequirePermission permission="employees.read">
+            <EmployeesList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "employees/:id",
+        element: (
+          <RequirePermission permission="employees.read">
+            <EmployeeDetail />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "employee-payments",
+        element: (
+          <RequirePermission permission="employeePayments.read">
+            <EmployeePaymentsList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "attendances",
+        element: (
+          <RequirePermission permission="attendances.read">
+            <AttendancesList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "overtimes",
+        element: (
+          <RequirePermission permission="overtimes.read">
+            <OvertimesList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "weekly-payrolls",
+        element: (
+          <RequirePermission permission="weeklyPayrolls.read">
+            <WeeklyPayrollsList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "weekly-payrolls/:id",
+        element: (
+          <RequirePermission permission="weeklyPayrolls.read">
+            <WeeklyPayrollDetail />
           </RequirePermission>
         ),
       },

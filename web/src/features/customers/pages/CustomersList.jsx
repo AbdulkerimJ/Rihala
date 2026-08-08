@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createCustomer, getCustomers, updateCustomer } from "../api";
 import { PageHeader } from "../../../components/ui/PageHeader";
@@ -9,6 +9,9 @@ import { EmptyState } from "../../../components/ui/EmptyState";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { Modal } from "../../../components/ui/Modal";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
+import { DataTable } from "../../../components/ui/DataTable";
+import { FilterBar } from "../../../components/ui/FilterBar";
+import { FormField } from "../../../components/ui/FormField";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -20,9 +23,9 @@ import {
 import { formatDateTime } from "../../../utils/formatters";
 
 const customerSchema = z.object({
-  name: z.string().min(2),
-  phone: z.string().min(1),
-  email: z.string().email().optional().or(z.literal("")),
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  phone: z.string().min(1, "Phone is required"),
+  email: z.string().email("Invalid email").optional().or(z.literal("")),
   address: z.string().optional(),
   notes: z.string().optional(),
   status: z.enum(["active", "inactive"]).default("active"),
@@ -47,44 +50,64 @@ const CustomerForm = ({ initialData, onSubmit, onClose }) => {
 
   return (
     <form className="space-y-4 p-6" onSubmit={handleSubmit(onSubmit)}>
-      <input
-        placeholder="Name"
-        {...register("name")}
-        className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary"
-      />
-      <input
-        placeholder="Phone"
-        {...register("phone")}
-        className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary"
-      />
-      <input
-        placeholder="Email"
-        {...register("email")}
-        className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary"
-      />
-      <input
-        placeholder="Address"
-        {...register("address")}
-        className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary"
-      />
-      <textarea
-        placeholder="Notes"
-        {...register("notes")}
-        className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary"
-      />
-      <select
-        {...register("status")}
-        className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary"
-      >
-        <option value="active">Active</option>
-        <option value="inactive">Inactive</option>
-      </select>
-      <div className="flex justify-end gap-3">
-        <Button type="button" variant="secondary" onClick={onClose}>
+      <FormField label="Name" required error={errors.name?.message}>
+        <input
+          {...register("name")}
+          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          placeholder="e.g. Ahmed Ali"
+        />
+      </FormField>
+      
+      <FormField label="Phone" required error={errors.phone?.message}>
+        <input
+          {...register("phone")}
+          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          placeholder="e.g. +251 911 234 567"
+        />
+      </FormField>
+
+      <FormField label="Email" error={errors.email?.message}>
+        <input
+          {...register("email")}
+          type="email"
+          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          placeholder="Optional"
+        />
+      </FormField>
+
+      <FormField label="Address" error={errors.address?.message}>
+        <input
+          {...register("address")}
+          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          placeholder="Optional"
+        />
+      </FormField>
+
+      <FormField label="Notes" error={errors.notes?.message}>
+        <textarea
+          {...register("notes")}
+          rows={3}
+          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          placeholder="Optional notes"
+        />
+      </FormField>
+
+      <FormField label="Status" error={errors.status?.message}>
+        <select
+          {...register("status")}
+          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+        >
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </FormField>
+
+      <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
+        <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>
           Cancel
         </Button>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Saving..." : "Save"}
+          {isSubmitting ? "Saving..." : "Save Customer"}
         </Button>
       </div>
     </form>
@@ -94,11 +117,19 @@ const CustomerForm = ({ initialData, onSubmit, onClose }) => {
 export const CustomersList = () => {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState({ search: "", status: "" });
   const [isOpen, setIsOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
+
+  const params = useMemo(() => ({
+    ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v)),
+    page,
+    limit: 20
+  }), [filters, page]);
+
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["customers", page],
-    queryFn: () => getCustomers({ page, limit: 20 }),
+    queryKey: ["customers", params],
+    queryFn: () => getCustomers(params),
   });
   const { items: customers, pagination } = unwrapListResponse(data);
 
@@ -112,6 +143,7 @@ export const CustomersList = () => {
     onError: (err) =>
       toast.error(getApiErrorMessage(err, "Failed to create customer")),
   });
+  
   const updateMutation = useMutation({
     mutationFn: updateCustomer,
     onSuccess: () => {
@@ -123,7 +155,39 @@ export const CustomersList = () => {
       toast.error(getApiErrorMessage(err, "Failed to update customer")),
   });
 
-  if (isLoading) return <LoadingSkeleton variant="default" rowCount={6} />;
+  const columns = [
+    { header: "Name", accessor: "name", className: "font-medium" },
+    { header: "Phone", accessor: "phone", className: "text-secondary" },
+    { header: "Email", accessor: (row) => row.email || "-", className: "text-secondary hidden sm:table-cell", hiddenOnMobile: true },
+    { header: "Status", accessor: (row) => <StatusBadge status={row.status} /> },
+    { header: "Created", accessor: (row) => formatDateTime(row.createdAt), className: "text-secondary hidden md:table-cell", hiddenOnMobile: true },
+    { 
+      header: "Actions", 
+      isActions: true,
+      accessor: (row) => (
+        <Can permission="customers.update">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              setEditingCustomer(row);
+              setIsOpen(true);
+            }}
+          >
+            Edit
+          </Button>
+        </Can>
+      ) 
+    }
+  ];
+
+  const handleClearFilters = () => {
+    setFilters({ search: "", status: "" });
+    setPage(1);
+  };
+
+  if (isLoading) return <LoadingSkeleton variant="default" rowCount={6} showSearch />;
   if (isError)
     return (
       <ErrorState
@@ -149,76 +213,40 @@ export const CustomersList = () => {
           </Can>
         }
       />
-      {customers.length === 0 ? (
-        <EmptyState
-          title="No customers found"
-          description="Create a customer to start tracking orders."
-          actionLabel="New Customer"
-          onAction={() => setIsOpen(true)}
-        />
-      ) : (
-        <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
-          <table className="min-w-full divide-y divide-border">
-            <thead className="bg-main">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs uppercase text-secondary">
-                  Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs uppercase text-secondary">
-                  Phone
-                </th>
-                <th className="px-6 py-3 text-left text-xs uppercase text-secondary">
-                  Email
-                </th>
-                <th className="px-6 py-3 text-left text-xs uppercase text-secondary">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs uppercase text-secondary">
-                  Created
-                </th>
-                <th className="px-6 py-3 text-right text-xs uppercase text-secondary">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {customers.map((customer) => (
-                <tr key={customer._id}>
-                  <td className="px-6 py-4 text-sm text-primary">
-                    {customer.name}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-secondary">
-                    {customer.phone}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-secondary">
-                    {customer.email || "-"}
-                  </td>
-                  <td className="px-6 py-4">
-                    <StatusBadge status={customer.status} />
-                  </td>
-                  <td className="px-6 py-4 text-sm text-secondary">
-                    {formatDateTime(customer.createdAt)}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <Can permission="customers.update">
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => {
-                          setEditingCustomer(customer);
-                          setIsOpen(true);
-                        }}
-                      >
-                        Edit
-                      </Button>
-                    </Can>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+
+      <FilterBar 
+        searchPlaceholder="Search customers by name or phone..."
+        searchValue={filters.search}
+        onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}
+        onClear={filters.search || filters.status ? handleClearFilters : undefined}
+      >
+        <select
+          value={filters.status}
+          onChange={(e) => { setFilters(p => ({ ...p, status: e.target.value })); setPage(1); }}
+          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+        >
+          <option value="">All Statuses</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </FilterBar>
+
+      <DataTable 
+        columns={columns}
+        data={customers}
+        keyExtractor={(row) => row._id}
+        pagination={{ ...pagination, page }}
+        onPageChange={setPage}
+        emptyState={
+          <EmptyState
+            title="No customers found"
+            description="Create a customer to start tracking orders."
+            actionLabel="New Customer"
+            onAction={() => { setEditingCustomer(null); setIsOpen(true); }}
+          />
+        }
+      />
+
       <Modal
         isOpen={isOpen}
         title={editingCustomer ? "Edit Customer" : "New Customer"}
@@ -234,39 +262,6 @@ export const CustomersList = () => {
           }
         />
       </Modal>
-      {pagination && (
-        <div className="flex items-center justify-between text-sm text-secondary">
-          <div>
-            Page {pagination.page} of {pagination.totalPages || 1}
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setPage((value) => Math.max(1, value - 1))}
-              disabled={page <= 1}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() =>
-                setPage((value) =>
-                  pagination.totalPages
-                    ? Math.min(pagination.totalPages, value + 1)
-                    : value + 1,
-                )
-              }
-              disabled={
-                pagination.totalPages ? page >= pagination.totalPages : false
-              }
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

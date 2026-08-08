@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Can } from "../../../components/Can";
 import { createOrder, getOrders, updateOrder } from "../api";
 import { getCustomers } from "../../customers/api";
@@ -12,21 +12,25 @@ import { EmptyState } from "../../../components/ui/EmptyState";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { Modal } from "../../../components/ui/Modal";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
+import { DataTable } from "../../../components/ui/DataTable";
+import { FilterBar } from "../../../components/ui/FilterBar";
+import { FormField } from "../../../components/ui/FormField";
+import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
-import { formatCurrency, formatDate } from "../../../utils/formatters";
+import { formatDate } from "../../../utils/formatters";
 import {
   getApiErrorMessage,
   unwrapListResponse,
 } from "../../../utils/apiResponse";
 
 const orderSchema = z.object({
-  customer: z.string().min(1),
-  description: z.string().min(1),
-  agreedAmount: z.coerce.number().nonnegative(),
-  expectedCompletionDate: z.string().min(1),
+  customer: z.string().min(1, "Customer is required"),
+  description: z.string().min(1, "Description is required"),
+  agreedAmount: z.coerce.number().nonnegative("Amount cannot be negative"),
+  expectedCompletionDate: z.string().min(1, "Date is required"),
   notes: z.string().optional(),
   status: z
     .enum(["pending", "in_progress", "ready", "completed", "cancelled"])
@@ -66,60 +70,82 @@ const OrderForm = ({ initialData, customers, onSubmit, onClose }) => {
 
   return (
     <form className="space-y-4 p-6" onSubmit={handleSubmit(onSubmit)}>
-      <select
-        {...register("customer")}
-        className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary"
-      >
-        <option value="">Select customer</option>
-        {customers.map((customer) => (
-          <option key={customer._id} value={customer._id}>
-            {customer.name}
-          </option>
-        ))}
-      </select>
-      <textarea
-        placeholder="Describe the agreed furniture/design"
-        {...register("description")}
-        className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary"
-      />
-      <input
-        type="number"
-        step="0.01"
-        placeholder="Agreed amount"
-        {...register("agreedAmount")}
-        className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary"
-      />
-      <input
-        type="date"
-        {...register("expectedCompletionDate")}
-        className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary"
-      />
-      <textarea
-        placeholder="Optional notes"
-        {...register("notes")}
-        className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary"
-      />
-      {isEditing && (
+      <FormField label="Customer" required error={errors.customer?.message}>
         <select
-          {...register("status")}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary"
+          {...register("customer")}
+          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         >
-          <option value={initialData.status}>
-            {ORDER_STATUS_LABELS[initialData.status]}
-          </option>
-          {allowedStatuses.map((status) => (
-            <option key={status} value={status}>
-              {ORDER_STATUS_LABELS[status]}
+          <option value="">Select customer</option>
+          {customers.map((customer) => (
+            <option key={customer._id} value={customer._id}>
+              {customer.name}
             </option>
           ))}
         </select>
+      </FormField>
+
+      <FormField label="Description" required error={errors.description?.message}>
+        <textarea
+          placeholder="Describe the agreed furniture/design"
+          {...register("description")}
+          rows={3}
+          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+        />
+      </FormField>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <FormField label="Agreed Amount (ETB)" required error={errors.agreedAmount?.message}>
+          <input
+            type="number"
+            step="0.01"
+            placeholder="0.00"
+            {...register("agreedAmount")}
+            className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          />
+        </FormField>
+
+        <FormField label="Expected Completion Date" required error={errors.expectedCompletionDate?.message}>
+          <input
+            type="date"
+            {...register("expectedCompletionDate")}
+            className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          />
+        </FormField>
+      </div>
+
+      <FormField label="Notes" error={errors.notes?.message}>
+        <textarea
+          placeholder="Optional notes"
+          {...register("notes")}
+          rows={2}
+          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+        />
+      </FormField>
+
+      {isEditing && (
+        <FormField label="Status" error={errors.status?.message}>
+          <select
+            {...register("status")}
+            className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          >
+            <option value={initialData.status}>
+              {ORDER_STATUS_LABELS[initialData.status]}
+            </option>
+            {allowedStatuses.map((status) => (
+              <option key={status} value={status}>
+                {ORDER_STATUS_LABELS[status]}
+              </option>
+            ))}
+          </select>
+        </FormField>
       )}
-      <div className="flex justify-end gap-3">
-        <Button type="button" variant="secondary" onClick={onClose}>
+
+      <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
+        <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>
           Cancel
         </Button>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Saving..." : "Save"}
+          {isSubmitting ? "Saving..." : "Save Order"}
         </Button>
       </div>
     </form>
@@ -128,33 +154,37 @@ const OrderForm = ({ initialData, customers, onSubmit, onClose }) => {
 
 export const OrdersList = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({
     search: "",
     status: "",
     customer: "",
-    createdBy: "",
     from: "",
     to: "",
     sort: "-expectedCompletionDate",
   });
   const [isOpen, setIsOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
+
+  const params = useMemo(() => ({
+    ...Object.fromEntries(
+      Object.entries(filters).filter(([, value]) => value),
+    ),
+    page,
+    limit: 20,
+  }), [filters, page]);
+
   const ordersQuery = useQuery({
-    queryKey: ["orders", filters, page],
-    queryFn: () =>
-      getOrders({
-        ...Object.fromEntries(
-          Object.entries(filters).filter(([, value]) => value),
-        ),
-        page,
-        limit: 20,
-      }),
+    queryKey: ["orders", params],
+    queryFn: () => getOrders(params),
   });
+
   const customersQuery = useQuery({
     queryKey: ["customers-for-orders"],
     queryFn: () => getCustomers({ page: 1, limit: 200 }),
   });
+
   const { items: orders, pagination } = unwrapListResponse(ordersQuery.data);
   const customers = unwrapListResponse(customersQuery.data).items;
 
@@ -168,6 +198,7 @@ export const OrdersList = () => {
     onError: (err) =>
       toast.error(getApiErrorMessage(err, "Failed to create order")),
   });
+
   const updateMutation = useMutation({
     mutationFn: updateOrder,
     onSuccess: () => {
@@ -179,8 +210,60 @@ export const OrdersList = () => {
       toast.error(getApiErrorMessage(err, "Failed to update order")),
   });
 
+  const handleClearFilters = () => {
+    setFilters({
+      search: "",
+      status: "",
+      customer: "",
+      from: "",
+      to: "",
+      sort: "-expectedCompletionDate",
+    });
+    setPage(1);
+  };
+
+  const columns = [
+    { header: "Customer", accessor: (row) => row.customer?.name || "-", className: "font-medium" },
+    { header: "Description", accessor: (row) => <div className="max-w-[200px] truncate">{row.description}</div>, className: "text-secondary hidden sm:table-cell" },
+    { header: "Amount", accessor: (row) => <MoneyDisplay amount={row.agreedAmount} /> },
+    { header: "Expected", accessor: (row) => formatDate(row.expectedCompletionDate), className: "text-secondary hidden md:table-cell" },
+    { header: "Status", accessor: (row) => <StatusBadge status={row.status} /> },
+    { 
+      header: "Actions", 
+      isActions: true,
+      accessor: (row) => (
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/orders/${row._id}`);
+            }}
+          >
+            View
+          </Button>
+          <Can permission="orders.update">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditingOrder(row);
+                setIsOpen(true);
+              }}
+            >
+              Edit
+            </Button>
+          </Can>
+        </div>
+      ) 
+    }
+  ];
+
   if (ordersQuery.isLoading || customersQuery.isLoading)
     return <LoadingSkeleton variant="default" rowCount={6} showSearch />;
+  
   if (ordersQuery.isError)
     return (
       <ErrorState
@@ -190,6 +273,8 @@ export const OrdersList = () => {
         )}
       />
     );
+
+  const hasActiveFilters = Object.values(filters).some(val => val !== "" && val !== "-expectedCompletionDate");
 
   return (
     <div className="space-y-6">
@@ -209,21 +294,17 @@ export const OrdersList = () => {
           </Can>
         }
       />
-      <div className="grid gap-3 rounded-2xl border border-border bg-surface p-4 sm:grid-cols-2 xl:grid-cols-6">
-        <input
-          placeholder="Search description"
-          value={filters.search}
-          onChange={(e) =>
-            setFilters((p) => ({ ...p, search: e.target.value }))
-          }
-          className="rounded-md border border-border bg-main px-3 py-2 text-primary"
-        />
+
+      <FilterBar
+        searchPlaceholder="Search description..."
+        searchValue={filters.search}
+        onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}
+        onClear={hasActiveFilters ? handleClearFilters : undefined}
+      >
         <select
           value={filters.status}
-          onChange={(e) =>
-            setFilters((p) => ({ ...p, status: e.target.value }))
-          }
-          className="rounded-md border border-border bg-main px-3 py-2 text-primary"
+          onChange={(e) => { setFilters((p) => ({ ...p, status: e.target.value })); setPage(1); }}
+          className="rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         >
           <option value="">All statuses</option>
           {Object.entries(ORDER_STATUS_LABELS).map(([value, label]) => (
@@ -232,12 +313,11 @@ export const OrdersList = () => {
             </option>
           ))}
         </select>
+
         <select
           value={filters.customer}
-          onChange={(e) =>
-            setFilters((p) => ({ ...p, customer: e.target.value }))
-          }
-          className="rounded-md border border-border bg-main px-3 py-2 text-primary"
+          onChange={(e) => { setFilters((p) => ({ ...p, customer: e.target.value })); setPage(1); }}
+          className="rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         >
           <option value="">All customers</option>
           {customers.map((customer) => (
@@ -246,121 +326,38 @@ export const OrdersList = () => {
             </option>
           ))}
         </select>
-        <input
-          placeholder="Created by user id"
-          value={filters.createdBy}
-          onChange={(e) =>
-            setFilters((p) => ({ ...p, createdBy: e.target.value }))
-          }
-          className="rounded-md border border-border bg-main px-3 py-2 text-primary"
-        />
-        <input
-          type="date"
-          value={filters.from}
-          onChange={(e) => setFilters((p) => ({ ...p, from: e.target.value }))}
-          className="rounded-md border border-border bg-main px-3 py-2 text-primary"
-        />
-        <input
-          type="date"
-          value={filters.to}
-          onChange={(e) => setFilters((p) => ({ ...p, to: e.target.value }))}
-          className="rounded-md border border-border bg-main px-3 py-2 text-primary"
-        />
+
         <select
           value={filters.sort}
-          onChange={(e) => setFilters((p) => ({ ...p, sort: e.target.value }))}
-          className="rounded-md border border-border bg-main px-3 py-2 text-primary"
+          onChange={(e) => { setFilters((p) => ({ ...p, sort: e.target.value })); setPage(1); }}
+          className="rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         >
-          <option value="-expectedCompletionDate">
-            Expected completion newest
-          </option>
-          <option value="expectedCompletionDate">
-            Expected completion oldest
-          </option>
-          <option value="createdAt">Created oldest</option>
-          <option value="-createdAt">Created newest</option>
-          <option value="agreedAmount">Amount ascending</option>
-          <option value="-agreedAmount">Amount descending</option>
+          <option value="-expectedCompletionDate">Expected completion (Newest)</option>
+          <option value="expectedCompletionDate">Expected completion (Oldest)</option>
+          <option value="-createdAt">Created (Newest)</option>
+          <option value="createdAt">Created (Oldest)</option>
+          <option value="-agreedAmount">Amount (High to Low)</option>
+          <option value="agreedAmount">Amount (Low to High)</option>
         </select>
-      </div>
-      {orders.length === 0 ? (
-        <EmptyState
-          title="No orders found"
-          description="Create the first order for a customer."
-          actionLabel="New Order"
-          onAction={() => setIsOpen(true)}
-        />
-      ) : (
-        <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
-          <table className="min-w-full divide-y divide-border">
-            <thead className="bg-main">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs uppercase text-secondary">
-                  Customer
-                </th>
-                <th className="px-6 py-3 text-left text-xs uppercase text-secondary">
-                  Description
-                </th>
-                <th className="px-6 py-3 text-left text-xs uppercase text-secondary">
-                  Amount
-                </th>
-                <th className="px-6 py-3 text-left text-xs uppercase text-secondary">
-                  Expected completion
-                </th>
-                <th className="px-6 py-3 text-left text-xs uppercase text-secondary">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-right text-xs uppercase text-secondary">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {orders.map((order) => (
-                <tr key={order._id}>
-                  <td className="px-6 py-4 text-sm text-primary">
-                    {order.customer?.name || "-"}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-secondary">
-                    {order.description}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-secondary">
-                    {formatCurrency(order.agreedAmount)}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-secondary">
-                    {formatDate(order.expectedCompletionDate)}
-                  </td>
-                  <td className="px-6 py-4">
-                    <StatusBadge status={order.status} />
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2">
-                      <Link
-                        to={`/orders/${order._id}`}
-                        className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-medium text-primary hover:bg-main"
-                      >
-                        View
-                      </Link>
-                      <Can permission="orders.update">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => {
-                            setEditingOrder(order);
-                            setIsOpen(true);
-                          }}
-                        >
-                          Edit
-                        </Button>
-                      </Can>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      </FilterBar>
+
+      <DataTable 
+        columns={columns}
+        data={orders}
+        keyExtractor={(row) => row._id}
+        onRowClick={(row) => navigate(`/orders/${row._id}`)}
+        pagination={{ ...pagination, page }}
+        onPageChange={setPage}
+        emptyState={
+          <EmptyState
+            title="No orders found"
+            description="Create the first order for a customer."
+            actionLabel="New Order"
+            onAction={() => { setEditingOrder(null); setIsOpen(true); }}
+          />
+        }
+      />
+
       <Modal
         isOpen={isOpen}
         title={editingOrder ? "Edit Order" : "New Order"}
@@ -377,39 +374,6 @@ export const OrdersList = () => {
           }
         />
       </Modal>
-      {pagination && (
-        <div className="flex items-center justify-between text-sm text-secondary">
-          <div>
-            Page {pagination.page} of {pagination.totalPages || 1}
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setPage((value) => Math.max(1, value - 1))}
-              disabled={page <= 1}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() =>
-                setPage((value) =>
-                  pagination.totalPages
-                    ? Math.min(pagination.totalPages, value + 1)
-                    : value + 1,
-                )
-              }
-              disabled={
-                pagination.totalPages ? page >= pagination.totalPages : false
-              }
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
