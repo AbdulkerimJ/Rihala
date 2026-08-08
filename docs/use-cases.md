@@ -72,7 +72,7 @@ Staff can record a new daily rate for an employee with an effective date, preser
 
 ### Record Attendance
 
-Staff can manually record morning and afternoon attendance (`PRESENT` or `REST`) for an employee on a specific working day (Monday–Saturday, within the employee's employment period).
+Staff can manually record morning and afternoon attendance (`PRESENT`, `ABSENT`, or `PERMISSION`) for an employee on a specific working day (Monday–Saturday, within the employee's employment period).
 
 ### Record Overtime
 

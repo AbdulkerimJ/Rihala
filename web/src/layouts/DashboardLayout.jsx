@@ -90,8 +90,8 @@ export const DashboardLayout = () => {
           className={({ isActive }) =>
             `group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
               isActive
-                ? "bg-[#fdfbf7]/15 text-[#fdfbf7]"
-                : "text-[#fdfbf7]/80 hover:bg-[#fdfbf7]/10 hover:text-[#fdfbf7]"
+                ? "bg-brand/10 text-brand"
+                : "text-secondary hover:bg-black/5 hover:text-primary dark:hover:bg-white/5"
             }`
           }
           onClick={() => setSidebarOpen(false)}
@@ -124,23 +124,23 @@ export const DashboardLayout = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 flex w-64 transform flex-col border-r border-brand/20 bg-brand transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-30 flex w-64 transform flex-col border-r border-border bg-surface transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex h-16 items-center justify-between px-6">
           <div>
-            <span className="block text-xl font-semibold tracking-tight text-[#fdfbf7]">
+            <span className="block text-xl font-semibold tracking-tight text-primary">
               Rihala Admin
             </span>
-            <span className="block text-xs text-[#fdfbf7]/75">
+            <span className="block text-xs text-secondary">
               Operations console
             </span>
           </div>
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden text-[#fdfbf7] hover:bg-[#fdfbf7]/10 hover:text-[#fdfbf7]"
+            className="lg:hidden text-secondary hover:bg-black/5 hover:text-primary dark:hover:bg-white/5"
             onClick={() => setSidebarOpen(false)}
           >
             <X className="h-6 w-6" />
@@ -152,7 +152,7 @@ export const DashboardLayout = () => {
             variant="ghostDanger"
             onClick={handleLogout}
             size="none"
-            className="flex w-full items-center justify-start rounded-lg px-3 py-2 text-sm font-medium text-[#fdfbf7]/90 hover:bg-[#fdfbf7]/10 hover:text-[#fdfbf7]"
+            className="flex w-full items-center justify-start rounded-lg px-3 py-2 text-sm font-medium text-secondary hover:bg-danger/10 hover:text-danger transition-colors"
           >
             <LogOut className="mr-3 h-4 w-4" />
             Logout

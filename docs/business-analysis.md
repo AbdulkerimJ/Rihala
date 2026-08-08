@@ -258,12 +258,12 @@ Financial records must not be silently rewritten or physically deleted in a way 
 ## Employee Attendance
 
 - Attendance is recorded twice per normal working day: **morning** and **afternoon**.
-- Each half-day has one of two statuses: `PRESENT` or `REST`.
-- Rest and absence are treated as the same concept for the MVP.
-- The daily paid portion is derived from the two half-day records:
+- Each half-day has one of three statuses: `PRESENT`, `ABSENT`, or `PERMISSION`.
+- `ABSENT` and `PERMISSION` are treated as unpaid for the MVP.
+- **Derived Paid Days**:
   - `PRESENT + PRESENT` = 1 full day
-  - `PRESENT + REST` or `REST + PRESENT` = 0.5 day
-  - `REST + REST` = 0 days
+  - `PRESENT + (ABSENT/PERMISSION)` or `(ABSENT/PERMISSION) + PRESENT` = 0.5 day
+  - `(ABSENT/PERMISSION) + (ABSENT/PERMISSION)` = 0 days
 - Normal attendance is required Monday–Saturday. Sunday is not a required attendance day.
 - Missing attendance records for an active employee during their employment period blocks payroll closure.
 

@@ -78,7 +78,7 @@ Route permission names match the permission seeds in `admin.seed.js`.
 - Method: GET
 - Route: `/api/v1/users`
 - Authentication: required
-- Permission: none at the route level; protected by authentication
+- Permission: `users.read`
 - Purpose: list active users
 
 ### List Deleted Users
@@ -86,7 +86,7 @@ Route permission names match the permission seeds in `admin.seed.js`.
 - Method: GET
 - Route: `/api/v1/users/deleted`
 - Authentication: required
-- Permission: none at the route level
+- Permission: `users.read`
 - Purpose: list soft-deleted users
 
 ### Create Invited User
@@ -94,7 +94,7 @@ Route permission names match the permission seeds in `admin.seed.js`.
 - Method: POST
 - Route: `/api/v1/users`
 - Authentication: required
-- Permission: none at the route level
+- Permission: `users.create`
 - Purpose: create a user in invited status and issue an invitation flow
 - Body: `name`, `email`, `roles`
 
@@ -103,7 +103,7 @@ Route permission names match the permission seeds in `admin.seed.js`.
 - Method: PATCH
 - Route: `/api/v1/users/:id`
 - Authentication: required
-- Permission: none at the route level
+- Permission: `users.update`
 - Purpose: update a user record
 
 ### Get User by ID
@@ -111,7 +111,7 @@ Route permission names match the permission seeds in `admin.seed.js`.
 - Method: GET
 - Route: `/api/v1/users/:id`
 - Authentication: required
-- Permission: none at the route level
+- Permission: `users.read`
 - Purpose: fetch a single user
 
 ### Deactivate User
@@ -119,7 +119,7 @@ Route permission names match the permission seeds in `admin.seed.js`.
 - Method: PATCH
 - Route: `/api/v1/users/:id/deactivate`
 - Authentication: required
-- Permission: none at the route level
+- Permission: `users.update`
 - Purpose: set a user to inactive
 
 ### Activate User
@@ -127,7 +127,7 @@ Route permission names match the permission seeds in `admin.seed.js`.
 - Method: PATCH
 - Route: `/api/v1/users/:id/activate`
 - Authentication: required
-- Permission: none at the route level
+- Permission: `users.update`
 - Purpose: set a user to active
 
 ### Restore User
@@ -135,7 +135,7 @@ Route permission names match the permission seeds in `admin.seed.js`.
 - Method: PATCH
 - Route: `/api/v1/users/:id/restore`
 - Authentication: required
-- Permission: none at the route level
+- Permission: `users.restore`
 - Purpose: restore a soft-deleted user
 
 ### Soft Delete User
@@ -143,7 +143,7 @@ Route permission names match the permission seeds in `admin.seed.js`.
 - Method: DELETE
 - Route: `/api/v1/users/:id`
 - Authentication: required
-- Permission: none at the route level
+- Permission: `users.delete`
 - Purpose: soft-delete a user
 
 ### Assign Roles to User

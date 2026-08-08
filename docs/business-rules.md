@@ -178,12 +178,12 @@ CustomerPayment
 
 - Attendance is recorded manually by staff.
 - Attendance is recorded twice per normal working day: **morning** and **afternoon**.
-- Each half-day has one of two statuses: `PRESENT` or `REST`.
-- `REST` and absence are treated as the same concept for the MVP.
-- The daily paid portion is derived from the two half-day records:
+- Each half-day has one of three statuses: `PRESENT`, `ABSENT`, or `PERMISSION`.
+- `ABSENT` and `PERMISSION` are treated as unpaid for the MVP.
+- **Derived Paid Days**:
   - `PRESENT + PRESENT` = 1 full day
-  - `PRESENT + REST` or `REST + PRESENT` = 0.5 day
-  - `REST + REST` = 0 days
+  - `PRESENT + (ABSENT/PERMISSION)` or `(ABSENT/PERMISSION) + PRESENT` = 0.5 day
+  - `(ABSENT/PERMISSION) + (ABSENT/PERMISSION)` = 0 days
 - Derived values such as `FULL_DAY` or `HALF_DAY` must not be stored redundantly if they can be derived.
 - Normal attendance is required for **Monday–Saturday**.
 - Sunday is not a normal attendance day.

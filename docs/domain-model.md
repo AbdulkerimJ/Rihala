@@ -242,8 +242,8 @@ Important fields:
 
 - employee (Employee reference)
 - workDate
-- morningStatus: `PRESENT` or `REST`
-- afternoonStatus: `PRESENT` or `REST`
+- morningStatus: `PRESENT`, `ABSENT`, or `PERMISSION`
+- afternoonStatus: `PRESENT`, `ABSENT`, or `PERMISSION`
 
 Constraints:
 
@@ -254,8 +254,8 @@ Constraints:
 The daily paid portion is derived from the two status fields:
 
 - `PRESENT + PRESENT` = 1 full day
-- `PRESENT + REST` or `REST + PRESENT` = 0.5 day
-- `REST + REST` = 0 days
+- `PRESENT + ABSENT/PERMISSION` or `ABSENT/PERMISSION + PRESENT` = 0.5 day
+- `ABSENT/PERMISSION + ABSENT/PERMISSION` = 0 days
 
 ---
 

@@ -37,6 +37,17 @@ export default {
       },
       borderColor: {
         DEFAULT: 'rgb(var(--border-color) / <alpha-value>)',
+      },
+      borderRadius: {
+        'none': '0',
+        'sm': '0.125rem',
+        DEFAULT: '0.25rem',
+        'md': '0.25rem', // 4px - Crisp buttons and inputs
+        'lg': '0.375rem', // 6px - Sharp, professional cards and sidebars
+        'xl': '0.5rem',
+        '2xl': '0.75rem',
+        '3xl': '1rem',
+        'full': '9999px',
       }
     },
   },

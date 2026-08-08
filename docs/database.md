@@ -216,13 +216,13 @@ The current backend uses MongoDB with Mongoose models. The implementation curren
 - Important fields:
   - employee (Employee reference)
   - workDate
-  - morningStatus (`PRESENT`, `REST`)
-  - afternoonStatus (`PRESENT`, `REST`)
+  - morningStatus (`PRESENT`, `ABSENT`, `PERMISSION`)
+  - afternoonStatus (`PRESENT`, `ABSENT`, `PERMISSION`)
 - Notes:
   - one record per employee per date (unique constraint)
   - only created for employees (not contractors)
   - dates must fall within the employee's employment period
-  - the daily paid portion is derived: `PRESENT+PRESENT` = 1.0, `PRESENT+REST` or `REST+PRESENT` = 0.5, `REST+REST` = 0.0
+  - the daily paid portion is derived: `PRESENT+PRESENT` = 1.0, `PRESENT+(ABSENT/PERMISSION)` or `(ABSENT/PERMISSION)+PRESENT` = 0.5, `(ABSENT/PERMISSION)+(ABSENT/PERMISSION)` = 0.0
 
 ---
 
