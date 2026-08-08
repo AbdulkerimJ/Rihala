@@ -58,13 +58,13 @@ const NavGroup = ({ group, isSidebarOpen, setSidebarOpen, pathname, can }) => {
             className={({ isActive }) =>
               `group flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
                 isActive
-                  ? "bg-brand/10 text-brand shadow-sm font-semibold"
-                  : "text-secondary hover:bg-main hover:text-primary dark:hover:bg-white/5"
+                  ? "bg-accent/10 text-accent font-semibold"
+                  : "text-primary/90 hover:bg-brand/5 hover:text-brand"
               }`
             }
             onClick={() => setSidebarOpen(false)}
           >
-            <item.icon className={`mr-3 h-5 w-5 flex-shrink-0 ${pathname.startsWith(item.path) ? "text-brand" : "text-secondary group-hover:text-primary"}`} />
+            <item.icon className={`mr-3 h-5 w-5 flex-shrink-0 transition-colors ${pathname.startsWith(item.path) ? "text-accent" : "text-primary/50 group-hover:text-brand"}`} />
             {item.name}
           </NavLink>
         ))}
@@ -77,20 +77,20 @@ const NavGroup = ({ group, isSidebarOpen, setSidebarOpen, pathname, can }) => {
     <div className="mb-3">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200 ${
-          isActiveGroup && !isExpanded
-            ? "text-primary bg-main/50 font-semibold"
-            : "text-secondary hover:bg-main hover:text-primary dark:hover:bg-white/5"
+        className={`group flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200 ${
+          isActiveGroup
+            ? "text-primary bg-brand/5 font-semibold"
+            : "text-secondary hover:bg-brand/5 hover:text-brand"
         }`}
       >
         <div className="flex items-center">
-          {group.icon && <group.icon className={`mr-3 h-5 w-5 flex-shrink-0 ${isActiveGroup ? "text-primary" : "text-secondary"}`} />}
+          {group.icon && <group.icon className={`mr-3 h-5 w-5 flex-shrink-0 transition-colors ${isActiveGroup ? "text-accent" : "text-secondary group-hover:text-brand"}`} />}
           <span>{group.title}</span>
         </div>
         {isExpanded ? (
-          <ChevronDown className="h-4 w-4 opacity-70" />
+          <ChevronDown className={`h-4 w-4 transition-colors ${isActiveGroup ? "text-accent opacity-100" : "opacity-70 group-hover:text-brand"}`} />
         ) : (
-          <ChevronRight className="h-4 w-4 opacity-70" />
+          <ChevronRight className={`h-4 w-4 transition-colors ${isActiveGroup ? "text-accent opacity-100" : "opacity-40 group-hover:text-brand"}`} />
         )}
       </button>
 
@@ -107,13 +107,13 @@ const NavGroup = ({ group, isSidebarOpen, setSidebarOpen, pathname, can }) => {
               className={({ isActive }) =>
                 `group flex items-center rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? "text-brand bg-brand/5 font-semibold relative before:absolute before:left-[-12.5px] before:top-1/2 before:-translate-y-1/2 before:w-[5px] before:h-[5px] before:rounded-full before:bg-brand"
-                    : "text-secondary hover:text-primary hover:bg-main dark:hover:bg-white/5"
+                    ? "text-accent bg-accent/10 font-semibold relative before:absolute before:left-[-12.5px] before:top-1/2 before:-translate-y-1/2 before:w-[5px] before:h-[5px] before:rounded-full before:bg-accent"
+                    : "text-primary/90 hover:text-brand hover:bg-brand/5"
                 }`
               }
               onClick={() => setSidebarOpen(false)}
             >
-              <item.icon className={`mr-2.5 h-4 w-4 flex-shrink-0 ${pathname.startsWith(item.path) ? "text-brand" : "text-secondary/70 group-hover:text-primary/70"}`} />
+              <item.icon className={`mr-2.5 h-4 w-4 flex-shrink-0 transition-colors ${pathname.startsWith(item.path) ? "text-accent" : "text-primary/50 group-hover:text-brand/80"}`} />
               {item.name}
             </NavLink>
           ))}
@@ -230,7 +230,7 @@ export const DashboardLayout = () => {
         }`}
       >
         {/* Brand Area */}
-        <div className="flex flex-col pt-6 pb-5 px-6 border-b border-border/50">
+        <div className="flex flex-col pt-7 pb-6 px-6 border-b border-border/80 bg-surface">
           <div className="flex items-center justify-between">
             <span className="block text-[28px] font-bold tracking-tight text-primary font-display leading-none">
               Rihala
@@ -238,13 +238,13 @@ export const DashboardLayout = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden text-secondary hover:bg-main hover:text-primary -mr-2"
+              className="lg:hidden text-secondary hover:bg-accent/10 hover:text-accent -mr-2"
               onClick={() => setSidebarOpen(false)}
             >
               <X className="h-5 w-5" />
             </Button>
           </div>
-          <span className="text-[11px] font-medium tracking-widest uppercase text-secondary/70 mt-1">
+          <span className="text-[11px] font-semibold tracking-widest uppercase text-accent mt-1.5">
             Workshop Management
           </span>
         </div>
