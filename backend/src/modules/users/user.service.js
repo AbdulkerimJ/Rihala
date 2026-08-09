@@ -240,21 +240,19 @@ const getUserByIdService = async (userId) => {
   return user;
 };
 
-// Get all active users.
+// Get all users.
 const getAllUsersService = async (filters = {}) => {
-  if (filters.deletedAt === undefined) {
-    filters.deletedAt = null;
-  }
   return getPaginatedQueryResult(User, filters, userQueryConfig, {
     populate: "roles",
+    query: { deletedAt: null },
   });
 };
 
 // Get all soft-deleted users.
 const getDeletedUsersService = async (filters = {}) => {
-  filters.deletedAt = { $ne: null };
   return getPaginatedQueryResult(User, filters, userQueryConfig, {
     populate: "roles",
+    query: { deletedAt: { $ne: null } },
   });
 };
 

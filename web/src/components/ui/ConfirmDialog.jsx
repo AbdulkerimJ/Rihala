@@ -28,6 +28,7 @@ export const ConfirmDialog = ({
   };
 
   const handleCancel = () => {
+    if (isSubmitting) return;
     setReason("");
     setError("");
     onCancel();
@@ -36,7 +37,7 @@ export const ConfirmDialog = ({
   const isDanger = variant === "danger";
 
   return (
-    <Modal isOpen={isOpen} title={title} onClose={handleCancel}>
+    <Modal isOpen={isOpen} title={title} onClose={isSubmitting ? undefined : handleCancel} maxWidth="max-w-md">
       <div className="p-6 space-y-4">
         <div className="flex gap-4">
           <div className={`mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${isDanger ? 'bg-danger/10 text-danger' : 'bg-accent/10 text-accent'}`}>

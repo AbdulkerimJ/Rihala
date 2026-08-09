@@ -2,7 +2,7 @@ import React from "react";
 
 export const SummaryCard = ({ title, value, subtitle, icon: Icon, valueClassName = "text-primary" }) => {
   return (
-    <div className="rounded-xl border border-border bg-surface p-6 shadow-sm flex items-start gap-4">
+    <div className="rounded-lg border border-border bg-surface p-6 shadow-sm flex items-start gap-4">
       {Icon && (
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/10 text-accent flex-shrink-0">
           <Icon className="h-6 w-6" />

@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { Button } from "./Button";
 
@@ -10,32 +11,42 @@ export const Modal = ({
   className = "",
   maxWidth = "max-w-2xl",
 }) => {
-  if (!isOpen) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  if (!isOpen || !mounted) {
     return null;
   }
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       onClick={onClose}
     >
       <div
-        className={`w-full ${maxWidth} rounded-2xl border border-border bg-surface shadow-2xl ${className}`}
+        className={`w-full ${maxWidth} rounded-lg border border-border bg-surface shadow-2xl overflow-hidden ${className}`}
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-border px-5 py-4 sm:px-6 bg-surface">
           <h3 className="text-2xl font-bold tracking-tight text-primary font-display">{title}</h3>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            aria-label="Close dialog"
-          >
-            <X className="h-5 w-5" />
-          </Button>
+          {onClose && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              aria-label="Close dialog"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          )}
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import { Users, RefreshCw, UserPlus } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth";
 import { Can } from "../../../components/Can";
 import { LoadingSkeleton } from "../../../components/ui/LoadingSkeleton";
@@ -11,6 +11,7 @@ import { ErrorState } from "../../../components/ui/ErrorState";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
+import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { UserModal } from "../components/UserModal";
 import {
   getUsers,
@@ -32,6 +33,7 @@ export const UsersList = () => {
   const { currentUser } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [userToDelete, setUserToDelete] = useState(null);
   const [showDeleted, setShowDeleted] = useState(false);
 
   const usersQuery = useQuery({
@@ -41,10 +43,21 @@ export const UsersList = () => {
 
   const users = useMemo(() => {
     const payload = usersQuery.data;
-    const list = Array.isArray(payload?.data)
-      ? payload.data
-      : payload?.data?.users || payload?.data || [];
-    return Array.isArray(list) ? list : [];
+    if (!payload?.data) return [];
+
+    if (Array.isArray(payload.data)) {
+      return payload.data;
+    }
+    
+    if (Array.isArray(payload.data.data)) {
+      return payload.data.data;
+    }
+
+    if (Array.isArray(payload.data.users)) {
+      return payload.data.users;
+    }
+
+    return [];
   }, [usersQuery.data]);
 
   const refresh = () =>
@@ -119,9 +132,14 @@ export const UsersList = () => {
     queryClient.invalidateQueries({ queryKey: [USERS_QUERY_KEY] });
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      await deleteMutation.mutateAsync(id);
+  const handleDelete = (id) => {
+    setUserToDelete(id);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (userToDelete) {
+      await deleteMutation.mutateAsync(userToDelete);
+      setUserToDelete(null);
     }
   };
 
@@ -152,10 +170,7 @@ export const UsersList = () => {
               variant="secondary"
               onClick={() => setShowDeleted((value) => !value)}
             >
-              {showDeleted ? "Show Active Users" : "Show Deleted Users"}
-            </Button>
-            <Button variant="secondary" onClick={refresh}>
-              <RefreshCw className="mr-2 h-4 w-4" /> Refresh
+              {showDeleted ? "Show Existing Users" : "Show Deleted Users"}
             </Button>
             <Can permission="users.create">
               <Button
@@ -238,45 +253,52 @@ export const UsersList = () => {
                     </td>
                     <td className="px-6 py-4 text-right text-sm">
                       <div className="flex justify-end gap-2">
-                        <Can permission="users.update">
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => {
-                              setEditingUser(user);
-                              setIsModalOpen(true);
-                            }}
-                          >
-                            Edit
-                          </Button>
-                        </Can>
-                        <Can permission="users.update">
-                          {user.status === "inactive" ? (
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              onClick={() => activateMutation.mutate(user._id)}
-                            >
-                              Activate
-                            </Button>
-                          ) : (
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              onClick={() =>
-                                deactivateMutation.mutate(user._id)
-                              }
-                            >
-                              Deactivate
-                            </Button>
-                          )}
-                        </Can>
+                        {!user.deletedAt && (
+                          <>
+                            <Can permission="users.update">
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => {
+                                  setEditingUser(user);
+                                  setIsModalOpen(true);
+                                }}
+                              >
+                                Edit
+                              </Button>
+                            </Can>
+                            <Can permission="users.update">
+                              {user.status === "inactive" ? (
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={() => activateMutation.mutate(user._id)}
+                                  disabled={activateMutation.isPending && activateMutation.variables === user._id}
+                                >
+                                  Activate
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={() =>
+                                    deactivateMutation.mutate(user._id)
+                                  }
+                                  disabled={deactivateMutation.isPending && deactivateMutation.variables === user._id}
+                                >
+                                  Deactivate
+                                </Button>
+                              )}
+                            </Can>
+                          </>
+                        )}
                         {user.deletedAt ? (
                           <Can permission="users.restore">
                             <Button
                               variant="secondary"
                               size="sm"
                               onClick={() => restoreMutation.mutate(user._id)}
+                              disabled={restoreMutation.isPending && restoreMutation.variables === user._id}
                             >
                               Restore
                             </Button>
@@ -307,6 +329,16 @@ export const UsersList = () => {
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleSubmit}
         initialData={editingUser}
+      />
+      <ConfirmDialog
+        isOpen={!!userToDelete}
+        title="Delete User"
+        description="Are you sure you want to delete this user? They will immediately lose access to the system."
+        confirmLabel="Delete"
+        variant="danger"
+        isSubmitting={deleteMutation.isPending}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setUserToDelete(null)}
       />
     </div>
   );

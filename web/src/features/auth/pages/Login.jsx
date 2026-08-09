@@ -64,7 +64,8 @@ export const Login = () => {
                 id="email"
                 type="email"
                 autoComplete="email"
-                className={`block w-full appearance-none rounded-md border px-3 py-2 shadow-sm focus:outline-none sm:text-sm bg-main text-primary ${
+                disabled={isSubmitting}
+                className={`block w-full appearance-none rounded-md border px-3 py-2 shadow-sm focus:outline-none sm:text-sm bg-main text-primary disabled:opacity-50 disabled:cursor-not-allowed ${
                   errors.email
                     ? "border-danger focus:border-danger focus:ring-danger"
                     : "border-border focus:border-brand focus:ring-brand"
@@ -91,7 +92,8 @@ export const Login = () => {
                 id="password"
                 type="password"
                 autoComplete="current-password"
-                className={`block w-full appearance-none rounded-md border px-3 py-2 shadow-sm focus:outline-none sm:text-sm bg-main text-primary ${
+                disabled={isSubmitting}
+                className={`block w-full appearance-none rounded-md border px-3 py-2 shadow-sm focus:outline-none sm:text-sm bg-main text-primary disabled:opacity-50 disabled:cursor-not-allowed ${
                   errors.password
                     ? "border-danger focus:border-danger focus:ring-danger"
                     : "border-border focus:border-brand focus:ring-brand"

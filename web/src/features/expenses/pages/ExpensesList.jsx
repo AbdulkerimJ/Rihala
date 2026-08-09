@@ -109,7 +109,7 @@ const ExpenseForm = ({ initialData, onSubmit, onClose }) => {
         )}
       </div>
       <div className="flex justify-end gap-3">
-        <Button type="button" variant="secondary" onClick={onClose}>
+        <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>
           Cancel
         </Button>
         <Button type="submit" disabled={isSubmitting}>
@@ -320,6 +320,7 @@ export const ExpensesList = () => {
                           size="sm"
                           className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
                           onClick={() => deleteMutation.mutate(expense._id)}
+                          disabled={deleteMutation.isPending && deleteMutation.variables === expense._id}
                         >
                           Delete
                         </Button>

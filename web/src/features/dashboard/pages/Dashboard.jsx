@@ -6,11 +6,12 @@ import { getOrders } from "../../orders/api";
 import { getCustomerPayments } from "../../customer-payments/api";
 import { getExpenses } from "../../expenses/api";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
+import { Card, CardHeader, CardTitle, CardContent } from "../../../components/ui/Card";
 import { LoadingSkeleton } from "../../../components/ui/LoadingSkeleton";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { formatDate } from "../../../utils/formatters";
 import { unwrapListResponse } from "../../../utils/apiResponse";
-import { TrendingUp, TrendingDown, ShoppingCart, Users, Plus, Wallet, CreditCard, Building2 } from "lucide-react";
+import { TrendingUp, TrendingDown, ShoppingCart, Users, Wallet, CreditCard, Building2, ArrowDownRight, ArrowUpRight, Package } from "lucide-react";
 
 export const Dashboard = () => {
   const { currentUser } = useAuth();
@@ -39,7 +40,7 @@ export const Dashboard = () => {
   const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
 
   const QuickAction = ({ to, icon: Icon, label, colorClass }) => (
-    <Link to={to} className="flex flex-col items-center justify-center p-4 rounded-xl border border-border bg-surface hover:bg-main hover:border-accent transition-all group">
+    <Link to={to} className="flex flex-col items-center justify-center p-4 rounded-lg border border-border bg-surface hover:bg-main hover:border-accent transition-all group">
       <div className={`p-3 rounded-full mb-3 ${colorClass} bg-opacity-10 group-hover:bg-opacity-20 transition-colors`}>
         <Icon className={`w-6 h-6 ${colorClass.replace('bg-', 'text-')}`} />
       </div>
@@ -58,7 +59,7 @@ export const Dashboard = () => {
 
       {/* Stats row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-xl border border-border bg-surface p-6 shadow-sm flex items-center justify-between">
+        <Card className="flex items-center justify-between p-6">
           <div>
             <p className="text-sm font-medium text-secondary mb-1">Total Received</p>
             {loadingPayments ? <LoadingSkeleton variant="text" /> : <h3 className="text-2xl font-bold text-primary"><MoneyDisplay amount={totalRevenue} /></h3>}
@@ -66,9 +67,9 @@ export const Dashboard = () => {
           <div className="p-3 bg-success/10 rounded-full">
             <TrendingUp className="w-5 h-5 text-success" />
           </div>
-        </div>
+        </Card>
 
-        <div className="rounded-xl border border-border bg-surface p-6 shadow-sm flex items-center justify-between">
+        <Card className="flex items-center justify-between p-6">
           <div>
             <p className="text-sm font-medium text-secondary mb-1">Total Expenses</p>
             {loadingExpenses ? <LoadingSkeleton variant="text" /> : <h3 className="text-2xl font-bold text-primary"><MoneyDisplay amount={totalExpenses} /></h3>}
@@ -76,9 +77,9 @@ export const Dashboard = () => {
           <div className="p-3 bg-danger/10 rounded-full">
             <TrendingDown className="w-5 h-5 text-danger" />
           </div>
-        </div>
+        </Card>
 
-        <div className="rounded-xl border border-border bg-surface p-6 shadow-sm flex items-center justify-between">
+        <Card className="flex items-center justify-between p-6">
           <div>
             <p className="text-sm font-medium text-secondary mb-1">Active Orders</p>
             {loadingOrders ? <LoadingSkeleton variant="text" /> : <h3 className="text-2xl font-bold text-primary">{orders.filter(o => o.status !== 'completed' && o.status !== 'cancelled').length}</h3>}
@@ -86,9 +87,9 @@ export const Dashboard = () => {
           <div className="p-3 bg-brand/10 rounded-full">
             <ShoppingCart className="w-5 h-5 text-brand" />
           </div>
-        </div>
+        </Card>
 
-        <div className="rounded-xl border border-border bg-surface p-6 shadow-sm flex items-center justify-between">
+        <Card className="flex items-center justify-between p-6">
           <div>
             <p className="text-sm font-medium text-secondary mb-1">Net Balance</p>
             {(loadingPayments || loadingExpenses) ? <LoadingSkeleton variant="text" /> : <h3 className="text-2xl font-bold text-accent"><MoneyDisplay amount={totalRevenue - totalExpenses} variant="accent" /></h3>}
@@ -96,22 +97,22 @@ export const Dashboard = () => {
           <div className="p-3 bg-accent/10 rounded-full">
             <Wallet className="w-5 h-5 text-accent" />
           </div>
-        </div>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content Area */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="rounded-xl border border-border bg-surface shadow-sm overflow-hidden">
-            <div className="px-6 py-5 border-b border-border/50 flex justify-between items-center bg-main/30">
-              <h3 className="font-semibold text-primary">Recent Orders</h3>
+          <Card className="overflow-hidden">
+            <CardHeader>
+              <CardTitle>Recent Orders</CardTitle>
               <Link to="/orders" className="text-sm text-accent hover:underline font-medium">View All</Link>
-            </div>
+            </CardHeader>
             
             {loadingOrders ? (
-              <div className="p-6"><LoadingSkeleton variant="default" rowCount={4} /></div>
+              <CardContent><LoadingSkeleton variant="default" rowCount={4} /></CardContent>
             ) : orders.length > 0 ? (
-              <div className="divide-y divide-border/50">
+              <CardContent className="p-0 divide-y divide-border/50">
                 {orders.map(order => (
                   <Link key={order._id} to={`/orders/${order._id}`} className="block px-6 py-4 hover:bg-main transition-colors">
                     <div className="flex justify-between items-center mb-1">
@@ -127,26 +128,28 @@ export const Dashboard = () => {
                     </div>
                   </Link>
                 ))}
-              </div>
+              </CardContent>
             ) : (
-              <div className="p-8 text-center text-secondary">
+              <CardContent className="p-8 text-center text-secondary">
                 <p>No recent orders found.</p>
-              </div>
+              </CardContent>
             )}
-          </div>
+          </Card>
         </div>
 
         {/* Sidebar Area */}
         <div className="space-y-6">
-          <div className="rounded-xl border border-border bg-surface shadow-sm p-6">
-            <h3 className="font-semibold text-primary mb-4">Quick Actions</h3>
-            <div className="grid grid-cols-2 gap-3">
-              <QuickAction to="/orders" icon={ShoppingCart} label="New Order" colorClass="bg-brand text-brand" />
-              <QuickAction to="/customer-payments" icon={CreditCard} label="Receive Pay" colorClass="bg-success text-success" />
-              <QuickAction to="/purchases" icon={Building2} label="New Purchase" colorClass="bg-accent text-accent" />
-              <QuickAction to="/expenses" icon={Wallet} label="Record Expense" colorClass="bg-danger text-danger" />
-            </div>
-          </div>
+          <Card>
+            <CardContent className="pt-6">
+              <h3 className="font-semibold text-primary mb-4">Quick Actions</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <QuickAction to="/orders" icon={ShoppingCart} label="New Order" colorClass="bg-brand text-brand" />
+                <QuickAction to="/customer-payments" icon={CreditCard} label="Receive Pay" colorClass="bg-success text-success" />
+                <QuickAction to="/purchases" icon={Building2} label="New Purchase" colorClass="bg-accent text-accent" />
+                <QuickAction to="/attendance" icon={Users} label="Log Attendance" colorClass="bg-warning text-warning" />
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

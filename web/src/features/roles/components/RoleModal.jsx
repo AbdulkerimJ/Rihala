@@ -47,13 +47,13 @@ export const RoleModal = ({ isOpen, onClose, onSubmit, initialData }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <div className="w-full max-w-md rounded-xl bg-surface shadow-2xl border border-border">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-black bg-opacity-50 p-4">
+      <div className="w-full max-w-md rounded-lg bg-surface shadow-2xl border border-border overflow-hidden">
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <h3 className="text-lg font-semibold text-primary">
             {isEditing ? "Edit Role" : "Create New Role"}
           </h3>
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <Button variant="ghost" size="icon" onClick={isSubmitting ? undefined : onClose} disabled={isSubmitting}>
             <X className="h-5 w-5" />
           </Button>
         </div>
@@ -78,7 +78,7 @@ export const RoleModal = ({ isOpen, onClose, onSubmit, initialData }) => {
           </div>
 
           <div className="mt-6 flex justify-end gap-3">
-            <Button type="button" variant="secondary" onClick={onClose}>
+            <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>

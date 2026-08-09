@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
 import { getRoles } from "../../roles/api";
 import { X, CheckCircle, Mail } from "lucide-react";
+import { Button } from "../../../components/ui/Button";
 
 const createUserSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -83,9 +85,9 @@ export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
 
   // Success state after invitation sent
   if (invitedEmail) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-black bg-opacity-50 p-4">
-        <div className="relative w-full max-w-md rounded-xl bg-surface shadow-2xl border border-border p-8 flex flex-col items-center text-center gap-4">
+    return createPortal(
+      <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto overflow-x-hidden bg-black bg-opacity-50 p-4">
+        <div className="relative w-full max-w-md rounded-lg bg-surface shadow-2xl border border-border p-8 flex flex-col items-center text-center gap-4">
           <div className="h-16 w-16 rounded-full bg-success/10 flex items-center justify-center">
             <CheckCircle className="h-8 w-8 text-success" />
           </div>
@@ -98,33 +100,29 @@ export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
             They'll receive a link to set their password and activate their
             account.
           </p>
-          <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-main border border-border">
-            <Mail className="h-4 w-4 text-brand" />
-            <span className="text-sm text-secondary">
-              Check the backend console for the invite link
-            </span>
-          </div>
-          <button
+          <Button
             onClick={onClose}
-            className="mt-2 w-full rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover"
+            fullWidth
+            className="mt-2"
           >
             Done
-          </button>
+          </Button>
         </div>
-      </div>
+      </div>,
+      document.body
     );
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-black bg-opacity-50 p-4">
-      <div className="relative w-full max-w-md rounded-xl bg-surface shadow-2xl border border-border">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto overflow-x-hidden bg-black bg-opacity-50 p-4">
+      <div className="relative w-full max-w-md rounded-lg bg-surface shadow-2xl border border-border overflow-hidden">
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <h3 className="text-lg font-semibold text-primary">
             {isEditing ? "Edit User" : "Invite New User"}
           </h3>
-          <button onClick={onClose} className="text-muted hover:text-primary">
+          <Button variant="ghost" size="icon" onClick={isSubmitting ? undefined : onClose} disabled={isSubmitting} aria-label="Close">
             <X className="h-5 w-5" />
-          </button>
+          </Button>
         </div>
 
         <form onSubmit={handleSubmit(handleFormSubmit)} className="p-6">
@@ -204,17 +202,17 @@ export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
           )}
 
           <div className="mt-6 flex justify-end gap-3">
-            <button
+            <Button
               type="button"
+              variant="secondary"
               onClick={onClose}
-              className="rounded-lg border border-border bg-surface px-4 py-2 text-sm font-medium text-primary hover:bg-main"
+              disabled={isSubmitting}
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={isSubmitting}
-              className="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-50"
             >
               {isSubmitting
                 ? isEditing
@@ -223,10 +221,11 @@ export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
                 : isEditing
                   ? "Save Changes"
                   : "Send Invitation"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

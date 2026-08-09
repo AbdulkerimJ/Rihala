@@ -5,17 +5,24 @@ import { Can } from "../../../components/Can";
 import { Edit2, Trash2, Key } from "lucide-react";
 import toast from "react-hot-toast";
 import { RoleModal } from "../components/RoleModal";
+import { AssignPermissionsModal } from "../components/AssignPermissionsModal";
 import { LoadingSkeleton } from "../../../components/ui/LoadingSkeleton";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
 import { ErrorState } from "../../../components/ui/ErrorState";
+import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { getApiErrorMessage } from "../../../utils/apiResponse";
 
 export const RolesList = () => {
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRole, setEditingRole] = useState(null);
+  
+  const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
+  const [permissionsRole, setPermissionsRole] = useState(null);
+
+  const [roleToDelete, setRoleToDelete] = useState(null);
   const queryClient = useQueryClient();
   const limit = 10;
 
@@ -68,9 +75,16 @@ export const RolesList = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this role?")) {
-      await deleteMutation.mutateAsync(id);
+  const handlePermissionsSubmit = async (data) => {
+    if (permissionsRole) {
+      await updateMutation.mutateAsync({ id: permissionsRole._id, data });
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (roleToDelete) {
+      await deleteMutation.mutateAsync(roleToDelete);
+      setRoleToDelete(null);
     }
   };
 
@@ -140,30 +154,37 @@ export const RolesList = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex justify-end gap-3">
                       <Can permission="roles.assign-permission">
-                        <button
-                          className="text-brand hover:text-brand-hover"
+                        <Button
+                          variant="ghostPrimary"
+                          size="icon"
+                          onClick={() => {
+                            setPermissionsRole(role);
+                            setIsPermissionsModalOpen(true);
+                          }}
                           title="Manage Permissions"
                         >
                           <Key className="w-4 h-4" />
-                        </button>
+                        </Button>
                       </Can>
                       <Can permission="roles.update">
-                        <button
+                        <Button
+                          variant="ghostPrimary"
+                          size="icon"
                           onClick={() => handleOpenModal(role)}
-                          className="text-accent hover:text-accent-hover"
                           title="Edit Role"
                         >
                           <Edit2 className="w-4 h-4" />
-                        </button>
+                        </Button>
                       </Can>
                       <Can permission="roles.delete">
-                        <button
-                          onClick={() => handleDelete(role._id)}
-                          className="text-danger hover:text-danger-hover"
+                        <Button
+                          variant="ghostDanger"
+                          size="icon"
+                          onClick={() => setRoleToDelete(role._id)}
                           title="Delete Role"
                         >
                           <Trash2 className="w-4 h-4" />
-                        </button>
+                        </Button>
                       </Can>
                     </div>
                   </td>
@@ -188,6 +209,23 @@ export const RolesList = () => {
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleSubmit}
         initialData={editingRole}
+      />
+      <AssignPermissionsModal
+        isOpen={isPermissionsModalOpen}
+        onClose={() => setIsPermissionsModalOpen(false)}
+        onSubmit={handlePermissionsSubmit}
+        role={permissionsRole}
+        isSubmitting={updateMutation.isPending}
+      />
+      <ConfirmDialog
+        isOpen={!!roleToDelete}
+        title="Delete Role"
+        description="Are you sure you want to delete this role? This action cannot be undone and may affect users currently assigned to this role."
+        confirmLabel="Delete"
+        variant="danger"
+        isSubmitting={deleteMutation.isPending}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setRoleToDelete(null)}
       />
     </div>
   );

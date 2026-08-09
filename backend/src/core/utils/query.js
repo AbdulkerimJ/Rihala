@@ -170,9 +170,11 @@ export const getPaginatedQueryResult = async (
   const queryOptions = buildQueryOptions(input, config);
   const { query, pagination, sort } = queryOptions;
 
-  const total = await Model.countDocuments(query);
+  const finalQuery = { ...query, ...(options.query || {}) };
 
-  let queryBuilder = Model.find(query)
+  const total = await Model.countDocuments(finalQuery);
+
+  let queryBuilder = Model.find(finalQuery)
     .skip(pagination.skip)
     .limit(pagination.limit);
 
