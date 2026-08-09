@@ -1,10 +1,12 @@
 import User from "../users/user.model.js";
 import RefreshToken from "./refreshToken.model.js";
 import VerificationToken from "./verificationToken.model.js";
+import { sendPasswordResetEmail } from "../../core/utils/email.js";
 import {
   generateAccessToken,
   generateRefreshToken,
   getRefreshTokenExpiresAt,
+  parseDurationToMs,
 } from "../../core/utils/jwt.js";
 import {
   compareHashedToken,
@@ -167,7 +169,9 @@ const forgotPasswordService = async (email) => {
   if (user) {
     const rawResetToken = generateRandomToken();
     const tokenHash = hashToken(rawResetToken);
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    
+    const expiresIn = process.env.PASSWORD_RESET_TOKEN_EXPIRES_IN || "1h";
+    const expiresAt = new Date(Date.now() + parseDurationToMs(expiresIn));
 
     await VerificationToken.create({
       user: user._id,
@@ -175,6 +179,11 @@ const forgotPasswordService = async (email) => {
       tokenHash,
       expiresAt,
     });
+
+    const clientUrl = process.env.CLIENT_URL;
+    const resetLink = `${clientUrl}/reset-password/${rawResetToken}`;
+    
+    await sendPasswordResetEmail(user.email, resetLink);
 
     console.log(
       `[PASSWORD RESET] Sent password reset token to ${user.email}: ${rawResetToken}`,

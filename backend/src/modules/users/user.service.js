@@ -1,6 +1,7 @@
 import User from "./user.model.js";
 import VerificationToken from "../auth/verificationToken.model.js";
 import RefreshToken from "../auth/refreshToken.model.js";
+import { sendInvitationEmail } from "../../core/utils/email.js";
 import { getPaginatedQueryResult } from "../../core/utils/query.js";
 import userQueryConfig from "./user.query.js";
 import ConflictError from "../../core/errors/ConflictError.js";
@@ -63,9 +64,12 @@ const createUserService = async ({ name, email, roles }) => {
     codeAttempts: 0,
   });
 
-  // Log the invitation link (replace with real email service later)
-  const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+  // Log the invitation link
+  const clientUrl = process.env.CLIENT_URL;
   const invitationLink = `${clientUrl}/accept-invitation/${rawToken}`;
+  
+  await sendInvitationEmail(email, invitationLink, rawCode);
+
   console.log(
     `[INVITATION] Invitation sent to ${email}:\n  Link: ${invitationLink}\n  Code: ${rawCode}\n  Expires: ${expiresAt.toISOString()}`,
   );
@@ -165,6 +169,9 @@ const updateUserService = async (userId, updateData) => {
 
       const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
       const invitationLink = `${clientUrl}/accept-invitation/${rawToken}`;
+      
+      await sendInvitationEmail(user.email, invitationLink, rawCode);
+
       console.log(
         `[INVITATION] Invitation re-sent to ${user.email}:
   Link: ${invitationLink}
