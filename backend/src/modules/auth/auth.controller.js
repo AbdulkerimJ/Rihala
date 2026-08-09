@@ -40,7 +40,7 @@ const loginController = catchAsync(async (req, res) => {
     res.cookie("refreshToken", result.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "none",
       path: "/api/v1/auth",
       maxAge: parseDurationToMs(process.env.REFRESH_TOKEN_EXPIRES_IN),
     });
@@ -92,6 +92,8 @@ const logoutController = catchAsync(async (req, res) => {
   // Always clear cookie for web requests or if cookie exists
   res.clearCookie("refreshToken", {
     path: "/api/v1/auth",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+    secure: process.env.NODE_ENV === "production",
   });
 
   res.status(200).json({
