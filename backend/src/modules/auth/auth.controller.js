@@ -40,7 +40,7 @@ const loginController = catchAsync(async (req, res) => {
     res.cookie("refreshToken", result.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       path: "/api/v1/auth",
       maxAge: parseDurationToMs(process.env.REFRESH_TOKEN_EXPIRES_IN),
     });
