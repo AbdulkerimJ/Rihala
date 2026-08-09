@@ -157,7 +157,7 @@ export const DashboardLayout = () => {
             variant="ghostDanger"
             onClick={handleLogout}
             size="none"
-            className="flex w-full items-center justify-start rounded-lg px-3 py-2.5 text-sm font-medium text-secondary hover:bg-danger/10 hover:text-danger transition-colors"
+            className="flex w-full items-center justify-start px-3 py-2.5 text-sm font-medium transition-colors"
           >
             <LogOut className="mr-3 h-5 w-5" />
             Sign out

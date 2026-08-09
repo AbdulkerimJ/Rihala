@@ -5,8 +5,8 @@ const variantStyles = {
   secondary: 'border border-border bg-surface text-primary shadow-sm hover:bg-main hover:border-muted focus:ring-accent',
   danger: 'bg-danger text-white shadow-sm hover:bg-danger-hover focus:ring-danger',
   ghost: 'text-muted hover:text-primary bg-transparent hover:bg-black/5 dark:hover:bg-white/5',
-  ghostPrimary: 'text-brand hover:text-brand-hover bg-transparent hover:bg-brand/10',
-  ghostDanger: 'text-muted hover:text-danger bg-transparent hover:bg-danger/10',
+  ghostPrimary: 'text-primary hover:text-accent bg-transparent hover:bg-black/5 dark:hover:bg-white/5',
+  ghostDanger: 'text-muted hover:text-danger bg-transparent hover:bg-black/5 dark:hover:bg-white/5',
 };
 
 const sizeStyles = {
@@ -28,7 +28,7 @@ export const Button = ({
   onClick,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none';
+  const baseStyles = 'inline-flex items-center justify-center rounded-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none';
   
   const combinedClassName = `
     ${baseStyles}

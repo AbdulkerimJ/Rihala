@@ -9,7 +9,7 @@ export const SidebarBrand = ({ setSidebarOpen }) => {
       <Button
         variant="ghost"
         size="icon"
-        className="lg:hidden absolute right-4 text-secondary hover:bg-accent/10 hover:text-accent"
+        className="lg:hidden absolute right-4 text-secondary"
         onClick={() => setSidebarOpen(false)}
       >
         <X className="h-5 w-5" />

@@ -29,15 +29,15 @@ export const NavGroup = ({ group, isSidebarOpen, setSidebarOpen, pathname, can }
             key={item.name}
             to={item.path}
             className={({ isActive }) =>
-              `group flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
+              `group flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
                 isActive
                   ? "bg-accent/10 text-accent font-semibold"
-                  : "text-primary/90 hover:bg-brand/5 hover:text-brand"
+                  : "text-primary/90 hover:bg-black/5 dark:hover:bg-white/5 hover:text-primary"
               }`
             }
             onClick={() => setSidebarOpen(false)}
           >
-            <item.icon className={`mr-3 h-5 w-5 flex-shrink-0 transition-colors ${pathname.startsWith(item.path) ? "text-accent" : "text-primary/50 group-hover:text-brand"}`} />
+            <item.icon className={`mr-3 h-5 w-5 flex-shrink-0 transition-colors ${pathname.startsWith(item.path) ? "text-accent" : "text-primary/50 group-hover:text-primary"}`} />
             {item.name}
           </NavLink>
         ))}
@@ -50,20 +50,20 @@ export const NavGroup = ({ group, isSidebarOpen, setSidebarOpen, pathname, can }
     <div className="mb-3">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className={`group flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200 ${
+        className={`group flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 ${
           isActiveGroup
             ? "text-primary bg-brand/5 font-semibold"
-            : "text-secondary hover:bg-brand/5 hover:text-brand"
+            : "text-secondary hover:bg-black/5 dark:hover:bg-white/5 hover:text-primary"
         }`}
       >
         <div className="flex items-center">
-          {group.icon && <group.icon className={`mr-3 h-5 w-5 flex-shrink-0 transition-colors ${isActiveGroup ? "text-accent" : "text-secondary group-hover:text-brand"}`} />}
+          {group.icon && <group.icon className={`mr-3 h-5 w-5 flex-shrink-0 transition-colors ${isActiveGroup ? "text-accent" : "text-secondary group-hover:text-primary"}`} />}
           <span>{group.title}</span>
         </div>
         {isExpanded ? (
-          <ChevronDown className={`h-4 w-4 transition-colors ${isActiveGroup ? "text-accent opacity-100" : "opacity-70 group-hover:text-brand"}`} />
+          <ChevronDown className={`h-4 w-4 transition-colors ${isActiveGroup ? "text-accent opacity-100" : "opacity-70 group-hover:text-primary"}`} />
         ) : (
-          <ChevronRight className={`h-4 w-4 transition-colors ${isActiveGroup ? "text-accent opacity-100" : "opacity-40 group-hover:text-brand"}`} />
+          <ChevronRight className={`h-4 w-4 transition-colors ${isActiveGroup ? "text-accent opacity-100" : "opacity-40 group-hover:text-primary"}`} />
         )}
       </button>
 
@@ -78,15 +78,15 @@ export const NavGroup = ({ group, isSidebarOpen, setSidebarOpen, pathname, can }
               key={item.name}
               to={item.path}
               className={({ isActive }) =>
-                `group flex items-center rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 ${
+                `group flex items-center rounded-sm px-3 py-2 text-sm font-medium transition-all duration-200 ${
                   isActive
                     ? "text-accent bg-accent/10 font-semibold relative before:absolute before:left-[-12.5px] before:top-1/2 before:-translate-y-1/2 before:w-[5px] before:h-[5px] before:rounded-full before:bg-accent"
-                    : "text-primary/90 hover:text-brand hover:bg-brand/5"
+                    : "text-primary/90 hover:text-primary hover:bg-black/5 dark:hover:bg-white/5"
                 }`
               }
               onClick={() => setSidebarOpen(false)}
             >
-              <item.icon className={`mr-2.5 h-4 w-4 flex-shrink-0 transition-colors ${pathname.startsWith(item.path) ? "text-accent" : "text-primary/50 group-hover:text-brand/80"}`} />
+              <item.icon className={`mr-2.5 h-4 w-4 flex-shrink-0 transition-colors ${pathname.startsWith(item.path) ? "text-accent" : "text-primary/50 group-hover:text-primary/80"}`} />
               {item.name}
             </NavLink>
           ))}
