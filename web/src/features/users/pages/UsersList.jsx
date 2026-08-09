@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import { UserPlus } from "lucide-react";
+import { UserPlus, CheckCircle } from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth";
 import { Can } from "../../../components/Can";
 import { LoadingSkeleton } from "../../../components/ui/LoadingSkeleton";
@@ -22,6 +23,7 @@ import {
   deactivateUser,
   restoreUser,
   getDeletedUsers,
+  resendInvitation,
 } from "../api";
 import { getApiErrorMessage } from "../../../utils/apiResponse";
 import { formatDateTime } from "../../../utils/formatters";
@@ -35,6 +37,7 @@ export const UsersList = () => {
   const [editingUser, setEditingUser] = useState(null);
   const [userToDelete, setUserToDelete] = useState(null);
   const [showDeleted, setShowDeleted] = useState(false);
+  const [resendData, setResendData] = useState(null);
 
   const usersQuery = useQuery({
     queryKey: [USERS_QUERY_KEY, showDeleted],
@@ -123,13 +126,29 @@ export const UsersList = () => {
       toast.error(getApiErrorMessage(error, "Failed to restore user")),
   });
 
+  const resendMutation = useMutation({
+    mutationFn: resendInvitation,
+    onSuccess: (data) => {
+      setResendData({
+        email: data.data.user.email,
+        code: data.data.invitationCode,
+      });
+      toast.success(data.message || "Invitation resent.");
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, "Failed to resend invitation."));
+    },
+  });
+
   const handleSubmit = async (data) => {
+    let response;
     if (editingUser) {
-      await updateMutation.mutateAsync({ id: editingUser._id, data });
+      response = await updateMutation.mutateAsync({ id: editingUser._id, data });
     } else {
-      await createMutation.mutateAsync(data);
+      response = await createMutation.mutateAsync(data);
     }
     queryClient.invalidateQueries({ queryKey: [USERS_QUERY_KEY] });
+    return response;
   };
 
   const handleDelete = (id) => {
@@ -266,6 +285,16 @@ export const UsersList = () => {
                               >
                                 Edit
                               </Button>
+                              {user.status === "invited" && (
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={() => resendMutation.mutate(user._id)}
+                                  disabled={resendMutation.isPending && resendMutation.variables === user._id}
+                                >
+                                  Resend
+                                </Button>
+                              )}
                             </Can>
                             <Can permission="users.update">
                               {user.status === "inactive" ? (
@@ -340,6 +369,43 @@ export const UsersList = () => {
         onConfirm={handleDeleteConfirm}
         onCancel={() => setUserToDelete(null)}
       />
+      {resendData && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto overflow-x-hidden bg-black bg-opacity-50 p-4">
+          <div className="relative w-full max-w-md rounded-lg bg-surface shadow-2xl border border-border p-8 flex flex-col items-center text-center gap-4">
+            <div className="h-16 w-16 rounded-full bg-success/10 flex items-center justify-center">
+              <CheckCircle className="h-8 w-8 text-success" />
+            </div>
+            <h3 className="text-lg font-semibold text-primary">
+              Invitation Resent!
+            </h3>
+            <p className="text-sm text-secondary">
+              An invitation email has been resent to{" "}
+              <span className="font-medium text-primary">{resendData.email}</span>.
+            </p>
+            {resendData.code && (
+              <div className="mt-4 w-full rounded-md border border-border bg-main p-4">
+                <p className="text-sm font-medium text-primary mb-2">
+                  Secure Verification Code
+                </p>
+                <div className="text-2xl font-mono font-bold tracking-widest text-brand">
+                  {resendData.code}
+                </div>
+                <p className="mt-2 text-xs text-secondary">
+                  Please securely communicate this new code to the user.
+                </p>
+              </div>
+            )}
+            <Button
+              onClick={() => setResendData(null)}
+              fullWidth
+              className="mt-2"
+            >
+              Done
+            </Button>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };

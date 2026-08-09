@@ -6,6 +6,7 @@ import {
   getAllUsersService,
   getUserByIdService,
   getDeletedUsersService,
+  resendInvitationService,
   restoreUserService,
   softDeleteUserService,
   updateUserService,
@@ -114,6 +115,20 @@ const updateUserController = catchAsync(async (req, res) => {
   });
 });
 
+// Resend invitation.
+const resendInvitationController = catchAsync(async (req, res) => {
+  const result = await resendInvitationService(req.validatedParams.id);
+
+  res.status(200).json({
+    status: "success",
+    message: `Invitation re-sent to ${result.user.email}.`,
+    data: {
+      user: result.user,
+      invitationCode: result.invitationCode,
+    },
+  });
+});
+
 export {
   activateUserController,
   createUserController,
@@ -121,6 +136,7 @@ export {
   getAllUsersController,
   getUserByIdController,
   getDeletedUsersController,
+  resendInvitationController,
   restoreUserController,
   softDeleteUserController,
   updateUserController,

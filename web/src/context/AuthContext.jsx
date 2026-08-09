@@ -19,6 +19,7 @@ export const AuthContext = createContext({
   isAuthenticated: false,
   isLoading: true,
   login: async () => {},
+  loginWithToken: async () => {},
   logout: async () => {},
   hasPermission: () => false,
 });
@@ -100,6 +101,11 @@ export const AuthProvider = ({ children }) => {
     await loadUser(token);
   };
 
+  const loginWithToken = async (token) => {
+    setAccessToken(token);
+    await loadUser(token);
+  };
+
   const hasPermission = useCallback(
     (permissionName) => {
       if (!currentUser) return false;
@@ -117,6 +123,7 @@ export const AuthProvider = ({ children }) => {
       isAuthenticated: !!currentUser && !!accessToken,
       isLoading,
       login,
+      loginWithToken,
       logout: handleLogout,
       hasPermission,
     }),

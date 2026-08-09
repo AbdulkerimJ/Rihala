@@ -18,6 +18,7 @@ const updateUserSchema = z
   .object({
     name: z.string().min(2, "Name must be at least 2 characters").optional(),
     email: z.string().email("Invalid email address").optional(),
+    roles: z.array(z.string()).optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "At least one field is required for update.",
@@ -25,7 +26,7 @@ const updateUserSchema = z
 
 export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
   const isEditing = !!initialData;
-  const [invitedEmail, setInvitedEmail] = useState(null);
+  const [invitationData, setInvitationData] = useState(null);
 
   const {
     register,
@@ -44,16 +45,19 @@ export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
   const { data: rolesData } = useQuery({
     queryKey: ["roles"],
     queryFn: getRoles,
-    enabled: isOpen && !isEditing,
+    enabled: isOpen,
   });
 
   const availableRoles = rolesData?.data || [];
 
   useEffect(() => {
     if (isOpen) {
-      setInvitedEmail(null);
+      setInvitationData(null);
       if (initialData) {
-        reset({ name: initialData.name || "", email: initialData.email || "" });
+        const initialRoles = Array.isArray(initialData.roles)
+          ? initialData.roles.map((r) => (typeof r === "object" ? r._id : r))
+          : [];
+        reset({ name: initialData.name || "", email: initialData.email || "", roles: initialRoles });
       } else {
         reset({ name: "", email: "", roles: [] });
       }
@@ -75,16 +79,25 @@ export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
   };
 
   const handleFormSubmit = async (data) => {
-    await onSubmit(data);
-    if (!isEditing) {
-      setInvitedEmail(data.email);
+    const response = await onSubmit(data);
+    
+    if (response?.data?.invitationCode) {
+      setInvitationData({
+        email: response.data.user.email,
+        code: response.data.invitationCode,
+      });
+    } else if (!isEditing) {
+      setInvitationData({
+        email: data.email,
+        code: null,
+      });
     } else {
       onClose();
     }
   };
 
   // Success state after invitation sent
-  if (invitedEmail) {
+  if (invitationData) {
     return createPortal(
       <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto overflow-x-hidden bg-black bg-opacity-50 p-4">
         <div className="relative w-full max-w-md rounded-lg bg-surface shadow-2xl border border-border p-8 flex flex-col items-center text-center gap-4">
@@ -96,10 +109,25 @@ export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
           </h3>
           <p className="text-sm text-secondary">
             An invitation email has been sent to{" "}
-            <span className="font-medium text-primary">{invitedEmail}</span>.
+            <span className="font-medium text-primary">{invitationData.email}</span>.
             They'll receive a link to set their password and activate their
             account.
           </p>
+          
+          {invitationData.code && (
+            <div className="mt-4 w-full rounded-md border border-border bg-main p-4">
+              <p className="text-sm font-medium text-primary mb-2">
+                Secure Verification Code
+              </p>
+              <div className="text-2xl font-mono font-bold tracking-widest text-brand">
+                {invitationData.code}
+              </div>
+              <p className="mt-2 text-xs text-secondary">
+                Please securely communicate this code to the user. They will need it to accept the invitation.
+              </p>
+            </div>
+          )}
+
           <Button
             onClick={onClose}
             fullWidth
@@ -161,9 +189,8 @@ export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
               )}
             </div>
 
-            {/* Role Selection — only for new users */}
-            {!isEditing && (
-              <div>
+            {/* Role Selection */}
+            <div>
                 <label className="mb-2 block text-sm font-medium text-primary">
                   Assign Roles{" "}
                   <span className="text-muted font-normal">(optional)</span>
@@ -191,7 +218,6 @@ export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
                   </div>
                 )}
               </div>
-            )}
           </div>
 
           {!isEditing && (

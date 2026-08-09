@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
+import { Mail } from "lucide-react";
 import { forgotPassword } from "../api";
 import { Button } from "../../../components/ui/Button";
 
@@ -35,11 +36,14 @@ export const ForgotPassword = () => {
 
   return (
     <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-3xl font-extrabold text-primary">
+      <div className="flex flex-col items-center mb-8 gap-3 text-center">
+        <div className="h-14 w-14 rounded-2xl bg-brand/10 flex items-center justify-center">
+          <Mail className="h-7 w-7 text-brand" />
+        </div>
+        <h2 className="text-2xl font-bold text-primary">
           Forgot Password
         </h2>
-        <p className="mt-2 text-sm text-secondary">
+        <p className="text-sm text-secondary">
           We’ll send instructions to your email address.
         </p>
       </div>

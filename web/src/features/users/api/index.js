@@ -54,3 +54,8 @@ export const removeRoleFromUser = async ({ id, roleId }) => {
   const response = await api.delete(`/users/${id}/roles/${roleId}`);
   return response.data;
 };
+
+export const resendInvitation = async (id) => {
+  const response = await api.post(`/users/${id}/resend-invitation`);
+  return response.data;
+};

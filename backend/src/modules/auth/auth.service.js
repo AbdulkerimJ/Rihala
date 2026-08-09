@@ -197,7 +197,7 @@ const forgotPasswordService = async (email) => {
 };
 
 // Reset user password with verification token.
-const resetPasswordService = async (token, newPassword) => {
+const resetPasswordService = async (token, newPassword, ipAddress, userAgent) => {
   const tokenHash = hashToken(token);
 
   const verificationToken = await VerificationToken.findOne({
@@ -238,8 +238,35 @@ const resetPasswordService = async (token, newPassword) => {
     { revokedAt: new Date() },
   );
 
+  const accessToken = generateAccessToken({
+    id: user._id,
+    email: user.email,
+  });
+
+  const refreshToken = generateRefreshToken({
+    id: user._id,
+  });
+
+  const newRefreshTokenHash = hashToken(refreshToken);
+  const expiresAt = getRefreshTokenExpiresAt();
+
+  await RefreshToken.create({
+    user: user._id,
+    tokenHash: newRefreshTokenHash,
+    expiresAt,
+    deviceInfo: null,
+    ipAddress: ipAddress || null,
+    userAgent: userAgent || null,
+  });
+
+  const userObj = user.toObject();
+  delete userObj.password;
+
   return {
     message: "Password has been reset successfully.",
+    user: userObj,
+    accessToken,
+    refreshToken,
   };
 };
 
@@ -268,7 +295,7 @@ const validateInvitationService = async (token) => {
 };
 
 // Accept an invitation: verify the code, set password, activate user, mark token used.
-const acceptInvitationService = async (token, code, password) => {
+const acceptInvitationService = async (token, code, password, ipAddress, userAgent) => {
   const tokenHash = hashToken(token);
 
   const tokenDoc = await VerificationToken.findOne({
@@ -338,7 +365,36 @@ const acceptInvitationService = async (token, code, password) => {
   tokenDoc.codeAttempts = 0;
   await tokenDoc.save();
 
-  return { message: "Password set successfully. You can now log in." };
+  const accessToken = generateAccessToken({
+    id: user._id,
+    email: user.email,
+  });
+
+  const refreshToken = generateRefreshToken({
+    id: user._id,
+  });
+
+  const newRefreshTokenHash = hashToken(refreshToken);
+  const expiresAt = getRefreshTokenExpiresAt();
+
+  await RefreshToken.create({
+    user: user._id,
+    tokenHash: newRefreshTokenHash,
+    expiresAt,
+    deviceInfo: null,
+    ipAddress: ipAddress || null,
+    userAgent: userAgent || null,
+  });
+
+  const userObj = user.toObject();
+  delete userObj.password;
+
+  return {
+    message: "Password set successfully. You are now logged in.",
+    user: userObj,
+    accessToken,
+    refreshToken,
+  };
 };
 
 export {

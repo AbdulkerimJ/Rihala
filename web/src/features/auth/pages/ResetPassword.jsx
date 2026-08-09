@@ -1,10 +1,12 @@
 import React from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
+import { Lock } from "lucide-react";
 import { resetPassword } from "../api";
+import { useAuth } from "../../../hooks/useAuth";
 import { Button } from "../../../components/ui/Button";
 
 const schema = z
@@ -21,6 +23,8 @@ const schema = z
 
 export const ResetPassword = () => {
   const { token } = useParams();
+  const navigate = useNavigate();
+  const { loginWithToken } = useAuth();
   const {
     register,
     handleSubmit,
@@ -35,8 +39,14 @@ export const ResetPassword = () => {
         token,
         newPassword: data.newPassword,
       });
-      toast.success(result.message || "Password has been reset.");
-      reset();
+      if (result?.data?.accessToken) {
+        toast.success(result.message || "Password has been reset.");
+        await loginWithToken(result.data.accessToken);
+        navigate("/");
+      } else {
+        toast.success(result.message || "Password has been reset.");
+        reset();
+      }
     } catch (error) {
       setError("root", {
         message: error.response?.data?.message || "Failed to reset password.",
@@ -46,9 +56,12 @@ export const ResetPassword = () => {
 
   return (
     <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-3xl font-extrabold text-primary">Reset Password</h2>
-        <p className="mt-2 text-sm text-secondary">
+      <div className="flex flex-col items-center mb-8 gap-3 text-center">
+        <div className="h-14 w-14 rounded-2xl bg-brand/10 flex items-center justify-center">
+          <Lock className="h-7 w-7 text-brand" />
+        </div>
+        <h2 className="text-2xl font-bold text-primary">Reset Password</h2>
+        <p className="text-sm text-secondary">
           Choose a new password for your account.
         </p>
       </div>

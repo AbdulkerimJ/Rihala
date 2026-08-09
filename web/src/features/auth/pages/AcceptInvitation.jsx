@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { validateInvitation, acceptInvitation } from "../api";
+import { useAuth } from "../../../hooks/useAuth";
 import {
   ShieldCheck,
   Eye,
@@ -33,6 +34,7 @@ export const AcceptInvitation = () => {
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const { loginWithToken } = useAuth();
 
   const {
     register,
@@ -62,13 +64,18 @@ export const AcceptInvitation = () => {
 
   const onSubmit = async (data) => {
     try {
-      await acceptInvitation({
+      const response = await acceptInvitation({
         token,
         code: data.code,
         password: data.password,
         confirmPassword: data.confirmPassword,
       });
-      setSuccess(true);
+      if (response?.data?.accessToken) {
+        await loginWithToken(response.data.accessToken);
+        navigate("/");
+      } else {
+        setSuccess(true);
+      }
     } catch (err) {
       const message =
         err?.response?.data?.message ||
@@ -80,25 +87,23 @@ export const AcceptInvitation = () => {
   // ── Success state ─────────────────────────────────────────────────────────
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-main px-4">
-        <div className="w-full max-w-md bg-surface rounded-2xl shadow-xl border border-border p-8 flex flex-col items-center text-center gap-5">
-          <div className="h-16 w-16 rounded-full bg-success/10 flex items-center justify-center">
-            <CheckCircle className="h-8 w-8 text-success" />
-          </div>
-          <h1 className="text-2xl font-bold text-primary">
-            Password Set Successfully!
-          </h1>
-          <p className="text-secondary text-sm">
-            Your account is now active. You can log in with your email and the
-            password you just created.
-          </p>
-          <button
-            onClick={() => navigate("/login")}
-            className="w-full rounded-xl bg-brand py-2.5 text-sm font-semibold text-white hover:bg-brand-hover transition-colors"
-          >
-            Go to Login
-          </button>
+      <div className="flex flex-col items-center text-center gap-5">
+        <div className="h-16 w-16 rounded-full bg-success/10 flex items-center justify-center">
+          <CheckCircle className="h-8 w-8 text-success" />
         </div>
+        <h1 className="text-2xl font-bold text-primary">
+          Password Set Successfully!
+        </h1>
+        <p className="text-secondary text-sm">
+          Your account is now active. You can log in with your email and the
+          password you just created.
+        </p>
+        <button
+          onClick={() => navigate("/login")}
+          className="w-full rounded-xl bg-brand py-2.5 text-sm font-semibold text-white hover:bg-brand-hover transition-colors"
+        >
+          Go to Login
+        </button>
       </div>
     );
   }
@@ -106,11 +111,9 @@ export const AcceptInvitation = () => {
   // ── Validating / Loading state ────────────────────────────────────────────
   if (tokenState === "validating") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-main">
-        <div className="flex flex-col items-center gap-3 text-secondary">
-          <Loader2 className="h-8 w-8 animate-spin text-brand" />
-          <p className="text-sm">Validating your invitation link...</p>
-        </div>
+      <div className="flex flex-col items-center gap-3 text-secondary py-10">
+        <Loader2 className="h-8 w-8 animate-spin text-brand" />
+        <p className="text-sm">Validating your invitation link...</p>
       </div>
     );
   }
@@ -118,28 +121,25 @@ export const AcceptInvitation = () => {
   // ── Invalid token state ───────────────────────────────────────────────────
   if (tokenState === "invalid") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-main px-4">
-        <div className="w-full max-w-md bg-surface rounded-2xl shadow-xl border border-border p-8 flex flex-col items-center text-center gap-5">
-          <div className="h-16 w-16 rounded-full bg-danger/10 flex items-center justify-center">
-            <AlertCircle className="h-8 w-8 text-danger" />
-          </div>
-          <h1 className="text-2xl font-bold text-primary">
-            Invalid Invitation
-          </h1>
-          <p className="text-secondary text-sm">{tokenError}</p>
-          <Link to="/login" className="text-sm text-brand hover:underline">
-            Back to Login
-          </Link>
+      <div className="flex flex-col items-center text-center gap-5">
+        <div className="h-16 w-16 rounded-full bg-danger/10 flex items-center justify-center">
+          <AlertCircle className="h-8 w-8 text-danger" />
         </div>
+        <h1 className="text-2xl font-bold text-primary">
+          Invalid Invitation
+        </h1>
+        <p className="text-secondary text-sm">{tokenError}</p>
+        <Link to="/login" className="text-sm text-brand hover:underline">
+          Back to Login
+        </Link>
       </div>
     );
   }
 
   // ── Set Password form ─────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex items-center justify-center bg-main px-4">
-      <div className="w-full max-w-md bg-surface rounded-2xl shadow-xl border border-border p-8">
-        {/* Header */}
+    <div className="space-y-6">
+      {/* Header */}
         <div className="flex flex-col items-center mb-8 gap-3">
           <div className="h-14 w-14 rounded-2xl bg-brand/10 flex items-center justify-center">
             <ShieldCheck className="h-7 w-7 text-brand" />
@@ -250,13 +250,12 @@ export const AcceptInvitation = () => {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-muted">
-          Already have an account?{" "}
-          <Link to="/login" className="text-brand hover:underline">
-            Log in
-          </Link>
-        </p>
-      </div>
+      <p className="mt-6 text-center text-xs text-muted">
+        Already have an account?{" "}
+        <Link to="/login" className="text-brand hover:underline">
+          Log in
+        </Link>
+      </p>
     </div>
   );
 };

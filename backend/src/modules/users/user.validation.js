@@ -23,9 +23,10 @@ const updateUserSchema = z
     name: z.string().min(2, "Name must be at least 2 characters.").optional(),
 
     email: z.string().email("Please enter a valid email address.").optional(),
+    roles: z.array(z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid role id.")).optional(),
   })
   .strict({
-    error: "Only name and email can be updated.",
+    error: "Only name, email, and roles can be updated.",
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "At least one field is required for update.",

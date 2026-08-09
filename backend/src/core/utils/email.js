@@ -22,7 +22,7 @@ export const sendPasswordResetEmail = async (to, resetLink) => {
   }
 };
 
-export const sendInvitationEmail = async (to, invitationLink, invitationCode) => {
+export const sendInvitationEmail = async (to, invitationLink) => {
   if (!process.env.RESEND_API_KEY) {
     console.warn("[Email Service] RESEND_API_KEY is not set. Skipping email send.");
     return;
@@ -36,7 +36,7 @@ export const sendInvitationEmail = async (to, invitationLink, invitationCode) =>
       html: `<p>You have been invited to join the Rihala Furniture Workshop Management System.</p>
              <p>Click the link below to accept your invitation:</p>
              <p><a href="${invitationLink}">${invitationLink}</a></p>
-             <p>Your secure verification code is: <strong>${invitationCode}</strong></p>
+             <p>Your administrator will provide you with your secure verification code.</p>
              <p>This invitation will expire soon.</p>`,
     });
     console.log(`[Email Service] Invitation email sent to ${to}`);

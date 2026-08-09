@@ -7,6 +7,7 @@ import {
   getAllUsersController,
   getUserByIdController,
   getDeletedUsersController,
+  resendInvitationController,
   restoreUserController,
   softDeleteUserController,
   updateUserController,
@@ -73,6 +74,14 @@ router.get(
   authorize("users.read"),
   validate(userIdSchema, "Please check the user id.", "params"),
   getUserByIdController,
+);
+
+// Resend invitation.
+router.post(
+  "/:id/resend-invitation",
+  authorize("users.update"),
+  validate(userIdSchema, "Please check the user id.", "params"),
+  resendInvitationController,
 );
 
 // Deactivate a user account.

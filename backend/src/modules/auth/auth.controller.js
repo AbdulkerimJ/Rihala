@@ -114,12 +114,38 @@ const forgotPasswordController = catchAsync(async (req, res) => {
 
 // Reset password controller
 const resetPasswordController = catchAsync(async (req, res) => {
+  const clientType = getClientType(req);
   const { token, newPassword } = req.validatedBody;
-  const result = await resetPasswordService(token, newPassword);
+  const userAgent = req.headers["user-agent"];
+  const ipAddress = req.ip;
+
+  const result = await resetPasswordService(token, newPassword, ipAddress, userAgent);
+
+  if (clientType === "web") {
+    res.cookie("refreshToken", result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      path: "/api/v1/auth",
+      maxAge: parseDurationToMs(process.env.REFRESH_TOKEN_EXPIRES_IN),
+    });
+
+    return res.status(200).json({
+      status: "success",
+      message: result.message,
+      data: {
+        accessToken: result.accessToken,
+      },
+    });
+  }
 
   res.status(200).json({
     status: "success",
     message: result.message,
+    data: {
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+    },
   });
 });
 
@@ -136,12 +162,38 @@ const validateInvitationController = catchAsync(async (req, res) => {
 
 // Accept invitation and set password controller
 const acceptInvitationController = catchAsync(async (req, res) => {
+  const clientType = getClientType(req);
   const { token, code, password } = req.validatedBody;
-  const result = await acceptInvitationService(token, code, password);
+  const userAgent = req.headers["user-agent"];
+  const ipAddress = req.ip;
+
+  const result = await acceptInvitationService(token, code, password, ipAddress, userAgent);
+
+  if (clientType === "web") {
+    res.cookie("refreshToken", result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      path: "/api/v1/auth",
+      maxAge: parseDurationToMs(process.env.REFRESH_TOKEN_EXPIRES_IN),
+    });
+
+    return res.status(200).json({
+      status: "success",
+      message: result.message,
+      data: {
+        accessToken: result.accessToken,
+      },
+    });
+  }
 
   res.status(200).json({
     status: "success",
     message: result.message,
+    data: {
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+    },
   });
 });
 

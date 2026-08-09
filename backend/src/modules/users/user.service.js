@@ -68,7 +68,7 @@ const createUserService = async ({ name, email, roles }) => {
   const clientUrl = process.env.CLIENT_URL;
   const invitationLink = `${clientUrl}/accept-invitation/${rawToken}`;
   
-  await sendInvitationEmail(email, invitationLink, rawCode);
+  await sendInvitationEmail(email, invitationLink);
 
   console.log(
     `[INVITATION] Invitation sent to ${email}:\n  Link: ${invitationLink}\n  Code: ${rawCode}\n  Expires: ${expiresAt.toISOString()}`,
@@ -170,7 +170,7 @@ const updateUserService = async (userId, updateData) => {
       const clientUrl = process.env.CLIENT_URL;
       const invitationLink = `${clientUrl}/accept-invitation/${rawToken}`;
       
-      await sendInvitationEmail(user.email, invitationLink, rawCode);
+      await sendInvitationEmail(user.email, invitationLink);
 
       console.log(
         `[INVITATION] Invitation re-sent to ${user.email}:
@@ -276,6 +276,56 @@ const restoreUserService = async (userId) => {
   return populateUserRoles(user);
 };
 
+// Resend invitation to a user.
+const resendInvitationService = async (userId) => {
+  const user = await User.findOne({
+    _id: userId,
+    deletedAt: null,
+  });
+
+  if (!user) {
+    throw new NotFoundError("User not found.");
+  }
+
+  if (user.status !== "invited") {
+    throw new ConflictError("User is already active or inactive.");
+  }
+
+  // delete any existing invitation tokens for this user
+  await VerificationToken.deleteMany({
+    user: user._id,
+    type: "invitation",
+  });
+
+  // create new invitation token and verification code
+  const rawToken = generateRandomToken();
+  const tokenHash = hashToken(rawToken);
+  const expiresAt = getInvitationExpiresAt();
+  const rawCode = generateInvitationCode();
+  const codeHash = hashToken(rawCode);
+
+  await VerificationToken.create({
+    user: user._id,
+    type: "invitation",
+    tokenHash,
+    expiresAt,
+    codeHash,
+    codeExpiresAt: expiresAt,
+    codeAttempts: 0,
+  });
+
+  const clientUrl = process.env.CLIENT_URL;
+  const invitationLink = `${clientUrl}/accept-invitation/${rawToken}`;
+  
+  await sendInvitationEmail(user.email, invitationLink);
+
+  console.log(
+    `[INVITATION] Invitation re-sent to ${user.email}:\n  Link: ${invitationLink}\n  Code: ${rawCode}\n  Expires: ${expiresAt.toISOString()}`,
+  );
+
+  return { user: await populateUserRoles(user), invitationCode: rawCode };
+};
+
 export {
   createUserService,
   activateUserService,
@@ -283,6 +333,7 @@ export {
   getAllUsersService,
   getDeletedUsersService,
   getUserByIdService,
+  resendInvitationService,
   restoreUserService,
   softDeleteUserService,
   updateUserService,
