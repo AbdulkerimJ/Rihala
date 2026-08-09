@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import React, { useMemo, useState, useEffect } from "react";
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { Can } from "../../../components/Can";
 import { createOrder, getOrders, updateOrder } from "../api";
@@ -178,6 +178,7 @@ export const OrdersList = () => {
   const ordersQuery = useQuery({
     queryKey: ["orders", params],
     queryFn: () => getOrders(params),
+    placeholderData: keepPreviousData,
   });
 
   const customersQuery = useQuery({
@@ -188,6 +189,16 @@ export const OrdersList = () => {
   const { items: orders, pagination } = unwrapListResponse(ordersQuery.data);
   const customers = unwrapListResponse(customersQuery.data).items;
 
+  useEffect(() => {
+    if (pagination && pagination.page < pagination.totalPages) {
+      const nextParams = { ...params, page: page + 1 };
+      queryClient.prefetchQuery({
+        queryKey: ["orders", nextParams],
+        queryFn: () => getOrders(nextParams),
+      });
+    }
+  }, [pagination, page, params, queryClient]);
+
   const createMutation = useMutation({
     mutationFn: createOrder,
     onSuccess: () => {
@@ -195,8 +206,6 @@ export const OrdersList = () => {
       toast.success("Order created successfully");
       setIsOpen(false);
     },
-    onError: (err) =>
-      toast.error(getApiErrorMessage(err, "Failed to create order")),
   });
 
   const updateMutation = useMutation({
@@ -206,8 +215,6 @@ export const OrdersList = () => {
       toast.success("Order updated successfully");
       setIsOpen(false);
     },
-    onError: (err) =>
-      toast.error(getApiErrorMessage(err, "Failed to update order")),
   });
 
   const handleClearFilters = () => {

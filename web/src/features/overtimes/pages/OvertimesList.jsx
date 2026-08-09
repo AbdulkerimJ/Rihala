@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import React, { useMemo, useState, useEffect } from "react";
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { createOvertime, getOvertimes, updateOvertime } from "../api";
 import { getEmployees } from "../../employees/api";
 import { PageHeader } from "../../../components/ui/PageHeader";
@@ -94,8 +94,19 @@ export const OvertimesList = () => {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["overtimes", params],
     queryFn: () => getOvertimes(params),
+    placeholderData: keepPreviousData,
   });
   const { items: overtimes, pagination } = unwrapListResponse(data);
+
+  useEffect(() => {
+    if (pagination && pagination.page < pagination.totalPages) {
+      const nextParams = { ...params, page: page + 1 };
+      queryClient.prefetchQuery({
+        queryKey: ["overtimes", nextParams],
+        queryFn: () => getOvertimes(nextParams),
+      });
+    }
+  }, [pagination, page, params, queryClient]);
 
   const createMutation = useMutation({
     mutationFn: createOvertime,
@@ -104,7 +115,6 @@ export const OvertimesList = () => {
       toast.success("Overtime recorded successfully");
       setIsOpen(false);
     },
-    onError: (err) => toast.error(getApiErrorMessage(err, "Failed to record overtime")),
   });
 
   const updateMutation = useMutation({
@@ -114,7 +124,6 @@ export const OvertimesList = () => {
       toast.success("Overtime updated successfully");
       setIsOpen(false);
     },
-    onError: (err) => toast.error(getApiErrorMessage(err, "Failed to update overtime")),
   });
 
   const columns = [

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import React, { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { getRoles, createRole, updateRole, deleteRole } from "../api";
 import { Can } from "../../../components/Can";
 import { Edit2, Trash2, Key } from "lucide-react";
@@ -29,7 +29,7 @@ export const RolesList = () => {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["roles", { page, limit }],
     queryFn: () => getRoles({ page, limit }),
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
   });
 
   const createMutation = useMutation({
@@ -38,8 +38,6 @@ export const RolesList = () => {
       queryClient.invalidateQueries(["roles"]);
       toast.success("Role created successfully");
     },
-    onError: (err) =>
-      toast.error(err.response?.data?.message || "Failed to create role"),
   });
 
   const updateMutation = useMutation({
@@ -48,8 +46,6 @@ export const RolesList = () => {
       queryClient.invalidateQueries(["roles"]);
       toast.success("Role updated successfully");
     },
-    onError: (err) =>
-      toast.error(err.response?.data?.message || "Failed to update role"),
   });
 
   const deleteMutation = useMutation({
@@ -58,8 +54,6 @@ export const RolesList = () => {
       queryClient.invalidateQueries(["roles"]);
       toast.success("Role deleted successfully");
     },
-    onError: (err) =>
-      toast.error(err.response?.data?.message || "Failed to delete role"),
   });
 
   const handleOpenModal = (role = null) => {
@@ -91,6 +85,15 @@ export const RolesList = () => {
   const roles = Array.isArray(data?.data) ? data.data : data?.data?.roles || [];
   const total = data?.data?.total || roles.length;
   const totalPages = Math.ceil(total / limit) || 1;
+
+  useEffect(() => {
+    if (page < totalPages) {
+      queryClient.prefetchQuery({
+        queryKey: ["roles", { page: page + 1, limit }],
+        queryFn: () => getRoles({ page: page + 1, limit }),
+      });
+    }
+  }, [page, totalPages, limit, queryClient]);
 
   if (isLoading) {
     return <LoadingSkeleton columnCount={4} rowCount={6} />;

@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createPurchase, getPurchases, updatePurchase } from "../api";
 import { getSuppliers } from "../../suppliers/api";
@@ -159,8 +159,19 @@ export const PurchasesList = () => {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["purchases", params],
     queryFn: () => getPurchases(params),
+    placeholderData: keepPreviousData,
   });
   const { items: purchases, pagination } = unwrapListResponse(data);
+
+  useEffect(() => {
+    if (pagination && pagination.page < pagination.totalPages) {
+      const nextParams = { ...params, page: page + 1 };
+      queryClient.prefetchQuery({
+        queryKey: ["purchases", nextParams],
+        queryFn: () => getPurchases(nextParams),
+      });
+    }
+  }, [pagination, page, params, queryClient]);
 
   const createMutation = useMutation({
     mutationFn: createPurchase,
@@ -169,7 +180,6 @@ export const PurchasesList = () => {
       toast.success("Purchase recorded successfully");
       setIsOpen(false);
     },
-    onError: (err) => toast.error(getApiErrorMessage(err, "Failed to record purchase")),
   });
 
   const columns = [

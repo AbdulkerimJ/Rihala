@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import React, { useMemo, useState, useEffect } from "react";
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { createSupplierPayment, getSupplierPayments, voidSupplierPayment } from "../api";
 import { getSuppliers } from "../../suppliers/api";
 import { getPurchases } from "../../purchases/api";
@@ -132,8 +132,19 @@ export const SupplierPaymentsList = () => {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["supplier-payments", params],
     queryFn: () => getSupplierPayments(params),
+    placeholderData: keepPreviousData,
   });
   const { items: payments, pagination } = unwrapListResponse(data);
+
+  useEffect(() => {
+    if (pagination && pagination.page < pagination.totalPages) {
+      const nextParams = { ...params, page: page + 1 };
+      queryClient.prefetchQuery({
+        queryKey: ["supplier-payments", nextParams],
+        queryFn: () => getSupplierPayments(nextParams),
+      });
+    }
+  }, [pagination, page, params, queryClient]);
 
   const createMutation = useMutation({
     mutationFn: createSupplierPayment,
@@ -143,7 +154,6 @@ export const SupplierPaymentsList = () => {
       toast.success("Payment recorded successfully");
       setIsOpen(false);
     },
-    onError: (err) => toast.error(getApiErrorMessage(err, "Failed to record payment")),
   });
 
   const voidMutation = useMutation({
@@ -155,7 +165,6 @@ export const SupplierPaymentsList = () => {
       setVoidingPayment(null);
       setVoidReason("");
     },
-    onError: (err) => toast.error(getApiErrorMessage(err, "Failed to void payment")),
   });
 
   const columns = [

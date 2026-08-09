@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import React, { useMemo, useState, useEffect } from "react";
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { createMaterial, getMaterials, updateMaterial } from "../api";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
@@ -96,8 +96,19 @@ export const MaterialsList = () => {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["materials", params],
     queryFn: () => getMaterials(params),
+    placeholderData: keepPreviousData,
   });
   const { items: materials, pagination } = unwrapListResponse(data);
+
+  useEffect(() => {
+    if (pagination && pagination.page < pagination.totalPages) {
+      const nextParams = { ...params, page: page + 1 };
+      queryClient.prefetchQuery({
+        queryKey: ["materials", nextParams],
+        queryFn: () => getMaterials(nextParams),
+      });
+    }
+  }, [pagination, page, params, queryClient]);
 
   // Extract unique categories for filter
   const categoriesQuery = useQuery({
@@ -116,7 +127,6 @@ export const MaterialsList = () => {
       toast.success("Material created successfully");
       setIsOpen(false);
     },
-    onError: (err) => toast.error(getApiErrorMessage(err, "Failed to create material")),
   });
   
   const updateMutation = useMutation({
@@ -126,7 +136,6 @@ export const MaterialsList = () => {
       toast.success("Material updated successfully");
       setIsOpen(false);
     },
-    onError: (err) => toast.error(getApiErrorMessage(err, "Failed to update material")),
   });
 
   const columns = [

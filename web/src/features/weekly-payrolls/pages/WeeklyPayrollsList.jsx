@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import React, { useMemo, useState, useEffect } from "react";
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { closeWeeklyPayroll, getCurrentPayrollCalculation, getWeeklyPayrolls } from "../api";
 import { getEmployees } from "../../employees/api";
@@ -47,7 +47,6 @@ const PayrollClosureModal = ({ isOpen, onClose }) => {
       setSelectedEmployee("");
       onClose();
     },
-    onError: (err) => toast.error(getApiErrorMessage(err, "Failed to close payroll")),
   });
 
   return (
@@ -133,8 +132,19 @@ export const WeeklyPayrollsList = () => {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["weekly-payrolls", params],
     queryFn: () => getWeeklyPayrolls(params),
+    placeholderData: keepPreviousData,
   });
   const { items: payrolls, pagination } = unwrapListResponse(data);
+
+  useEffect(() => {
+    if (pagination && pagination.page < pagination.totalPages) {
+      const nextParams = { ...params, page: page + 1 };
+      queryClient.prefetchQuery({
+        queryKey: ["weekly-payrolls", nextParams],
+        queryFn: () => getWeeklyPayrolls(nextParams),
+      });
+    }
+  }, [pagination, page, params, queryClient]);
 
   const columns = [
     { header: "Period", accessor: (row) => `${formatDate(row.periodStart)} - ${formatDate(row.periodEnd)}`, className: "font-medium" },

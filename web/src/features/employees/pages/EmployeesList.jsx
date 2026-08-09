@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import React, { useMemo, useState, useEffect } from "react";
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createEmployee, getEmployees, updateEmployee } from "../api";
 import { PageHeader } from "../../../components/ui/PageHeader";
@@ -124,8 +124,19 @@ export const EmployeesList = () => {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["employees", params],
     queryFn: () => getEmployees(params),
+    placeholderData: keepPreviousData,
   });
   const { items: employees, pagination } = unwrapListResponse(data);
+
+  useEffect(() => {
+    if (pagination && pagination.page < pagination.totalPages) {
+      const nextParams = { ...params, page: page + 1 };
+      queryClient.prefetchQuery({
+        queryKey: ["employees", nextParams],
+        queryFn: () => getEmployees(nextParams),
+      });
+    }
+  }, [pagination, page, params, queryClient]);
 
   const createMutation = useMutation({
     mutationFn: createEmployee,
@@ -134,7 +145,6 @@ export const EmployeesList = () => {
       toast.success("Employee created successfully");
       setIsOpen(false);
     },
-    onError: (err) => toast.error(getApiErrorMessage(err, "Failed to create employee")),
   });
   
   const updateMutation = useMutation({
@@ -144,7 +154,6 @@ export const EmployeesList = () => {
       toast.success("Employee updated successfully");
       setIsOpen(false);
     },
-    onError: (err) => toast.error(getApiErrorMessage(err, "Failed to update employee")),
   });
 
   const columns = [

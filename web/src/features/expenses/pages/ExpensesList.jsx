@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import React, { useMemo, useState, useEffect } from "react";
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import {
   createExpense,
   deleteExpense,
@@ -140,8 +140,19 @@ export const ExpensesList = () => {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["expenses", params],
     queryFn: () => getExpenses(params),
+    placeholderData: keepPreviousData,
   });
   const { items: expenses, pagination } = unwrapListResponse(data);
+
+  useEffect(() => {
+    if (pagination && pagination.page < pagination.totalPages) {
+      const nextParams = { ...params, page: page + 1 };
+      queryClient.prefetchQuery({
+        queryKey: ["expenses", nextParams],
+        queryFn: () => getExpenses(nextParams),
+      });
+    }
+  }, [pagination, page, params, queryClient]);
 
   const createMutation = useMutation({
     mutationFn: createExpense,
@@ -150,8 +161,6 @@ export const ExpensesList = () => {
       toast.success("Expense created successfully");
       setIsOpen(false);
     },
-    onError: (err) =>
-      toast.error(getApiErrorMessage(err, "Failed to create expense")),
   });
   const updateMutation = useMutation({
     mutationFn: updateExpense,
@@ -160,8 +169,6 @@ export const ExpensesList = () => {
       toast.success("Expense updated successfully");
       setIsOpen(false);
     },
-    onError: (err) =>
-      toast.error(getApiErrorMessage(err, "Failed to update expense")),
   });
   const deleteMutation = useMutation({
     mutationFn: deleteExpense,
@@ -169,8 +176,6 @@ export const ExpensesList = () => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
       toast.success("Expense deleted successfully");
     },
-    onError: (err) =>
-      toast.error(getApiErrorMessage(err, "Failed to delete expense")),
   });
 
   if (isLoading)

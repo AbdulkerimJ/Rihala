@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import React, { useMemo, useState, useEffect } from "react";
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createSupplier, getSuppliers, updateSupplier } from "../api";
 import { PageHeader } from "../../../components/ui/PageHeader";
@@ -112,8 +112,19 @@ export const SuppliersList = () => {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["suppliers", params],
     queryFn: () => getSuppliers(params),
+    placeholderData: keepPreviousData,
   });
   const { items: suppliers, pagination } = unwrapListResponse(data);
+
+  useEffect(() => {
+    if (pagination && pagination.page < pagination.totalPages) {
+      const nextParams = { ...params, page: page + 1 };
+      queryClient.prefetchQuery({
+        queryKey: ["suppliers", nextParams],
+        queryFn: () => getSuppliers(nextParams),
+      });
+    }
+  }, [pagination, page, params, queryClient]);
 
   const createMutation = useMutation({
     mutationFn: createSupplier,
@@ -122,7 +133,6 @@ export const SuppliersList = () => {
       toast.success("Supplier created successfully");
       setIsOpen(false);
     },
-    onError: (err) => toast.error(getApiErrorMessage(err, "Failed to create supplier")),
   });
   
   const updateMutation = useMutation({
@@ -132,7 +142,6 @@ export const SuppliersList = () => {
       toast.success("Supplier updated successfully");
       setIsOpen(false);
     },
-    onError: (err) => toast.error(getApiErrorMessage(err, "Failed to update supplier")),
   });
 
   const columns = [

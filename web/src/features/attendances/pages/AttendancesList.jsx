@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import React, { useMemo, useState, useEffect } from "react";
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { createAttendance, getAttendances, updateAttendance } from "../api";
 import { getEmployees } from "../../employees/api";
 import { PageHeader } from "../../../components/ui/PageHeader";
@@ -99,8 +99,19 @@ export const AttendancesList = () => {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["attendances", params],
     queryFn: () => getAttendances(params),
+    placeholderData: keepPreviousData,
   });
   const { items: attendances, pagination } = unwrapListResponse(data);
+
+  useEffect(() => {
+    if (pagination && pagination.page < pagination.totalPages) {
+      const nextParams = { ...params, page: page + 1 };
+      queryClient.prefetchQuery({
+        queryKey: ["attendances", nextParams],
+        queryFn: () => getAttendances(nextParams),
+      });
+    }
+  }, [pagination, page, params, queryClient]);
 
   const createMutation = useMutation({
     mutationFn: createAttendance,
@@ -109,7 +120,6 @@ export const AttendancesList = () => {
       toast.success("Attendance recorded successfully");
       setIsOpen(false);
     },
-    onError: (err) => toast.error(getApiErrorMessage(err, "Failed to record attendance")),
   });
 
   const updateMutation = useMutation({
@@ -119,7 +129,6 @@ export const AttendancesList = () => {
       toast.success("Attendance updated successfully");
       setIsOpen(false);
     },
-    onError: (err) => toast.error(getApiErrorMessage(err, "Failed to update attendance")),
   });
 
   const columns = [

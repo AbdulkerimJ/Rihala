@@ -35,8 +35,6 @@ export const OrderDetail = () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       toast.success("Order updated successfully");
     },
-    onError: (error) =>
-      toast.error(getApiErrorMessage(error, "Failed to update order")),
   });
 
   if (orderQuery.isLoading)

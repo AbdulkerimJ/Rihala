@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { UserPlus, CheckCircle } from "lucide-react";
@@ -42,6 +42,7 @@ export const UsersList = () => {
   const usersQuery = useQuery({
     queryKey: [USERS_QUERY_KEY, showDeleted],
     queryFn: () => (showDeleted ? getDeletedUsers() : getUsers()),
+    placeholderData: keepPreviousData,
   });
 
   const users = useMemo(() => {
@@ -91,9 +92,8 @@ export const UsersList = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [USERS_QUERY_KEY] });
       toast.success("User deleted successfully");
+      setUserToDelete(null);
     },
-    onError: (error) =>
-      toast.error(getApiErrorMessage(error, "Failed to delete user")),
   });
 
   const activateMutation = useMutation({
@@ -102,8 +102,6 @@ export const UsersList = () => {
       queryClient.invalidateQueries({ queryKey: [USERS_QUERY_KEY] });
       toast.success("User activated successfully");
     },
-    onError: (error) =>
-      toast.error(getApiErrorMessage(error, "Failed to activate user")),
   });
 
   const deactivateMutation = useMutation({
@@ -112,8 +110,6 @@ export const UsersList = () => {
       queryClient.invalidateQueries({ queryKey: [USERS_QUERY_KEY] });
       toast.success("User deactivated successfully");
     },
-    onError: (error) =>
-      toast.error(getApiErrorMessage(error, "Failed to deactivate user")),
   });
 
   const restoreMutation = useMutation({
@@ -122,8 +118,6 @@ export const UsersList = () => {
       queryClient.invalidateQueries({ queryKey: [USERS_QUERY_KEY] });
       toast.success("User restored successfully");
     },
-    onError: (error) =>
-      toast.error(getApiErrorMessage(error, "Failed to restore user")),
   });
 
   const resendMutation = useMutation({
@@ -134,9 +128,6 @@ export const UsersList = () => {
         code: data.data.invitationCode,
       });
       toast.success(data.message || "Invitation resent.");
-    },
-    onError: (error) => {
-      toast.error(getApiErrorMessage(error, "Failed to resend invitation."));
     },
   });
 
@@ -292,7 +283,7 @@ export const UsersList = () => {
                                   onClick={() => resendMutation.mutate(user._id)}
                                   disabled={resendMutation.isPending && resendMutation.variables === user._id}
                                 >
-                                  Resend
+                                  Re-invite
                                 </Button>
                               )}
                             </Can>
@@ -376,7 +367,7 @@ export const UsersList = () => {
               <CheckCircle className="h-8 w-8 text-success" />
             </div>
             <h3 className="text-lg font-semibold text-primary">
-              Invitation Resent!
+              User Reinvited!
             </h3>
             <p className="text-sm text-secondary">
               An invitation email has been resent to{" "}

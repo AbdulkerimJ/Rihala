@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import React, { useMemo, useState, useEffect } from "react";
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { createCustomer, getCustomers, updateCustomer } from "../api";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
@@ -130,8 +130,19 @@ export const CustomersList = () => {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["customers", params],
     queryFn: () => getCustomers(params),
+    placeholderData: keepPreviousData,
   });
   const { items: customers, pagination } = unwrapListResponse(data);
+
+  useEffect(() => {
+    if (pagination && pagination.page < pagination.totalPages) {
+      const nextParams = { ...params, page: page + 1 };
+      queryClient.prefetchQuery({
+        queryKey: ["customers", nextParams],
+        queryFn: () => getCustomers(nextParams),
+      });
+    }
+  }, [pagination, page, params, queryClient]);
 
   const createMutation = useMutation({
     mutationFn: createCustomer,
@@ -140,8 +151,6 @@ export const CustomersList = () => {
       toast.success("Customer created successfully");
       setIsOpen(false);
     },
-    onError: (err) =>
-      toast.error(getApiErrorMessage(err, "Failed to create customer")),
   });
   
   const updateMutation = useMutation({
@@ -151,8 +160,6 @@ export const CustomersList = () => {
       toast.success("Customer updated successfully");
       setIsOpen(false);
     },
-    onError: (err) =>
-      toast.error(getApiErrorMessage(err, "Failed to update customer")),
   });
 
   const columns = [
