@@ -167,7 +167,7 @@ const updateUserService = async (userId, updateData) => {
         codeAttempts: 0,
       });
 
-      const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+      const clientUrl = process.env.CLIENT_URL;
       const invitationLink = `${clientUrl}/accept-invitation/${rawToken}`;
       
       await sendInvitationEmail(user.email, invitationLink, rawCode);
