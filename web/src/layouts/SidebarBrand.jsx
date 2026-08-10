@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 
 export const SidebarBrand = ({ setSidebarOpen }) => {
   return (
-    <div className="flex items-center justify-center py-5 border-b border-border/80 bg-surface relative overflow-hidden">
+    <div className="flex items-center justify-center py-5 bg-surface relative overflow-hidden">
       <Link to="/" onClick={() => setSidebarOpen(false)}>
         <img src="/logo.png" alt="Rihala Logo" className="h-24 w-auto object-contain scale-110" />
       </Link>

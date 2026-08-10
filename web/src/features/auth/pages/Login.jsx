@@ -4,25 +4,44 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
+import { Eye, EyeOff, LogIn } from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth";
-import { Button } from "../../../components/ui/Button";
 
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email format"),
   password: z.string().min(1, "Password is required"),
 });
 
+/* ─── Reusable styled field ─────────────────────────────────────────────── */
+const Field = ({ label, error, children }) => (
+  <div className="space-y-1.5">
+    <label className="block text-sm font-medium text-primary">{label}</label>
+    {children}
+    {error && (
+      <p className="flex items-center gap-1 text-xs text-danger">
+        <span className="inline-block h-1 w-1 shrink-0 rounded-full bg-danger" />
+        {error}
+      </p>
+    )}
+  </div>
+);
+
+/* ─── Input base styles ──────────────────────────────────────────────────── */
+const inputBase =
+  "block w-full rounded-xl border bg-main px-4 py-2.5 text-sm text-primary placeholder:text-muted transition-all duration-150 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed";
+const inputNormal = "border-border focus:border-accent focus:ring-accent/20";
+const inputError  = "border-danger focus:border-danger focus:ring-danger/20";
+
 export const Login = () => {
   const { login } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({
-    resolver: zodResolver(loginSchema),
-  });
+  } = useForm({ resolver: zodResolver(loginSchema) });
 
   const onSubmit = async (data) => {
     setIsSubmitting(true);
@@ -32,7 +51,7 @@ export const Login = () => {
     } catch (error) {
       toast.error(
         error.response?.data?.message ||
-          "Failed to login. Please check your credentials.",
+          "Failed to login. Please check your credentials."
       );
     } finally {
       setIsSubmitting(false);
@@ -40,93 +59,87 @@ export const Login = () => {
   };
 
   return (
-    <>
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-primary">
-          Sign in to Rihala
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight text-primary">
+          Welcome back
         </h2>
-        <p className="mt-2 text-center text-sm text-secondary">
-          Workshop Management System
+        <p className="mt-1.5 text-sm text-secondary">
+          Sign in to your Rihala account to continue.
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-primary"
-            >
-              Email address
-            </label>
-            <div className="mt-1">
-              <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                disabled={isSubmitting}
-                className={`block w-full appearance-none rounded-md border px-3 py-2 shadow-sm focus:outline-none sm:text-sm bg-main text-primary disabled:opacity-50 disabled:cursor-not-allowed ${
-                  errors.email
-                    ? "border-danger focus:border-danger focus:ring-danger"
-                    : "border-border focus:border-brand focus:ring-brand"
-                }`}
-                {...register("email")}
-              />
-              {errors.email && (
-                <p className="mt-2 text-sm text-danger">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
-          </div>
+      {/* Form */}
+      <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
+        <Field label="Email address" error={errors.email?.message}>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            disabled={isSubmitting}
+            className={`${inputBase} ${errors.email ? inputError : inputNormal}`}
+            {...register("email")}
+          />
+        </Field>
 
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-primary"
-            >
-              Password
-            </label>
-            <div className="mt-1">
-              <input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                disabled={isSubmitting}
-                className={`block w-full appearance-none rounded-md border px-3 py-2 shadow-sm focus:outline-none sm:text-sm bg-main text-primary disabled:opacity-50 disabled:cursor-not-allowed ${
-                  errors.password
-                    ? "border-danger focus:border-danger focus:ring-danger"
-                    : "border-border focus:border-brand focus:ring-brand"
-                }`}
-                {...register("password")}
-              />
-              {errors.password && (
-                <p className="mt-2 text-sm text-danger">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <Button
-              type="submit"
+        <Field label="Password" error={errors.password?.message}>
+          <div className="relative">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              placeholder="••••••••"
               disabled={isSubmitting}
-              fullWidth
-              className="mt-2"
+              className={`${inputBase} pr-11 ${errors.password ? inputError : inputNormal}`}
+              {...register("password")}
+            />
+            <button
+              type="button"
+              tabIndex={-1}
+              onClick={() => setShowPassword((p) => !p)}
+              className="absolute inset-y-0 right-3.5 flex items-center text-muted hover:text-primary transition-colors"
             >
-              {isSubmitting ? "Signing in..." : "Sign in"}
-            </Button>
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
           </div>
+        </Field>
 
-          <div className="text-center text-sm text-secondary">
-            Forgot your password?{" "}
-            <Link to="/forgot-password" className="text-brand hover:underline">
-              Reset it here
-            </Link>
-          </div>
-        </form>
-      </div>
-    </>
+        {/* Forgot password */}
+        <div className="flex justify-end">
+          <Link
+            to="/forgot-password"
+            className="text-xs font-medium text-accent hover:text-accent-hover transition-colors"
+          >
+            Forgot your password?
+          </Link>
+        </div>
+
+        {/* Submit */}
+        <button
+          id="login-submit"
+          type="submit"
+          disabled={isSubmitting}
+          className="group relative mt-2 flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent/40 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSubmitting ? (
+            <>
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              Signing in…
+            </>
+          ) : (
+            <>
+              <LogIn className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+              Sign in
+            </>
+          )}
+        </button>
+      </form>
+    </div>
   );
 };

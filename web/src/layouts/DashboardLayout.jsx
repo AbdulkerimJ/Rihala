@@ -4,6 +4,7 @@ import { useAuth } from "../hooks/useAuth";
 import { usePermission } from "../hooks/usePermission";
 import { Button } from "../components/ui/Button";
 import { Header } from "../components/Header";
+import { ErrorBoundary } from "../components/ErrorBoundary";
 import {
   LayoutDashboard,
   Users,
@@ -119,7 +120,7 @@ export const DashboardLayout = () => {
   ];
 
   return (
-    <div className="flex h-screen bg-main text-primary">
+    <div className="flex h-screen text-primary relative z-0 bg-surface">
       {/* Mobile sidebar backdrop */}
       {isSidebarOpen && (
         <div
@@ -130,7 +131,7 @@ export const DashboardLayout = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 flex w-[260px] transform flex-col border-r border-border bg-surface transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-30 flex w-[260px] transform flex-col bg-surface transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -152,7 +153,7 @@ export const DashboardLayout = () => {
         </nav>
 
         {/* Footer Area */}
-        <div className="mt-auto p-4 border-t border-border/50">
+        <div className="mt-auto p-4">
           <Button
             variant="ghostDanger"
             onClick={handleLogout}
@@ -166,7 +167,7 @@ export const DashboardLayout = () => {
       </aside>
 
       {/* Main content */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden bg-surface">
         {/* Header */}
         <Header
           sectionTitle={sectionTitle}
@@ -175,8 +176,18 @@ export const DashboardLayout = () => {
         />
 
         {/* Main section */}
-        <main className="flex-1 overflow-y-auto bg-main p-4 sm:p-6 lg:p-8">
-          <Outlet />
+        <main className="flex-1 overflow-y-auto bg-main rounded-xl sm:rounded-t-2xl sm:rounded-b-none relative p-4 sm:p-6 lg:p-8 mx-3 sm:mx-0">
+          {/* Ambient Glows inside the main part */}
+          <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-xl sm:rounded-t-2xl sm:rounded-b-none">
+            <div className="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] rounded-full bg-accent/5 blur-[100px] dark:bg-accent/5" />
+            <div className="absolute -bottom-[20%] -right-[10%] w-[60%] h-[60%] rounded-full bg-purple-500/5 blur-[100px] dark:bg-purple-500/5" />
+          </div>
+
+          <div className="relative z-10">
+            <ErrorBoundary>
+              <Outlet />
+            </ErrorBoundary>
+          </div>
         </main>
       </div>
     </div>

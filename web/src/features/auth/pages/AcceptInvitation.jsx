@@ -9,9 +9,11 @@ import {
   ShieldCheck,
   Eye,
   EyeOff,
-  CheckCircle,
+  CheckCircle2,
   AlertCircle,
   Loader2,
+  ArrowLeft,
+  KeyRound,
 } from "lucide-react";
 
 const schema = z
@@ -25,11 +27,24 @@ const schema = z
     path: ["confirmPassword"],
   });
 
+const inputBase =
+  "block w-full rounded-xl border bg-main px-4 py-2.5 text-sm text-primary placeholder:text-muted transition-all duration-150 focus:outline-none focus:ring-2";
+const inputNormal = "border-border focus:border-accent focus:ring-accent/20";
+const inputError  = "border-danger focus:border-danger focus:ring-danger/20";
+
+const FieldError = ({ message }) =>
+  message ? (
+    <p className="flex items-center gap-1 text-xs text-danger">
+      <span className="inline-block h-1 w-1 shrink-0 rounded-full bg-danger" />
+      {message}
+    </p>
+  ) : null;
+
 export const AcceptInvitation = () => {
   const { token } = useParams();
   const navigate = useNavigate();
 
-  const [tokenState, setTokenState] = useState("validating"); // 'validating' | 'valid' | 'invalid'
+  const [tokenState, setTokenState] = useState("validating");
   const [tokenError, setTokenError] = useState("");
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -43,21 +58,19 @@ export const AcceptInvitation = () => {
     setError,
   } = useForm({ resolver: zodResolver(schema) });
 
-  // Validate token on mount
   useEffect(() => {
     if (!token) {
       setTokenState("invalid");
       setTokenError("No invitation token provided.");
       return;
     }
-
     validateInvitation(token)
       .then(() => setTokenState("valid"))
       .catch((err) => {
         setTokenState("invalid");
         setTokenError(
           err?.response?.data?.message ||
-            "This invitation link is invalid or has expired.",
+            "This invitation link is invalid or has expired."
         );
       });
   }, [token]);
@@ -78,181 +91,186 @@ export const AcceptInvitation = () => {
       }
     } catch (err) {
       const message =
-        err?.response?.data?.message ||
-        "Something went wrong. Please try again.";
+        err?.response?.data?.message || "Something went wrong. Please try again.";
       setError("root", { message });
     }
   };
 
-  // ── Success state ─────────────────────────────────────────────────────────
+  /* ── Success ─────────────────────────────────────────────────────────── */
   if (success) {
     return (
-      <div className="flex flex-col items-center text-center gap-5">
-        <div className="h-16 w-16 rounded-full bg-success/10 flex items-center justify-center">
-          <CheckCircle className="h-8 w-8 text-success" />
+      <div className="space-y-8">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight text-primary">You're all set!</h2>
+          <p className="mt-1.5 text-sm text-secondary">Your account is now active and ready to use.</p>
         </div>
-        <h1 className="text-2xl font-bold text-primary">
-          Password Set Successfully!
-        </h1>
-        <p className="text-secondary text-sm">
-          Your account is now active. You can log in with your email and the
-          password you just created.
-        </p>
+        <div className="rounded-2xl border border-border bg-surface p-8 text-center space-y-4">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success/10">
+            <CheckCircle2 className="h-8 w-8 text-success" />
+          </div>
+          <div>
+            <p className="text-base font-semibold text-primary">Password created successfully</p>
+            <p className="mt-1 text-sm text-secondary">
+              You can now log in with your email and the password you just set.
+            </p>
+          </div>
+        </div>
         <button
           onClick={() => navigate("/login")}
-          className="w-full rounded-xl bg-brand py-2.5 text-sm font-semibold text-white hover:bg-brand-hover transition-colors"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent/40 focus:ring-offset-2"
         >
-          Go to Login
+          Go to login
         </button>
       </div>
     );
   }
 
-  // ── Validating / Loading state ────────────────────────────────────────────
+  /* ── Validating ─────────────────────────────────────────────────────── */
   if (tokenState === "validating") {
     return (
-      <div className="flex flex-col items-center gap-3 text-secondary py-10">
-        <Loader2 className="h-8 w-8 animate-spin text-brand" />
-        <p className="text-sm">Validating your invitation link...</p>
+      <div className="flex flex-col items-center gap-4 py-16 text-center">
+        <Loader2 className="h-8 w-8 animate-spin text-accent" />
+        <p className="text-sm text-secondary">Validating your invitation link…</p>
       </div>
     );
   }
 
-  // ── Invalid token state ───────────────────────────────────────────────────
+  /* ── Invalid token ─────────────────────────────────────────────────── */
   if (tokenState === "invalid") {
     return (
-      <div className="flex flex-col items-center text-center gap-5">
-        <div className="h-16 w-16 rounded-full bg-danger/10 flex items-center justify-center">
-          <AlertCircle className="h-8 w-8 text-danger" />
+      <div className="space-y-8">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight text-primary">Invalid invitation</h2>
+          <p className="mt-1.5 text-sm text-secondary">This link cannot be used.</p>
         </div>
-        <h1 className="text-2xl font-bold text-primary">
-          Invalid Invitation
-        </h1>
-        <p className="text-secondary text-sm">{tokenError}</p>
-        <Link to="/login" className="text-sm text-brand hover:underline">
-          Back to Login
+        <div className="rounded-2xl border border-border bg-surface p-8 text-center space-y-4">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-danger/10">
+            <AlertCircle className="h-8 w-8 text-danger" />
+          </div>
+          <p className="text-sm text-secondary leading-relaxed">{tokenError}</p>
+        </div>
+        <Link
+          to="/login"
+          className="flex items-center justify-center gap-2 text-sm font-medium text-secondary hover:text-primary transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to login
         </Link>
       </div>
     );
   }
 
-  // ── Set Password form ─────────────────────────────────────────────────────
+  /* ── Set Password form ─────────────────────────────────────────────── */
   return (
-    <div className="space-y-6">
-      {/* Header */}
-        <div className="flex flex-col items-center mb-8 gap-3">
-          <div className="h-14 w-14 rounded-2xl bg-brand/10 flex items-center justify-center">
-            <ShieldCheck className="h-7 w-7 text-brand" />
-          </div>
-          <h1 className="text-2xl font-bold text-primary">
-            Create Your Password
-          </h1>
-          <p className="text-sm text-secondary text-center">
-            You've been invited to join. Set a password to activate your
-            account.
+    <div className="space-y-8">
+      {/* Icon + Header */}
+      <div className="flex items-start gap-4">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent/10">
+          <ShieldCheck className="h-5 w-5 text-accent" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight text-primary">Create your password</h2>
+          <p className="mt-1 text-sm text-secondary">
+            You've been invited to join. Set a password to activate your account.
           </p>
         </div>
+      </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-primary">
-              Verification Code
-            </label>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        {/* Verification code */}
+        <div className="space-y-1.5">
+          <label className="block text-sm font-medium text-primary">
+            Verification code
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+              <KeyRound className="h-4 w-4 text-muted" />
+            </div>
             <input
               {...register("code")}
               inputMode="numeric"
               maxLength={4}
               placeholder="4-digit code"
-              className="block w-full rounded-lg border border-border px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand bg-main text-primary"
+              className={`${inputBase} pl-11 tracking-widest font-mono ${errors.code ? inputError : inputNormal}`}
             />
-            {errors.code && (
-              <p className="mt-1 text-xs text-danger">{errors.code.message}</p>
-            )}
           </div>
+          <FieldError message={errors.code?.message} />
+        </div>
 
-          {/* Password */}
-          <div>
-            <label className="mb-1 block text-sm font-medium text-primary">
-              Password
-            </label>
-            <div className="relative">
-              <input
-                {...register("password")}
-                type={showPassword ? "text" : "password"}
-                placeholder="At least 6 characters"
-                className="block w-full rounded-lg border border-border px-3 py-2.5 pr-10 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand bg-main text-primary"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((p) => !p)}
-                className="absolute inset-y-0 right-3 flex items-center text-muted hover:text-primary"
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-            {errors.password && (
-              <p className="mt-1 text-xs text-danger">
-                {errors.password.message}
-              </p>
-            )}
+        {/* Password */}
+        <div className="space-y-1.5">
+          <label className="block text-sm font-medium text-primary">Password</label>
+          <div className="relative">
+            <input
+              {...register("password")}
+              type={showPassword ? "text" : "password"}
+              placeholder="At least 6 characters"
+              className={`${inputBase} pr-11 ${errors.password ? inputError : inputNormal}`}
+            />
+            <button
+              type="button"
+              tabIndex={-1}
+              onClick={() => setShowPassword((p) => !p)}
+              className="absolute inset-y-0 right-3.5 flex items-center text-muted hover:text-primary transition-colors"
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
           </div>
+          <FieldError message={errors.password?.message} />
+        </div>
 
-          {/* Confirm Password */}
-          <div>
-            <label className="mb-1 block text-sm font-medium text-primary">
-              Confirm Password
-            </label>
-            <div className="relative">
-              <input
-                {...register("confirmPassword")}
-                type={showConfirm ? "text" : "password"}
-                placeholder="Repeat your password"
-                className="block w-full rounded-lg border border-border px-3 py-2.5 pr-10 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand bg-main text-primary"
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirm((p) => !p)}
-                className="absolute inset-y-0 right-3 flex items-center text-muted hover:text-primary"
-              >
-                {showConfirm ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-            {errors.confirmPassword && (
-              <p className="mt-1 text-xs text-danger">
-                {errors.confirmPassword.message}
-              </p>
-            )}
+        {/* Confirm password */}
+        <div className="space-y-1.5">
+          <label className="block text-sm font-medium text-primary">Confirm password</label>
+          <div className="relative">
+            <input
+              {...register("confirmPassword")}
+              type={showConfirm ? "text" : "password"}
+              placeholder="Repeat your password"
+              className={`${inputBase} pr-11 ${errors.confirmPassword ? inputError : inputNormal}`}
+            />
+            <button
+              type="button"
+              tabIndex={-1}
+              onClick={() => setShowConfirm((p) => !p)}
+              className="absolute inset-y-0 right-3.5 flex items-center text-muted hover:text-primary transition-colors"
+            >
+              {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
           </div>
+          <FieldError message={errors.confirmPassword?.message} />
+        </div>
 
-          {/* Root / Server Error */}
-          {errors.root && (
-            <div className="rounded-lg bg-danger/10 border border-danger/20 px-3 py-2 text-sm text-danger">
-              {errors.root.message}
-            </div>
+        {/* Server error */}
+        {errors.root && (
+          <div className="rounded-xl bg-danger/8 border border-danger/20 px-4 py-3 text-sm text-danger">
+            {errors.root.message}
+          </div>
+        )}
+
+        <button
+          id="accept-invitation-submit"
+          type="submit"
+          disabled={isSubmitting}
+          className="group flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent/40 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSubmitting ? (
+            <>
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              Activating account…
+            </>
+          ) : (
+            <>
+              <ShieldCheck className="h-4 w-4" />
+              Set password & activate account
+            </>
           )}
+        </button>
+      </form>
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="mt-2 w-full rounded-xl bg-brand py-2.5 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-50 transition-colors"
-          >
-            {isSubmitting
-              ? "Activating Account..."
-              : "Set Password & Activate Account"}
-          </button>
-        </form>
-
-      <p className="mt-6 text-center text-xs text-muted">
+      <p className="text-center text-xs text-muted">
         Already have an account?{" "}
-        <Link to="/login" className="text-brand hover:underline">
+        <Link to="/login" className="font-medium text-accent hover:text-accent-hover transition-colors">
           Log in
         </Link>
       </p>
