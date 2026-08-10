@@ -7,7 +7,7 @@ import { getCustomers } from "../../customers/api";
 import { getAllowedOrderTransitions, ORDER_STATUS_LABELS } from "../constants";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
-import { LoadingSkeleton } from "../../../components/ui/LoadingSkeleton";
+
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { Modal } from "../../../components/ui/Modal";
@@ -268,9 +268,6 @@ export const OrdersList = () => {
     }
   ];
 
-  if (ordersQuery.isLoading || customersQuery.isLoading)
-    return <LoadingSkeleton variant="default" rowCount={6} showSearch />;
-  
   if (ordersQuery.isError)
     return (
       <ErrorState
@@ -355,6 +352,8 @@ export const OrdersList = () => {
         onRowClick={(row) => navigate(`/orders/${row._id}`)}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
+        isLoading={ordersQuery.isLoading}
+        isFetching={ordersQuery.isFetching}
         emptyState={
           <EmptyState
             title="No orders found"

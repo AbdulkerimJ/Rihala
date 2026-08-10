@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { Button } from "../../../components/ui/Button";
 import { getPermissions } from "../../permissions/api";
-import { LoadingSkeleton } from "../../../components/ui/LoadingSkeleton";
+import { Skeleton } from "../../../components/ui/skeletons";
 import { ErrorState } from "../../../components/ui/ErrorState";
 
 const getModuleIcon = (moduleName) => {
@@ -114,7 +114,11 @@ export const AssignPermissionsModal = ({ isOpen, onClose, onSubmit, role, isSubm
 
         <div className="p-6 overflow-y-auto flex-grow">
           {isLoading ? (
-            <LoadingSkeleton rowCount={8} />
+            <div className="space-y-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <Skeleton key={i} className="h-6 w-full" />
+              ))}
+            </div>
           ) : isError ? (
             <ErrorState description="Failed to load permissions." />
           ) : (

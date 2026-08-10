@@ -1,5 +1,7 @@
 import React from "react";
 import { Button } from "./Button";
+import { TableSkeleton } from "./skeletons";
+import { Loader2 } from "lucide-react";
 
 export const DataTable = ({
   columns,
@@ -10,7 +12,18 @@ export const DataTable = ({
   pagination,
   onPageChange,
   emptyState,
+  isLoading,
+  isFetching,
 }) => {
+  if (isLoading) {
+    return (
+      <div className="w-full">
+        {/* We can import TableSkeleton directly or build it. Wait, I should import it at the top! */}
+        <TableSkeleton columns={columns.length} rows={pagination?.limit || 5} />
+      </div>
+    );
+  }
+
   if (!data || data.length === 0) {
     return emptyState || (
       <div className="p-8 text-center text-secondary">
@@ -20,7 +33,13 @@ export const DataTable = ({
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full relative">
+      {isFetching && !isLoading && (
+        <div className="absolute top-0 left-0 w-full h-1 bg-brand/20 overflow-hidden z-10 rounded-t-xl">
+          <div className="h-full bg-brand animate-pulse w-full"></div>
+        </div>
+      )}
+
       {/* Desktop Table View (hidden on small screens) */}
       <div className="hidden lg:block overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
         <table className="min-w-full divide-y divide-border">

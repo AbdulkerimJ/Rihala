@@ -7,7 +7,7 @@ import { getCustomerPayments } from "../../customer-payments/api";
 import { getExpenses } from "../../expenses/api";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { Card, CardHeader, CardTitle, CardContent } from "../../../components/ui/Card";
-import { LoadingSkeleton } from "../../../components/ui/LoadingSkeleton";
+import { InlineSkeleton, Skeleton } from "../../../components/ui/skeletons";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { formatDate } from "../../../utils/formatters";
 import { unwrapListResponse } from "../../../utils/apiResponse";
@@ -62,7 +62,7 @@ export const Dashboard = () => {
         <Card className="flex items-center justify-between p-6">
           <div>
             <p className="text-sm font-medium text-secondary mb-1">Total Received</p>
-            {loadingPayments ? <LoadingSkeleton variant="text" /> : <h3 className="text-2xl font-bold text-primary"><MoneyDisplay amount={totalRevenue} /></h3>}
+            {loadingPayments ? <InlineSkeleton className="h-8 w-24 mt-1" /> : <h3 className="text-2xl font-bold text-primary"><MoneyDisplay amount={totalRevenue} /></h3>}
           </div>
           <div className="p-3 bg-success/10 rounded-full">
             <TrendingUp className="w-5 h-5 text-success" />
@@ -72,7 +72,7 @@ export const Dashboard = () => {
         <Card className="flex items-center justify-between p-6">
           <div>
             <p className="text-sm font-medium text-secondary mb-1">Total Expenses</p>
-            {loadingExpenses ? <LoadingSkeleton variant="text" /> : <h3 className="text-2xl font-bold text-primary"><MoneyDisplay amount={totalExpenses} /></h3>}
+            {loadingExpenses ? <InlineSkeleton className="h-8 w-24 mt-1" /> : <h3 className="text-2xl font-bold text-primary"><MoneyDisplay amount={totalExpenses} /></h3>}
           </div>
           <div className="p-3 bg-danger/10 rounded-full">
             <TrendingDown className="w-5 h-5 text-danger" />
@@ -82,7 +82,7 @@ export const Dashboard = () => {
         <Card className="flex items-center justify-between p-6">
           <div>
             <p className="text-sm font-medium text-secondary mb-1">Active Orders</p>
-            {loadingOrders ? <LoadingSkeleton variant="text" /> : <h3 className="text-2xl font-bold text-primary">{orders.filter(o => o.status !== 'completed' && o.status !== 'cancelled').length}</h3>}
+            {loadingOrders ? <InlineSkeleton className="h-8 w-12 mt-1" /> : <h3 className="text-2xl font-bold text-primary">{orders.filter(o => o.status !== 'completed' && o.status !== 'cancelled').length}</h3>}
           </div>
           <div className="p-3 bg-brand/10 rounded-full">
             <ShoppingCart className="w-5 h-5 text-brand" />
@@ -92,7 +92,7 @@ export const Dashboard = () => {
         <Card className="flex items-center justify-between p-6">
           <div>
             <p className="text-sm font-medium text-secondary mb-1">Net Balance</p>
-            {(loadingPayments || loadingExpenses) ? <LoadingSkeleton variant="text" /> : <h3 className="text-2xl font-bold text-accent"><MoneyDisplay amount={totalRevenue - totalExpenses} variant="accent" /></h3>}
+            {(loadingPayments || loadingExpenses) ? <InlineSkeleton className="h-8 w-32 mt-1" /> : <h3 className="text-2xl font-bold text-accent"><MoneyDisplay amount={totalRevenue - totalExpenses} variant="accent" /></h3>}
           </div>
           <div className="p-3 bg-accent/10 rounded-full">
             <Wallet className="w-5 h-5 text-accent" />
@@ -110,7 +110,20 @@ export const Dashboard = () => {
             </CardHeader>
             
             {loadingOrders ? (
-              <CardContent><LoadingSkeleton variant="default" rowCount={4} /></CardContent>
+              <CardContent className="space-y-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex justify-between items-center py-2">
+                    <div className="space-y-2 w-full">
+                      <div className="flex justify-between">
+                         <Skeleton className="h-4 w-16" />
+                         <Skeleton className="h-5 w-20 rounded-full" />
+                      </div>
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
             ) : orders.length > 0 ? (
               <CardContent className="p-0 divide-y divide-border/50">
                 {orders.map(order => (

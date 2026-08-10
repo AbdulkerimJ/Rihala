@@ -2,7 +2,7 @@ import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getSupplierById } from "../api";
-import { LoadingSkeleton } from "../../../components/ui/LoadingSkeleton";
+import { DetailSkeleton } from "../../../components/ui/skeletons";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { SummaryCard } from "../../../components/ui/SummaryCard";
@@ -22,7 +22,7 @@ export const SupplierDetail = () => {
 
   const supplier = unwrapEntityResponse(supplierQuery.data);
 
-  if (supplierQuery.isLoading) return <LoadingSkeleton variant="default" rowCount={4} />;
+  if (supplierQuery.isLoading) return <DetailSkeleton />;
   
   if (supplierQuery.isError || !supplier) {
     return <ErrorState description={getApiErrorMessage(supplierQuery.error, "Failed to load supplier details.")} />;

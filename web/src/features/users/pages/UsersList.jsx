@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { UserPlus, CheckCircle } from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth";
 import { Can } from "../../../components/Can";
-import { LoadingSkeleton } from "../../../components/ui/LoadingSkeleton";
+import { TableSkeleton } from "../../../components/ui/skeletons";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
@@ -153,9 +153,7 @@ export const UsersList = () => {
     }
   };
 
-  if (usersQuery.isLoading) {
-    return <LoadingSkeleton variant="users" rowCount={6} />;
-  }
+
 
   if (usersQuery.isError) {
     return (
@@ -196,7 +194,9 @@ export const UsersList = () => {
         }
       />
 
-      {users.length === 0 ? (
+      {usersQuery.isLoading ? (
+        <TableSkeleton columns={6} rows={6} />
+      ) : users.length === 0 ? (
         <EmptyState
           title={showDeleted ? "No deleted users" : "No users found"}
           description={

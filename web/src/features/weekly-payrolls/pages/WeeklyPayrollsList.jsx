@@ -6,7 +6,7 @@ import { getEmployees } from "../../employees/api";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
 import { Can } from "../../../components/Can";
-import { LoadingSkeleton } from "../../../components/ui/LoadingSkeleton";
+
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { Modal } from "../../../components/ui/Modal";
@@ -18,6 +18,7 @@ import toast from "react-hot-toast";
 import { getApiErrorMessage, unwrapListResponse, unwrapEntityResponse } from "../../../utils/apiResponse";
 import { formatDate } from "../../../utils/formatters";
 import { Calendar, CheckCircle } from "lucide-react";
+import { Skeleton } from "../../../components/ui/skeletons";
 
 const PayrollClosureModal = ({ isOpen, onClose }) => {
   const queryClient = useQueryClient();
@@ -67,7 +68,17 @@ const PayrollClosureModal = ({ isOpen, onClose }) => {
           </select>
         </FormField>
 
-        {selectedEmployee && isCalculating && <LoadingSkeleton variant="default" rowCount={3} />}
+        {selectedEmployee && isCalculating && (
+          <div className="space-y-4 pt-4 border-t border-border/50">
+             <Skeleton className="h-5 w-40" />
+             <div className="bg-main/50 rounded-lg p-4 space-y-3 border border-border/50">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-1/2 mt-4" />
+             </div>
+          </div>
+        )}
         {selectedEmployee && isError && (
           <div className="p-4 bg-danger/10 text-danger rounded-md text-sm border border-danger/20">
             {getApiErrorMessage(error, "Failed to calculate payroll or no pending records.")}
@@ -129,7 +140,7 @@ export const WeeklyPayrollsList = () => {
     limit: 20
   }), [filters, page]);
 
-  const { data, isLoading, isError, error } = useQuery({
+  const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["weekly-payrolls", params],
     queryFn: () => getWeeklyPayrolls(params),
     placeholderData: keepPreviousData,
@@ -164,7 +175,7 @@ export const WeeklyPayrollsList = () => {
     }
   ];
 
-  if (isLoading) return <LoadingSkeleton variant="default" rowCount={6} showSearch />;
+
   if (isError) return <ErrorState description={getApiErrorMessage(error, "Failed to load payroll records.")} />;
 
   return (
@@ -214,6 +225,8 @@ export const WeeklyPayrollsList = () => {
         onRowClick={(row) => navigate(`/weekly-payrolls/${row._id}`)}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
+        isLoading={isLoading}
+        isFetching={isFetching}
         emptyState={
           <EmptyState
             title="No payroll records found"

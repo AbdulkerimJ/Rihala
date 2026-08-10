@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getPermissions } from "../api";
 import { Key } from "lucide-react";
-import { LoadingSkeleton } from "../../../components/ui/LoadingSkeleton";
+import { TableSkeleton } from "../../../components/ui/skeletons";
 
 export const PermissionsList = () => {
   const [search, setSearch] = useState("");
@@ -26,9 +26,7 @@ export const PermissionsList = () => {
     );
   }, [permissions, search]);
 
-  if (isLoading) {
-    return <LoadingSkeleton columnCount={2} rowCount={8} showSearch />;
-  }
+
 
   if (isError) {
     return (
@@ -57,8 +55,13 @@ export const PermissionsList = () => {
           />
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-border">
+        {isLoading ? (
+          <div className="p-4">
+            <TableSkeleton columns={2} rows={8} />
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-border">
             <thead className="bg-main">
               <tr>
                 <th
@@ -109,6 +112,7 @@ export const PermissionsList = () => {
             </tbody>
           </table>
         </div>
+        )}
       </div>
     </div>
   );

@@ -6,7 +6,7 @@ import { Edit2, Trash2, Key } from "lucide-react";
 import toast from "react-hot-toast";
 import { RoleModal } from "../components/RoleModal";
 import { AssignPermissionsModal } from "../components/AssignPermissionsModal";
-import { LoadingSkeleton } from "../../../components/ui/LoadingSkeleton";
+import { TableSkeleton } from "../../../components/ui/skeletons";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
@@ -95,9 +95,7 @@ export const RolesList = () => {
     }
   }, [page, totalPages, limit, queryClient]);
 
-  if (isLoading) {
-    return <LoadingSkeleton columnCount={4} rowCount={6} />;
-  }
+
 
   if (isError) {
     return (
@@ -119,7 +117,10 @@ export const RolesList = () => {
         }
       />
 
-      <div className="bg-surface shadow rounded-lg overflow-hidden border border-border">
+      {isLoading ? (
+        <TableSkeleton columns={3} rows={6} />
+      ) : (
+        <div className="bg-surface shadow rounded-lg overflow-hidden border border-border">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-border">
             <thead className="bg-main">
@@ -207,6 +208,7 @@ export const RolesList = () => {
           </table>
         </div>
       </div>
+      )}
       <RoleModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

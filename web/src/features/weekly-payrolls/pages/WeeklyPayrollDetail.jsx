@@ -2,7 +2,7 @@ import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getWeeklyPayrollById } from "../api";
-import { LoadingSkeleton } from "../../../components/ui/LoadingSkeleton";
+import { DetailSkeleton } from "../../../components/ui/skeletons";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { SummaryCard } from "../../../components/ui/SummaryCard";
 import { DetailSection, DetailItem } from "../../../components/ui/DetailSection";
@@ -22,7 +22,7 @@ export const WeeklyPayrollDetail = () => {
 
   const payroll = unwrapEntityResponse(payrollQuery.data);
 
-  if (payrollQuery.isLoading) return <LoadingSkeleton variant="default" rowCount={4} />;
+  if (payrollQuery.isLoading) return <DetailSkeleton />;
   
   if (payrollQuery.isError || !payroll) {
     return <ErrorState description={getApiErrorMessage(payrollQuery.error, "Failed to load payroll details.")} />;

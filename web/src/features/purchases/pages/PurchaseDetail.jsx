@@ -2,7 +2,7 @@ import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getPurchaseById } from "../api";
-import { LoadingSkeleton } from "../../../components/ui/LoadingSkeleton";
+import { DetailSkeleton } from "../../../components/ui/skeletons";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { SummaryCard } from "../../../components/ui/SummaryCard";
 import { DetailSection, DetailItem } from "../../../components/ui/DetailSection";
@@ -22,7 +22,7 @@ export const PurchaseDetail = () => {
 
   const purchase = unwrapEntityResponse(purchaseQuery.data);
 
-  if (purchaseQuery.isLoading) return <LoadingSkeleton variant="default" rowCount={4} />;
+  if (purchaseQuery.isLoading) return <DetailSkeleton />;
   
   if (purchaseQuery.isError || !purchase) {
     return <ErrorState description={getApiErrorMessage(purchaseQuery.error, "Failed to load purchase details.")} />;

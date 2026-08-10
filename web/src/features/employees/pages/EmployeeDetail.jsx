@@ -2,7 +2,7 @@ import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getEmployeeById } from "../api";
-import { LoadingSkeleton } from "../../../components/ui/LoadingSkeleton";
+import { DetailSkeleton } from "../../../components/ui/skeletons";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { SummaryCard } from "../../../components/ui/SummaryCard";
@@ -23,7 +23,7 @@ export const EmployeeDetail = () => {
 
   const employee = unwrapEntityResponse(employeeQuery.data);
 
-  if (employeeQuery.isLoading) return <LoadingSkeleton variant="default" rowCount={4} />;
+  if (employeeQuery.isLoading) return <DetailSkeleton />;
   
   if (employeeQuery.isError || !employee) {
     return <ErrorState description={getApiErrorMessage(employeeQuery.error, "Failed to load employee details.")} />;

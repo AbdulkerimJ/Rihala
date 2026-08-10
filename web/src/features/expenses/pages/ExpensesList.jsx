@@ -11,7 +11,7 @@ import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
 import { Can } from "../../../components/Can";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
-import { LoadingSkeleton } from "../../../components/ui/LoadingSkeleton";
+import { TableSkeleton } from "../../../components/ui/skeletons";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { Modal } from "../../../components/ui/Modal";
@@ -178,9 +178,7 @@ export const ExpensesList = () => {
     },
   });
 
-  if (isLoading)
-    return <LoadingSkeleton variant="default" rowCount={6} showSearch />;
-  if (isError)
+
     return (
       <ErrorState
         description={getApiErrorMessage(error, "Failed to load expenses.")}
@@ -251,7 +249,9 @@ export const ExpensesList = () => {
           <option value="-createdAt">Created newest</option>
         </select>
       </div>
-      {expenses.length === 0 ? (
+      {isLoading ? (
+        <TableSkeleton columns={6} rows={6} />
+      ) : expenses.length === 0 ? (
         <EmptyState
           title="No expenses found"
           description="Create the first expense for this workshop."

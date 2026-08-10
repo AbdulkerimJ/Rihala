@@ -2,7 +2,7 @@ import React from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getUserById } from "../api";
-import { LoadingSkeleton } from "../../../components/ui/LoadingSkeleton";
+import { DetailSkeleton } from "../../../components/ui/skeletons";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { formatDateTime } from "../../../utils/formatters";
@@ -22,7 +22,7 @@ export const UserDetail = () => {
   const user = unwrapEntityResponse(data);
 
   if (isLoading) {
-    return <LoadingSkeleton variant="default" rowCount={4} />;
+    return <DetailSkeleton />;
   }
 
   if (isError || !user) {

@@ -5,7 +5,7 @@ import { createSupplier, getSuppliers, updateSupplier } from "../api";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
 import { Can } from "../../../components/Can";
-import { LoadingSkeleton } from "../../../components/ui/LoadingSkeleton";
+
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { Modal } from "../../../components/ui/Modal";
@@ -109,7 +109,7 @@ export const SuppliersList = () => {
     limit: 20
   }), [filters, page]);
 
-  const { data, isLoading, isError, error } = useQuery({
+  const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["suppliers", params],
     queryFn: () => getSuppliers(params),
     placeholderData: keepPreviousData,
@@ -168,7 +168,7 @@ export const SuppliersList = () => {
     }
   ];
 
-  if (isLoading) return <LoadingSkeleton variant="default" rowCount={6} showSearch />;
+
   if (isError) return <ErrorState description={getApiErrorMessage(error, "Failed to load suppliers.")} />;
 
   return (
@@ -207,6 +207,8 @@ export const SuppliersList = () => {
         onRowClick={(row) => navigate(`/suppliers/${row._id}`)}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
+        isLoading={isLoading}
+        isFetching={isFetching}
         emptyState={
           <EmptyState
             title="No suppliers found"

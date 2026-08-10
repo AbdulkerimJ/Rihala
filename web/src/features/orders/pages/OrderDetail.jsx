@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getOrderById, updateOrder } from "../api";
 import { getAllowedOrderTransitions, ORDER_STATUS_LABELS } from "../constants";
-import { LoadingSkeleton } from "../../../components/ui/LoadingSkeleton";
+import { DetailSkeleton } from "../../../components/ui/skeletons";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { Button } from "../../../components/ui/Button";
@@ -38,7 +38,7 @@ export const OrderDetail = () => {
   });
 
   if (orderQuery.isLoading)
-    return <LoadingSkeleton variant="default" rowCount={4} />;
+    return <DetailSkeleton />;
   if (orderQuery.isError || !order)
     return (
       <ErrorState

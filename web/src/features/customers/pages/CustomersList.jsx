@@ -4,7 +4,7 @@ import { createCustomer, getCustomers, updateCustomer } from "../api";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
 import { Can } from "../../../components/Can";
-import { LoadingSkeleton } from "../../../components/ui/LoadingSkeleton";
+
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { Modal } from "../../../components/ui/Modal";
@@ -127,7 +127,7 @@ export const CustomersList = () => {
     limit: 20
   }), [filters, page]);
 
-  const { data, isLoading, isError, error } = useQuery({
+  const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["customers", params],
     queryFn: () => getCustomers(params),
     placeholderData: keepPreviousData,
@@ -194,7 +194,7 @@ export const CustomersList = () => {
     setPage(1);
   };
 
-  if (isLoading) return <LoadingSkeleton variant="default" rowCount={6} showSearch />;
+
   if (isError)
     return (
       <ErrorState
@@ -244,6 +244,8 @@ export const CustomersList = () => {
         keyExtractor={(row) => row._id}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
+        isLoading={isLoading}
+        isFetching={isFetching}
         emptyState={
           <EmptyState
             title="No customers found"
