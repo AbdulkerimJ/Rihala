@@ -176,18 +176,10 @@ export const DashboardLayout = () => {
         />
 
         {/* Main section */}
-        <main className="flex-1 overflow-y-auto bg-main rounded-xl sm:rounded-t-2xl sm:rounded-b-none relative p-4 sm:p-6 lg:p-8 mx-3 sm:mx-0">
-          {/* Ambient Glows inside the main part */}
-          <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-xl sm:rounded-t-2xl sm:rounded-b-none">
-            <div className="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] rounded-full bg-accent/5 blur-[100px] dark:bg-accent/5" />
-            <div className="absolute -bottom-[20%] -right-[10%] w-[60%] h-[60%] rounded-full bg-purple-500/5 blur-[100px] dark:bg-purple-500/5" />
-          </div>
-
-          <div className="relative z-10">
-            <ErrorBoundary>
-              <Outlet />
-            </ErrorBoundary>
-          </div>
+        <main className="flex-1 overflow-y-auto bg-main rounded-tl-2xl sm:rounded-tl-3xl p-4 sm:p-6 lg:p-8">
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
         </main>
       </div>
     </div>

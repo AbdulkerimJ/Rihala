@@ -5,7 +5,7 @@
 @layer base {
   :root {
     /* Light Theme (Blue & Grey) */
-    --bg-main: 245 250 255; /* Soft light blue */
+    --bg-main: 243 244 246; /* Slightly softer grey-blue */
     --bg-surface: 255 255 255; /* #FFFFFF - White */
 
     --color-primary: 15 23 42; /* Deeper slate for text */
