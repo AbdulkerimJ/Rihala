@@ -13,6 +13,43 @@ import {
   hashToken,
 } from "../../core/utils/token.js";
 import { parseDurationToMs } from "../../core/utils/jwt.js";
+import Role from "../roles/role.model.js";
+import ForbiddenError from "../../core/errors/ForbiddenError.js";
+
+// Helper function to protect the original seeded admin user
+const ensureOriginalAdminProtected = (user, action) => {
+  const originalAdminEmail = (process.env.ADMIN_EMAIL).toLowerCase();
+  if (user.email.toLowerCase() === originalAdminEmail) {
+    throw new ForbiddenError(`The original admin user cannot be ${action}.`);
+  }
+};
+
+// Helper function to prevent removing the last active Admin user
+const ensureLastAdminNotRemoved = async (userId, updatingRoles = false, newRoles = []) => {
+  // Find the Admin role case-insensitively
+  const adminRole = await Role.findOne({ name: { $regex: new RegExp("^Admin$", "i") } });
+  if (!adminRole) return;
+
+  const user = await User.findOne({ _id: userId, deletedAt: null, status: "active" });
+  if (!user || !user.roles.includes(adminRole._id)) {
+    return;
+  }
+
+  if (updatingRoles) {
+    const hasAdminStill = newRoles.some(id => id.toString() === adminRole._id.toString());
+    if (hasAdminStill) return;
+  }
+
+  const activeAdminsCount = await User.countDocuments({
+    roles: adminRole._id,
+    status: "active",
+    deletedAt: null
+  });
+
+  if (activeAdminsCount <= 1) {
+    throw new ConflictError("Cannot perform this action because it would remove the last active Admin user.");
+  }
+};
 
 // Parse invitation expiry duration from env (supports "24h", "7d" etc.)
 const getInvitationExpiresAt = () => {
@@ -88,6 +125,9 @@ const deactivateUserService = async (userId) => {
     throw new NotFoundError("User not found.");
   }
 
+  ensureOriginalAdminProtected(user, "deactivated");
+  await ensureLastAdminNotRemoved(userId);
+
   user.status = "inactive";
 
   await user.save();
@@ -131,6 +171,7 @@ const updateUserService = async (userId, updateData) => {
   }
 
   if (updateData.email && updateData.email !== user.email) {
+    ensureOriginalAdminProtected(user, "have their email changed");
     const existingUser = await User.findOne({
       email: updateData.email,
     });
@@ -187,6 +228,20 @@ const updateUserService = async (userId, updateData) => {
 
   Object.assign(user, updateData);
 
+  if (updateData.roles !== undefined) {
+    const originalAdminEmail = (process.env.ADMIN_EMAIL).toLowerCase();
+    if (user.email.toLowerCase() === originalAdminEmail) {
+      const adminRole = await Role.findOne({ name: { $regex: new RegExp("^Admin$", "i") } });
+      if (adminRole) {
+        const hasAdminStill = updateData.roles.some(id => id.toString() === adminRole._id.toString());
+        if (!hasAdminStill) {
+          throw new ForbiddenError("The Admin role cannot be removed from the original admin user.");
+        }
+      }
+    }
+    await ensureLastAdminNotRemoved(userId, true, updateData.roles);
+  }
+
   await user.save();
 
   return { user: await populateUserRoles(user), invitationCode: null };
@@ -206,6 +261,9 @@ const softDeleteUserService = async (userId, deletedByUserId) => {
   if (!user) {
     throw new NotFoundError("User not found.");
   }
+
+  ensureOriginalAdminProtected(user, "deleted");
+  await ensureLastAdminNotRemoved(userId);
 
   user.status = "inactive";
   user.deletedAt = new Date();

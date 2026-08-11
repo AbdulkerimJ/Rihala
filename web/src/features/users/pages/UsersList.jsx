@@ -177,6 +177,7 @@ export const UsersList = () => {
             <Button
               variant="secondary"
               onClick={() => setShowDeleted((value) => !value)}
+              disabled={usersQuery.isFetching}
             >
               {showDeleted ? "Show Existing Users" : "Show Deleted Users"}
             </Button>

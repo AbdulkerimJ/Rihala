@@ -11,7 +11,7 @@ const ADMIN_ROLE_NAME = "Admin";
 // The Admin role name is reserved and cannot be created manually.
 // New roles start with zero permissions.
 const createRoleService = async ({ name }) => {
-  if (name.trim() === ADMIN_ROLE_NAME) {
+  if (name.trim().toLowerCase() === ADMIN_ROLE_NAME.toLowerCase()) {
     throw new ConflictError(
       `The role name "${ADMIN_ROLE_NAME}" is reserved and cannot be created manually.`,
     );
@@ -59,7 +59,7 @@ const updateRoleService = async (roleId, updateData) => {
     throw new ForbiddenError("System roles cannot be modified.");
   }
 
-  if (updateData.name && updateData.name.trim() === ADMIN_ROLE_NAME) {
+  if (updateData.name && updateData.name.trim().toLowerCase() === ADMIN_ROLE_NAME.toLowerCase()) {
     throw new ConflictError(
       `The role name "${ADMIN_ROLE_NAME}" is reserved and cannot be used.`,
     );
