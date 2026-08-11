@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
+import { usePermission } from "../../../hooks/usePermission";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createEmployee, getEmployees, updateEmployee } from "../api";
@@ -108,6 +109,7 @@ const EmployeeForm = ({ initialData, onSubmit, onClose }) => {
 };
 
 export const EmployeesList = () => {
+  const { can } = usePermission();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
@@ -243,8 +245,8 @@ export const EmployeesList = () => {
           <EmptyState
             title="No employees found"
             description="Add your first employee to the system."
-            actionLabel="Add Employee"
-            onAction={() => { setEditingEmployee(null); setIsOpen(true); }}
+            actionLabel={can("employees.create") ? "Add Employee" : null}
+            onAction={can("employees.create") ? () => {  setEditingEmployee(null); setIsOpen(true); } : undefined}
           />
         }
       />

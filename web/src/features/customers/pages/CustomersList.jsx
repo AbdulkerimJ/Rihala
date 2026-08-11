@@ -1,3 +1,4 @@
+import { usePermission } from "../../../hooks/usePermission";
 import React, { useMemo, useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { createCustomer, getCustomers, updateCustomer } from "../api";
@@ -115,6 +116,7 @@ const CustomerForm = ({ initialData, onSubmit, onClose }) => {
 };
 
 export const CustomersList = () => {
+  const { can } = usePermission();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({ search: "", status: "" });
@@ -250,8 +252,8 @@ export const CustomersList = () => {
           <EmptyState
             title="No customers found"
             description="Create a customer to start tracking orders."
-            actionLabel="New Customer"
-            onAction={() => { setEditingCustomer(null); setIsOpen(true); }}
+            actionLabel={can("customers.create") ? "New Customer" : null}
+            onAction={can("customers.create") ? () => {  setEditingCustomer(null); setIsOpen(true); } : undefined}
           />
         }
       />

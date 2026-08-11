@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
+import { usePermission } from "../../../hooks/usePermission";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { closeWeeklyPayroll, getCurrentPayrollCalculation, getWeeklyPayrolls } from "../api";
@@ -126,6 +127,7 @@ const PayrollClosureModal = ({ isOpen, onClose }) => {
 };
 
 export const WeeklyPayrollsList = () => {
+  const { can } = usePermission();
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({ search: "", employee: "", from: "", to: "" });
@@ -231,8 +233,8 @@ export const WeeklyPayrollsList = () => {
           <EmptyState
             title="No payroll records found"
             description="Close your first weekly payroll for an employee."
-            actionLabel="Close Payroll"
-            onAction={() => setIsOpen(true)}
+            actionLabel={can("weeklyPayrolls.close") ? "Close Payroll" : null}
+            onAction={can("weeklyPayrolls.close") ? () => setIsOpen(true) : undefined}
           />
         }
       />

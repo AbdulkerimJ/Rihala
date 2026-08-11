@@ -197,6 +197,19 @@ const acceptInvitationController = catchAsync(async (req, res) => {
   });
 });
 
+// Get the currently authenticated user's profile
+const getMeController = catchAsync(async (req, res) => {
+  // We can reuse the getUserByIdService because it already populates roles/permissions
+  // and we know req.user.id is valid because of the authenticate middleware.
+  const { getUserByIdService } = await import("../users/user.service.js");
+  const user = await getUserByIdService(req.user.id);
+
+  res.status(200).json({
+    status: "success",
+    data: user,
+  });
+});
+
 export {
   loginController,
   refreshController,
@@ -205,4 +218,5 @@ export {
   resetPasswordController,
   validateInvitationController,
   acceptInvitationController,
+  getMeController,
 };

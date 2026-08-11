@@ -1,3 +1,4 @@
+import { usePermission } from "../../../hooks/usePermission";
 import React, { useMemo, useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
@@ -153,6 +154,7 @@ const OrderForm = ({ initialData, customers, onSubmit, onClose }) => {
 };
 
 export const OrdersList = () => {
+  const { can } = usePermission();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
@@ -358,8 +360,8 @@ export const OrdersList = () => {
           <EmptyState
             title="No orders found"
             description="Create the first order for a customer."
-            actionLabel="New Order"
-            onAction={() => { setEditingOrder(null); setIsOpen(true); }}
+            actionLabel={can("orders.create") ? "New Order" : null}
+            onAction={can("orders.create") ? () => {  setEditingOrder(null); setIsOpen(true); } : undefined}
           />
         }
       />

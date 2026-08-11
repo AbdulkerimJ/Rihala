@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
+import { usePermission } from "../../../hooks/usePermission";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createPurchase, getPurchases, updatePurchase } from "../api";
@@ -141,6 +142,7 @@ const PurchaseForm = ({ initialData, onSubmit, onClose }) => {
 };
 
 export const PurchasesList = () => {
+  const { can } = usePermission();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
@@ -255,8 +257,8 @@ export const PurchasesList = () => {
           <EmptyState
             title="No purchases found"
             description="Record your first material purchase."
-            actionLabel="Record Purchase"
-            onAction={() => setIsOpen(true)}
+            actionLabel={can("purchases.create") ? "Record Purchase" : null}
+            onAction={can("purchases.create") ? () => setIsOpen(true) : undefined}
           />
         }
       />

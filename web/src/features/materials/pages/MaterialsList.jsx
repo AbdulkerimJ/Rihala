@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
+import { usePermission } from "../../../hooks/usePermission";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { createMaterial, getMaterials, updateMaterial } from "../api";
 import { PageHeader } from "../../../components/ui/PageHeader";
@@ -81,6 +82,7 @@ const MaterialForm = ({ initialData, onSubmit, onClose }) => {
 };
 
 export const MaterialsList = () => {
+  const { can } = usePermission();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({ search: "", status: "", category: "" });
@@ -210,8 +212,8 @@ export const MaterialsList = () => {
           <EmptyState
             title="No materials found"
             description="Add your first material to the catalogue."
-            actionLabel="New Material"
-            onAction={() => { setEditingMaterial(null); setIsOpen(true); }}
+            actionLabel={can("materials.create") ? "New Material" : null}
+            onAction={can("materials.create") ? () => {  setEditingMaterial(null); setIsOpen(true); } : undefined}
           />
         }
       />

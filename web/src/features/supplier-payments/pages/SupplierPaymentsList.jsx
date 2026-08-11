@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
+import { usePermission } from "../../../hooks/usePermission";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { createSupplierPayment, getSupplierPayments, voidSupplierPayment } from "../api";
 import { getSuppliers } from "../../suppliers/api";
@@ -113,6 +114,7 @@ const PaymentForm = ({ onSubmit, onClose }) => {
 };
 
 export const SupplierPaymentsList = () => {
+  const { can } = usePermission();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({ search: "", supplier: "", status: "", from: "", to: "" });
@@ -172,7 +174,7 @@ export const SupplierPaymentsList = () => {
     { header: "Supplier", accessor: (row) => row.supplier?.name || "Unknown", className: "font-medium" },
     { header: "Date", accessor: (row) => formatDate(row.paymentDate), className: "text-secondary" },
     { header: "Amount", accessor: (row) => <MoneyDisplay amount={row.amount} className={row.status === 'voided' ? 'line-through opacity-50' : ''} /> },
-    { header: "Method", accessor: (row) => <span className="capitalize">{row.paymentMethod.replace('_', ' ')}</span>, className: "text-secondary hidden md:table-cell" },
+    { header: "Method", accessor: (row) => <span className="capitalize">{row.paymentMethod?.replace('_', ' ') || "—"}</span>, className: "text-secondary hidden md:table-cell" },
     { 
       header: "Status", 
       accessor: (row) => (
@@ -250,8 +252,8 @@ export const SupplierPaymentsList = () => {
           <EmptyState
             title="No payments found"
             description="Record a payment made to a supplier."
-            actionLabel="Record Payment"
-            onAction={() => setIsOpen(true)}
+            actionLabel={can("supplierPayments.create") ? "Record Payment" : null}
+            onAction={can("supplierPayments.create") ? () => setIsOpen(true) : undefined}
           />
         }
       />

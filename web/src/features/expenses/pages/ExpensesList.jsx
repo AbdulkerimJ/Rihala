@@ -1,3 +1,4 @@
+import { usePermission } from "../../../hooks/usePermission";
 import React, { useMemo, useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import {
@@ -121,6 +122,7 @@ const ExpenseForm = ({ initialData, onSubmit, onClose }) => {
 };
 
 export const ExpensesList = () => {
+  const { can } = usePermission();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState(initialFilters);
@@ -255,8 +257,8 @@ export const ExpensesList = () => {
         <EmptyState
           title="No expenses found"
           description="Create the first expense for this workshop."
-          actionLabel="New Expense"
-          onAction={() => setIsOpen(true)}
+          actionLabel={can("expenses.create") ? "New Expense" : null}
+            onAction={can("expenses.create") ? () => setIsOpen(true) : undefined}
         />
       ) : (
         <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">

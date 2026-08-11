@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
+import { usePermission } from "../../../hooks/usePermission";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { createOvertime, getOvertimes, updateOvertime } from "../api";
 import { getEmployees } from "../../employees/api";
@@ -76,6 +77,7 @@ const OvertimeForm = ({ initialData, onSubmit, onClose }) => {
 };
 
 export const OvertimesList = () => {
+  const { can } = usePermission();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({ search: "", employee: "", from: "", to: "" });
@@ -201,8 +203,8 @@ export const OvertimesList = () => {
           <EmptyState
             title="No records found"
             description="Record employee overtime."
-            actionLabel="Record Overtime"
-            onAction={() => { setEditingRecord(null); setIsOpen(true); }}
+            actionLabel={can("overtimes.create") ? "Record Overtime" : null}
+            onAction={can("overtimes.create") ? () => {  setEditingRecord(null); setIsOpen(true); } : undefined}
           />
         }
       />

@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
+import { usePermission } from "../../../hooks/usePermission";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createCustomerPayment, getCustomerPayments, voidCustomerPayment } from "../api";
@@ -115,6 +116,7 @@ const PaymentForm = ({ onSubmit, onClose }) => {
 };
 
 export const CustomerPaymentsList = () => {
+  const { can } = usePermission();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
@@ -175,7 +177,7 @@ export const CustomerPaymentsList = () => {
     { header: "Customer", accessor: (row) => row.customer?.name || "Unknown", className: "font-medium" },
     { header: "Date", accessor: (row) => formatDate(row.paymentDate), className: "text-secondary" },
     { header: "Amount", accessor: (row) => <MoneyDisplay amount={row.amount} className={row.status === 'voided' ? 'line-through opacity-50' : ''} /> },
-    { header: "Method", accessor: (row) => <span className="capitalize">{row.paymentMethod.replace('_', ' ')}</span>, className: "text-secondary hidden md:table-cell" },
+    { header: "Method", accessor: (row) => <span className="capitalize">{row.paymentMethod?.replace('_', ' ') || "—"}</span>, className: "text-secondary hidden md:table-cell" },
     { 
       header: "Status", 
       accessor: (row) => (
@@ -254,8 +256,8 @@ export const CustomerPaymentsList = () => {
           <EmptyState
             title="No payments found"
             description="Record a payment received from a customer."
-            actionLabel="Receive Payment"
-            onAction={() => setIsOpen(true)}
+            actionLabel={can("customerPayments.create") ? "Receive Payment" : null}
+            onAction={can("customerPayments.create") ? () => setIsOpen(true) : undefined}
           />
         }
       />

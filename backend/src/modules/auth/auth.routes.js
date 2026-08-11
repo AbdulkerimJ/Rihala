@@ -15,9 +15,14 @@ import {
   resetPasswordController,
   validateInvitationController,
   acceptInvitationController,
+  getMeController,
 } from "./auth.controller.js";
+import authenticate from "../../core/middleware/authenticate.js";
 
 const router = express.Router();
+
+// Get current user profile (requires authentication)
+router.get("/me", authenticate, getMeController);
 
 // User login
 router.post(

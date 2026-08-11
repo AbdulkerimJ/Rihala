@@ -10,6 +10,11 @@ export const logout = async () => {
   return response.data;
 };
 
+export const getMe = async () => {
+  const response = await api.get("/auth/me");
+  return response.data;
+};
+
 export const validateInvitation = async (token) => {
   const response = await api.get(`/auth/invitation/validate/${token}`);
   return response.data;

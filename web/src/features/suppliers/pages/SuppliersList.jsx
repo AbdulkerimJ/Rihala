@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
+import { usePermission } from "../../../hooks/usePermission";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createSupplier, getSuppliers, updateSupplier } from "../api";
@@ -96,6 +97,7 @@ const SupplierForm = ({ initialData, onSubmit, onClose }) => {
 };
 
 export const SuppliersList = () => {
+  const { can } = usePermission();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
@@ -213,8 +215,8 @@ export const SuppliersList = () => {
           <EmptyState
             title="No suppliers found"
             description="Add your first supplier to start managing material purchases."
-            actionLabel="New Supplier"
-            onAction={() => { setEditingSupplier(null); setIsOpen(true); }}
+            actionLabel={can("suppliers.create") ? "New Supplier" : null}
+            onAction={can("suppliers.create") ? () => {  setEditingSupplier(null); setIsOpen(true); } : undefined}
           />
         }
       />

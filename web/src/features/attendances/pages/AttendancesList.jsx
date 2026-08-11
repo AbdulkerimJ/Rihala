@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
+import { usePermission } from "../../../hooks/usePermission";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { createAttendance, getAttendances, updateAttendance } from "../api";
 import { getEmployees } from "../../employees/api";
@@ -81,6 +82,7 @@ const AttendanceForm = ({ initialData, onSubmit, onClose }) => {
 };
 
 export const AttendancesList = () => {
+  const { can } = usePermission();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({ search: "", employee: "", status: "", from: "", to: "" });
@@ -141,7 +143,7 @@ export const AttendancesList = () => {
           ${row.status === 'present' ? 'bg-success/10 text-success' : 
             row.status === 'absent' ? 'bg-danger/10 text-danger' : 
             row.status === 'half_day' ? 'bg-warning/10 text-warning' : 'bg-secondary/10 text-secondary'}`}>
-          {row.status.replace('_', ' ')}
+          {row.status?.replace('_', ' ') || "—"}
         </span>
       )
     },
@@ -227,8 +229,8 @@ export const AttendancesList = () => {
           <EmptyState
             title="No records found"
             description="Record employee attendance."
-            actionLabel="Record Attendance"
-            onAction={() => { setEditingRecord(null); setIsOpen(true); }}
+            actionLabel={can("attendances.create") ? "Record Attendance" : null}
+            onAction={can("attendances.create") ? () => {  setEditingRecord(null); setIsOpen(true); } : undefined}
           />
         }
       />

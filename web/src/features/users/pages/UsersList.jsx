@@ -1,3 +1,4 @@
+import { usePermission } from "../../../hooks/usePermission";
 import React, { useMemo, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
@@ -33,6 +34,7 @@ const USERS_QUERY_KEY = "users";
 export const UsersList = () => {
   const queryClient = useQueryClient();
   const { currentUser } = useAuth();
+  const { can } = usePermission();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [userToDelete, setUserToDelete] = useState(null);
@@ -205,8 +207,8 @@ export const UsersList = () => {
               ? "Deleted users will appear here."
               : "Invite a user to get started."
           }
-          actionLabel={!showDeleted ? "Invite User" : null}
-          onAction={!showDeleted ? () => setIsModalOpen(true) : undefined}
+          actionLabel={!showDeleted && can("users.create") ? "Invite User" : null}
+          onAction={!showDeleted && can("users.create") ? () => setIsModalOpen(true) : undefined}
         />
       ) : (
         <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">

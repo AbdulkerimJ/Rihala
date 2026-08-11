@@ -10,8 +10,7 @@ import React, {
 import axios from "axios";
 import { getApiBaseUrl, setupInterceptors } from "../api/axios";
 import { parseJwt } from "../utils/jwt";
-import { login as loginApi, logout as logoutApi } from "../features/auth/api";
-import { getUserById } from "../features/users/api";
+import { login as loginApi, logout as logoutApi, getMe } from "../features/auth/api";
 
 export const AuthContext = createContext({
   currentUser: null,
@@ -58,7 +57,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const payload = parseJwt(token);
         if (payload && payload.id) {
-          const res = await getUserById(payload.id);
+          const res = await getMe();
           setCurrentUser(res.data);
         }
       } catch (error) {
