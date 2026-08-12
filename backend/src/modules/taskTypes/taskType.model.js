@@ -20,7 +20,7 @@ const taskTypeSchema = new mongoose.Schema(
   }
 );
 
-taskTypeSchema.index({ name: 1 }, { unique: true });
+
 taskTypeSchema.index({ isActive: 1 });
 
 const TaskType = mongoose.model("TaskType", taskTypeSchema);

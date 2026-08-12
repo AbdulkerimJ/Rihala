@@ -21,9 +21,13 @@ import {
   Clock,
   CalendarDays,
   Wallet,
-  LineChart,
   Settings,
-  UserSquare2
+  UserSquare2,
+  BarChart2,
+  FileText,
+  ClipboardCheck,
+  Hammer,
+  ListTree,
 } from "lucide-react";
 
 import { NavGroup } from "./NavGroup";
@@ -55,6 +59,13 @@ export const DashboardLayout = () => {
       "/weekly-payrolls": "Weekly Payroll",
       "/supplier-payments": "Supplier Payments",
       "/customer-payments": "Customer Payments",
+      "/task-types": "Task Types",
+      "/tasks": "Tasks",
+      "/contractors": "Contractors",
+      "/contracts": "Contracts",
+      "/contract-completions": "Contract Completions",
+      "/contractor-payments": "Contractor Payments",
+      "/analytics": "Analytics",
     };
 
     const matchedEntry = Object.entries(sectionMap).find(([path]) =>
@@ -71,47 +82,60 @@ export const DashboardLayout = () => {
 
   const navGroups = [
     {
-      title: "Overview",
+      title: "Main",
       isFlat: true,
       items: [
         { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard, permission: "dashboard.read" },
+        { name: "Analytics", path: "/analytics", icon: BarChart2, permission: "dashboard.read" },
       ]
     },
     {
-      title: "Sales",
-      icon: LineChart,
-      items: [
-        { name: "Customers", path: "/customers", icon: Contact, permission: "customers.read" },
-        { name: "Orders", path: "/orders", icon: ShoppingCart, permission: "orders.read" },
-        { name: "Payments", path: "/customer-payments", icon: CreditCard, permission: "customerPayments.read" },
-      ]
-    },
-    {
-      title: "Purchasing",
+      title: "Operations",
       icon: Briefcase,
       items: [
-        { name: "Suppliers", path: "/suppliers", icon: Contact, permission: "suppliers.read" },
-        { name: "Materials", path: "/materials", icon: Package, permission: "materials.read" },
+        { name: "Attendance", path: "/attendances", icon: CalendarDays, permission: "attendances.read" },
+        { name: "Overtime", path: "/overtimes", icon: Clock, permission: "overtimes.read" },
         { name: "Purchases", path: "/purchases", icon: ClipboardList, permission: "purchases.read" },
-        { name: "Payments", path: "/supplier-payments", icon: Wallet, permission: "supplierPayments.read" },
+        { name: "Contracts", path: "/contracts", icon: FileText, permission: "contracts.read" },
+        { name: "Weekly Payroll", path: "/weekly-payrolls", icon: Receipt, permission: "weeklyPayrolls.read" },
+        { name: "Orders", path: "/orders", icon: ShoppingCart, permission: "orders.read" },
+        { name: "Completions", path: "/contract-completions", icon: ClipboardCheck, permission: "contractCompletions.read" },
       ]
     },
     {
-      title: "Employees",
+      title: "Payments",
+      icon: CreditCard,
+      items: [
+        { name: "Employee Payments", path: "/employee-payments", icon: Wallet, permission: "employeePayments.read" },
+        { name: "Contractor Payments", path: "/contractor-payments", icon: Wallet, permission: "contractorPayments.read" },
+        { name: "Supplier Payments", path: "/supplier-payments", icon: Wallet, permission: "supplierPayments.read" },
+        { name: "Customer Payments", path: "/customer-payments", icon: Wallet, permission: "customerPayments.read" },
+        { name: "Expenses", path: "/expenses", icon: Receipt, permission: "expenses.read" },
+      ]
+    },
+    {
+      title: "Inventory",
+      icon: Package,
+      items: [
+        { name: "Materials", path: "/materials", icon: Package, permission: "materials.read" },
+        { name: "Suppliers", path: "/suppliers", icon: Contact, permission: "suppliers.read" },
+      ]
+    },
+    {
+      title: "People",
       icon: Users,
       items: [
         { name: "Employees", path: "/employees", icon: UserSquare2, permission: "employees.read" },
-        { name: "Attendance", path: "/attendances", icon: CalendarDays, permission: "attendances.read" },
-        { name: "Overtime", path: "/overtimes", icon: Clock, permission: "overtimes.read" },
-        { name: "Weekly Payroll", path: "/weekly-payrolls", icon: Receipt, permission: "weeklyPayrolls.read" },
-        { name: "Payments", path: "/employee-payments", icon: CreditCard, permission: "employeePayments.read" },
+        { name: "Contractors", path: "/contractors", icon: Contact, permission: "contractors.read" },
+        { name: "Customers", path: "/customers", icon: Contact, permission: "customers.read" },
       ]
     },
     {
       title: "Administration",
       icon: Settings,
       items: [
-        { name: "Expenses", path: "/expenses", icon: Wallet, permission: "expenses.read" },
+        { name: "Tasks", path: "/tasks", icon: Hammer, permission: "tasks.read" },
+        { name: "Task Types", path: "/task-types", icon: ListTree, permission: "taskTypes.read" },
         { name: "Users", path: "/users", icon: Users, permission: "users.read" },
         { name: "Roles", path: "/roles", icon: ShieldCheck, permission: "roles.read" },
         { name: "Permissions", path: "/permissions", icon: Key, permission: "permissions.read" },

@@ -1,4 +1,4 @@
-import catchAsync from "../../core/utils/catchAsync.js";
+import { catchAsync } from "../../core/utils/catchAsync.js";
 import * as taskService from "./task.service.js";
 
 const createTask = catchAsync(async (req, res) => {

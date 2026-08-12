@@ -1,4 +1,4 @@
-import catchAsync from "../../core/utils/catchAsync.js";
+import { catchAsync } from "../../core/utils/catchAsync.js";
 import * as contractorPaymentService from "./contractorPayment.service.js";
 
 const createPayment = catchAsync(async (req, res) => {

@@ -1,0 +1,306 @@
+import React, { useState, useMemo, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import { usePermission } from "../../../hooks/usePermission";
+import { getTasks, createTask, updateTask, deleteTask } from "../api";
+import { getTaskTypes } from "../../task-types/api";
+import { PageHeader } from "../../../components/ui/PageHeader";
+import { Button } from "../../../components/ui/Button";
+import { Can } from "../../../components/Can";
+import { EmptyState } from "../../../components/ui/EmptyState";
+import { ErrorState } from "../../../components/ui/ErrorState";
+import { Modal } from "../../../components/ui/Modal";
+import { DataTable } from "../../../components/ui/DataTable";
+import { FilterBar } from "../../../components/ui/FilterBar";
+import { FormField } from "../../../components/ui/FormField";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
+import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
+import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import toast from "react-hot-toast";
+import { getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
+
+const taskSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters").max(100),
+  taskType: z.string().min(1, "Task Type is required"),
+  defaultUnitPrice: z.coerce.number().positive("Unit price must be positive"),
+  isActive: z.boolean().default(true),
+});
+
+const TaskForm = ({ initialData, onSubmit, onClose }) => {
+  const { can } = usePermission();
+  const { data: taskTypesData } = useQuery({ 
+    queryKey: ["task-types-list"], 
+    queryFn: () => getTaskTypes({ limit: 1000 }),
+    enabled: can("taskTypes.read")
+  });
+  const taskTypes = unwrapListResponse(taskTypesData).items || [];
+
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+    resolver: zodResolver(taskSchema),
+    defaultValues: initialData ? {
+      ...initialData,
+      taskType: initialData.taskType?._id || initialData.taskType,
+    } : {
+      name: "",
+      taskType: "",
+      defaultUnitPrice: "",
+      isActive: true,
+    },
+  });
+
+  return (
+    <form className="space-y-4 p-6" onSubmit={handleSubmit(onSubmit)}>
+      <FormField label="Name" required error={errors.name?.message}>
+        <input
+          {...register("name")}
+          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          placeholder="e.g. Paint 1 Door"
+        />
+      </FormField>
+
+      <FormField label="Task Type" required error={errors.taskType?.message}>
+        <select {...register("taskType")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent">
+          <option value="">Select a task type</option>
+          {taskTypes.map(tt => <option key={tt._id} value={tt._id}>{tt.name}</option>)}
+        </select>
+      </FormField>
+
+      <FormField label="Default Unit Price (ETB)" required error={errors.defaultUnitPrice?.message}>
+        <input
+          type="number"
+          step="0.01"
+          {...register("defaultUnitPrice")}
+          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          placeholder="e.g. 500"
+        />
+      </FormField>
+
+      <div className="flex items-center gap-2 pt-2">
+        <input
+          type="checkbox"
+          id="isActive"
+          {...register("isActive")}
+          className="h-4 w-4 rounded border-border text-accent focus:ring-accent bg-main"
+        />
+        <label htmlFor="isActive" className="text-sm font-medium text-primary">
+          Active
+        </label>
+      </div>
+
+      <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
+        <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Saving..." : "Save Task"}
+        </Button>
+      </div>
+    </form>
+  );
+};
+
+export const TasksList = () => {
+  const { can } = usePermission();
+  const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState({ search: "", isActive: "", taskType: "" });
+  const [isOpen, setIsOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
+  const [deletingTask, setDeletingTask] = useState(null);
+
+  const { data: taskTypesData } = useQuery({ 
+    queryKey: ["task-types-list"], 
+    queryFn: () => getTaskTypes({ limit: 1000 }),
+    enabled: can("taskTypes.read")
+  });
+  const taskTypes = unwrapListResponse(taskTypesData).items || [];
+
+  const params = useMemo(() => ({
+    ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v !== "")),
+    page,
+    limit: 20
+  }), [filters, page]);
+
+  const { data, isLoading, isError, error, isFetching } = useQuery({
+    queryKey: ["tasks", params],
+    queryFn: () => getTasks(params),
+    placeholderData: keepPreviousData,
+  });
+
+  const { items: tasks, pagination } = unwrapListResponse(data);
+
+  useEffect(() => {
+    if (pagination && pagination.page < pagination.totalPages) {
+      const nextParams = { ...params, page: page + 1 };
+      queryClient.prefetchQuery({
+        queryKey: ["tasks", nextParams],
+        queryFn: () => getTasks(nextParams),
+      });
+    }
+  }, [pagination, page, params, queryClient]);
+
+  const createMutation = useMutation({
+    mutationFn: createTask,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast.success("Task created successfully");
+      setIsOpen(false);
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: updateTask,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast.success("Task updated successfully");
+      setIsOpen(false);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteTask,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast.success("Task deleted successfully");
+      setDeletingTask(null);
+    },
+    onError: (err) => {
+      toast.error(getApiErrorMessage(err, "Failed to delete task."));
+      setDeletingTask(null);
+    },
+  });
+
+  const columns = [
+    { header: "Name", accessor: "name", className: "font-medium" },
+    { header: "Task Type", accessor: (row) => row.taskType?.name || "-", className: "text-secondary" },
+    { header: "Default Price", accessor: (row) => <MoneyDisplay amount={row.defaultUnitPrice} /> },
+    { 
+      header: "Status", 
+      accessor: (row) => <StatusBadge status={row.isActive ? "active" : "inactive"} /> 
+    },
+    { 
+      header: "Actions", 
+      isActions: true,
+      accessor: (row) => (
+        <div className="flex justify-end gap-2">
+          <Can permission="tasks.update">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditingTask(row);
+                setIsOpen(true);
+              }}
+            >
+              Edit
+            </Button>
+          </Can>
+          <Can permission="tasks.delete">
+            <Button
+              variant="ghostDanger"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeletingTask(row);
+              }}
+            >
+              Delete
+            </Button>
+          </Can>
+        </div>
+      ) 
+    }
+  ];
+
+  if (isError) return <ErrorState description={getApiErrorMessage(error, "Failed to load tasks.")} />;
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Tasks"
+        description="Manage task definitions and unit prices."
+        actions={
+          <Can permission="tasks.create">
+            <Button onClick={() => { setEditingTask(null); setIsOpen(true); }}>
+              New Task
+            </Button>
+          </Can>
+        }
+      />
+
+      <FilterBar 
+        searchPlaceholder="Search tasks..."
+        searchValue={filters.search}
+        onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}
+        onClear={Object.values(filters).some(v => v !== "") ? () => { setFilters({ search: "", isActive: "", taskType: "" }); setPage(1); } : undefined}
+      >
+        <select
+          value={filters.taskType}
+          onChange={(e) => { setFilters(p => ({ ...p, taskType: e.target.value })); setPage(1); }}
+          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+        >
+          <option value="">All Task Types</option>
+          {taskTypes.map(tt => <option key={tt._id} value={tt._id}>{tt.name}</option>)}
+        </select>
+        <select
+          value={filters.isActive}
+          onChange={(e) => { setFilters(p => ({ ...p, isActive: e.target.value })); setPage(1); }}
+          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+        >
+          <option value="">All Statuses</option>
+          <option value="true">Active</option>
+          <option value="false">Inactive</option>
+        </select>
+      </FilterBar>
+
+      <DataTable 
+        columns={columns}
+        data={tasks}
+        keyExtractor={(row) => row._id}
+        pagination={{ ...pagination, page }}
+        onPageChange={setPage}
+        isLoading={isLoading}
+        isFetching={isFetching}
+        emptyState={
+          <EmptyState
+            title="No tasks found"
+            description="Create a task definition to start assigning work to contractors."
+            actionLabel={can("tasks.create") ? "New Task" : null}
+            onAction={can("tasks.create") ? () => { setEditingTask(null); setIsOpen(true); } : undefined}
+          />
+        }
+      />
+
+      <Modal
+        isOpen={isOpen}
+        title={editingTask ? "Edit Task" : "New Task"}
+        onClose={() => setIsOpen(false)}
+      >
+        <TaskForm
+          initialData={editingTask}
+          onClose={() => setIsOpen(false)}
+          onSubmit={(data) =>
+            editingTask
+              ? updateMutation.mutateAsync({ id: editingTask._id, data })
+              : createMutation.mutateAsync(data)
+          }
+        />
+      </Modal>
+
+      <ConfirmDialog
+        isOpen={!!deletingTask}
+        title="Delete Task"
+        message={`Are you sure you want to delete "${deletingTask?.name}"? This action cannot be undone. You can only delete tasks that are not associated with any contracts.`}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        onConfirm={() => deleteMutation.mutateAsync(deletingTask._id)}
+        onCancel={() => setDeletingTask(null)}
+        isDestructive
+        isLoading={deleteMutation.isPending}
+      />
+    </div>
+  );
+};

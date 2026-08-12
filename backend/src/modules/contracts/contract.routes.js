@@ -1,8 +1,8 @@
 import express from "express";
 import * as contractController from "./contract.controller.js";
-import { authenticate } from "../../core/middleware/authenticate.js";
-import { authorize } from "../../core/middleware/authorize.js";
-import { validate } from "../../core/middleware/validate.js";
+import authenticate from "../../core/middleware/authenticate.js";
+import authorize from "../../core/middleware/authorize.js";
+import validate from "../../core/middleware/validate.js";
 import {
   createContractSchema,
   cancelContractSchema,

@@ -35,6 +35,16 @@ import { OvertimesList } from "../features/overtimes/pages/OvertimesList";
 import { WeeklyPayrollsList } from "../features/weekly-payrolls/pages/WeeklyPayrollsList";
 import { WeeklyPayrollDetail } from "../features/weekly-payrolls/pages/WeeklyPayrollDetail";
 
+// New Contractor Management Imports
+import { TaskTypesList } from "../features/task-types/pages/TaskTypesList";
+import { TasksList } from "../features/tasks/pages/TasksList";
+import { ContractorsList } from "../features/contractors/pages/ContractorsList";
+import { ContractsList } from "../features/contracts/pages/ContractsList";
+import { ContractDetail } from "../features/contracts/pages/ContractDetail";
+import { ContractCompletionsList } from "../features/contract-completions/pages/ContractCompletionsList";
+import { ContractorPaymentsList } from "../features/contractor-payments/pages/ContractorPaymentsList";
+import { Analytics } from "../features/dashboard/pages/Analytics";
+
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -75,6 +85,14 @@ export const router = createBrowserRouter([
         element: (
           <RequirePermission permission="dashboard.read">
             <Dashboard />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "analytics",
+        element: (
+          <RequirePermission permission="dashboard.read">
+            <Analytics />
           </RequirePermission>
         ),
       },
@@ -255,6 +273,62 @@ export const router = createBrowserRouter([
         element: (
           <RequirePermission permission="weeklyPayrolls.read">
             <WeeklyPayrollDetail />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "task-types",
+        element: (
+          <RequirePermission permission="taskTypes.read">
+            <TaskTypesList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "tasks",
+        element: (
+          <RequirePermission permission="tasks.read">
+            <TasksList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "contractors",
+        element: (
+          <RequirePermission permission="contractors.read">
+            <ContractorsList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "contracts",
+        element: (
+          <RequirePermission permission="contracts.read">
+            <ContractsList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "contracts/:id",
+        element: (
+          <RequirePermission permission="contracts.read">
+            <ContractDetail />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "contract-completions",
+        element: (
+          <RequirePermission permission="contractCompletions.read">
+            <ContractCompletionsList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "contractor-payments",
+        element: (
+          <RequirePermission permission="contractorPayments.read">
+            <ContractorPaymentsList />
           </RequirePermission>
         ),
       },

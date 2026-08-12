@@ -10,6 +10,11 @@ const STATUS_STYLES = {
   ready: "bg-accent/10 text-accent border border-accent/20",
   completed: "bg-success/10 text-success border border-success/20",
   cancelled: "bg-danger/10 text-danger border border-danger/20",
+  voided: "bg-danger/10 text-danger border border-danger/20",
+  ACTIVE: "bg-success/10 text-success border border-success/20",
+  COMPLETED: "bg-success/10 text-success border border-success/20",
+  CANCELLED: "bg-danger/10 text-danger border border-danger/20",
+  VOIDED: "bg-danger/10 text-danger border border-danger/20",
 };
 
 export const StatusBadge = ({ status, label, className = "" }) => {
