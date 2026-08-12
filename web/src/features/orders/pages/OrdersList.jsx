@@ -186,10 +186,11 @@ export const OrdersList = () => {
   const customersQuery = useQuery({
     queryKey: ["customers-for-orders"],
     queryFn: () => getCustomers({ page: 1, limit: 200 }),
+    enabled: can("customers.read")
   });
 
   const { items: orders, pagination } = unwrapListResponse(ordersQuery.data);
-  const customers = unwrapListResponse(customersQuery.data).items;
+  const customers = unwrapListResponse(customersQuery.data).items || [];
 
   useEffect(() => {
     if (pagination && pagination.page < pagination.totalPages) {

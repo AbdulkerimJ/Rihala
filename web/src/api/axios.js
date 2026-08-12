@@ -1,4 +1,5 @@
 import axios from "axios";
+import toast from "react-hot-toast";
 
 export const getApiBaseUrl = () => {
   return (
@@ -82,6 +83,10 @@ api.interceptors.response.use(
         logoutUser();
         return Promise.reject(refreshError);
       }
+    }
+
+    if (error.response?.status === 403) {
+      toast.error("You do not have permission to perform this action.");
     }
 
     return Promise.reject(error);

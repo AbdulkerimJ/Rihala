@@ -36,7 +36,12 @@ const paymentSchema = z.object({
 });
 
 const PaymentForm = ({ onSubmit, onClose }) => {
-  const { data: customersData } = useQuery({ queryKey: ["customers-list"], queryFn: () => getCustomers({ limit: 1000 }) });
+  const { can } = usePermission();
+  const { data: customersData } = useQuery({ 
+    queryKey: ["customers-list"], 
+    queryFn: () => getCustomers({ limit: 1000 }),
+    enabled: can("customers.read")
+  });
   const customers = unwrapListResponse(customersData).items || [];
   
   const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm({
@@ -57,7 +62,7 @@ const PaymentForm = ({ onSubmit, onClose }) => {
   const { data: ordersData } = useQuery({ 
     queryKey: ["orders-by-customer", selectedCustomer], 
     queryFn: () => getOrders({ customer: selectedCustomer, limit: 100 }),
-    enabled: !!selectedCustomer
+    enabled: !!selectedCustomer && can("orders.read")
   });
   const orders = unwrapListResponse(ordersData).items || [];
 
@@ -125,7 +130,11 @@ export const CustomerPaymentsList = () => {
   const [voidingPayment, setVoidingPayment] = useState(null);
   const [voidReason, setVoidReason] = useState("");
 
-  const { data: customersData } = useQuery({ queryKey: ["customers-list"], queryFn: () => getCustomers({ limit: 1000 }) });
+  const { data: customersData } = useQuery({ 
+    queryKey: ["customers-list"], 
+    queryFn: () => getCustomers({ limit: 1000 }),
+    enabled: can("customers.read")
+  });
   const customers = unwrapListResponse(customersData).items || [];
 
   const params = useMemo(() => ({

@@ -97,6 +97,39 @@ const ALL_PERMISSIONS = [
   { name: "customerPayments.create", description: "Create customer payments" },
   { name: "customerPayments.update", description: "Update customer payments" },
   { name: "customerPayments.void", description: "Void customer payments" },
+
+  // Task Type module permissions
+  { name: "taskTypes.read", description: "View task types" },
+  { name: "taskTypes.create", description: "Create task types" },
+  { name: "taskTypes.update", description: "Update task types" },
+  { name: "taskTypes.delete", description: "Delete task types" },
+
+  // Task module permissions
+  { name: "tasks.read", description: "View tasks" },
+  { name: "tasks.create", description: "Create tasks" },
+  { name: "tasks.update", description: "Update tasks" },
+  { name: "tasks.delete", description: "Delete tasks" },
+
+  // Contractor module permissions
+  { name: "contractors.read", description: "View contractors" },
+  { name: "contractors.create", description: "Create contractors" },
+  { name: "contractors.update", description: "Update contractors" },
+  { name: "contractors.delete", description: "Delete contractors" },
+
+  // Contract module permissions
+  { name: "contracts.read", description: "View contracts" },
+  { name: "contracts.create", description: "Create contracts" },
+  { name: "contracts.cancel", description: "Cancel contracts" },
+
+  // Contract Completion module permissions
+  { name: "contractCompletions.read", description: "View contract completions" },
+  { name: "contractCompletions.create", description: "Create contract completions" },
+  { name: "contractCompletions.void", description: "Void contract completions" },
+
+  // Contractor Payment module permissions
+  { name: "contractorPayments.read", description: "View contractor payments" },
+  { name: "contractorPayments.create", description: "Create contractor payments" },
+  { name: "contractorPayments.void", description: "Void contractor payments" },
 ];
 
 const ADMIN_ROLE_NAME = "Admin";
@@ -192,6 +225,11 @@ const seedAdmin = async () => {
       ),
       Counter.findOneAndUpdate(
         { _id: "paymentReference" },
+        { $setOnInsert: { seq: 0 } },
+        { upsert: true, new: true },
+      ),
+      Counter.findOneAndUpdate(
+        { _id: "contractNumber" },
         { $setOnInsert: { seq: 0 } },
         { upsert: true, new: true },
       ),

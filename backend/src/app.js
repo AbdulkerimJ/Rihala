@@ -23,6 +23,12 @@ import materialRoutes from "./modules/materials/material.routes.js";
 import purchaseRoutes from "./modules/purchases/purchase.routes.js";
 import supplierPaymentRoutes from "./modules/supplierPayments/supplierPayment.routes.js";
 import customerPaymentRoutes from "./modules/customerPayments/customerPayment.routes.js";
+import taskTypeRoutes from "./modules/taskTypes/taskType.routes.js";
+import taskRoutes from "./modules/tasks/task.routes.js";
+import contractorRoutes from "./modules/contractors/contractor.routes.js";
+import contractRoutes from "./modules/contracts/contract.routes.js";
+import contractCompletionRoutes from "./modules/contractCompletions/contractCompletion.routes.js";
+import contractorPaymentRoutes from "./modules/contractorPayments/contractorPayment.routes.js";
 const app = express();
 
 const allowedOrigins = [
@@ -81,6 +87,12 @@ app.use("/api/v1/materials", materialRoutes);
 app.use("/api/v1/purchases", purchaseRoutes);
 app.use("/api/v1/supplier-payments", supplierPaymentRoutes);
 app.use("/api/v1/customer-payments", customerPaymentRoutes);
+app.use("/api/v1/task-types", taskTypeRoutes);
+app.use("/api/v1/tasks", taskRoutes);
+app.use("/api/v1/contractors", contractorRoutes);
+app.use("/api/v1/contracts", contractRoutes);
+app.use("/api/v1/contract-completions", contractCompletionRoutes);
+app.use("/api/v1/contractor-payments", contractorPaymentRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

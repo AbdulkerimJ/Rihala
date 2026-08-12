@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { usePermission } from "../../../hooks/usePermission";
 import { createPortal } from "react-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,6 +28,7 @@ const updateUserSchema = z
 export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
   const isEditing = !!initialData;
   const [invitationData, setInvitationData] = useState(null);
+  const { can } = usePermission();
 
   const {
     register,
@@ -45,7 +47,7 @@ export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
   const { data: rolesData } = useQuery({
     queryKey: ["roles"],
     queryFn: getRoles,
-    enabled: isOpen,
+    enabled: isOpen && can("roles.read"),
   });
 
   const availableRoles = rolesData?.data || [];

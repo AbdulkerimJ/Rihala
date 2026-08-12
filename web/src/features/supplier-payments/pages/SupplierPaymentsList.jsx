@@ -34,7 +34,12 @@ const paymentSchema = z.object({
 });
 
 const PaymentForm = ({ onSubmit, onClose }) => {
-  const { data: suppliersData } = useQuery({ queryKey: ["suppliers-list"], queryFn: () => getSuppliers({ limit: 1000 }) });
+  const { can } = usePermission();
+  const { data: suppliersData } = useQuery({ 
+    queryKey: ["suppliers-list"], 
+    queryFn: () => getSuppliers({ limit: 1000 }),
+    enabled: can("suppliers.read")
+  });
   const suppliers = unwrapListResponse(suppliersData).items || [];
   
   const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm({
@@ -55,7 +60,7 @@ const PaymentForm = ({ onSubmit, onClose }) => {
   const { data: purchasesData } = useQuery({ 
     queryKey: ["purchases-by-supplier", selectedSupplier], 
     queryFn: () => getPurchases({ supplier: selectedSupplier, limit: 100 }),
-    enabled: !!selectedSupplier
+    enabled: !!selectedSupplier && can("purchases.read")
   });
   const purchases = unwrapListResponse(purchasesData).items || [];
 
@@ -122,7 +127,11 @@ export const SupplierPaymentsList = () => {
   const [voidingPayment, setVoidingPayment] = useState(null);
   const [voidReason, setVoidReason] = useState("");
 
-  const { data: suppliersData } = useQuery({ queryKey: ["suppliers-list"], queryFn: () => getSuppliers({ limit: 1000 }) });
+  const { data: suppliersData } = useQuery({ 
+    queryKey: ["suppliers-list"], 
+    queryFn: () => getSuppliers({ limit: 1000 }),
+    enabled: can("suppliers.read")
+  });
   const suppliers = unwrapListResponse(suppliersData).items || [];
 
   const params = useMemo(() => ({

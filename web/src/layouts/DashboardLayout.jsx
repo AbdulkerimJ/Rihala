@@ -74,7 +74,7 @@ export const DashboardLayout = () => {
       title: "Overview",
       isFlat: true,
       items: [
-        { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+        { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard, permission: "dashboard.read" },
       ]
     },
     {

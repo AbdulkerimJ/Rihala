@@ -28,7 +28,12 @@ const overtimeSchema = z.object({
 });
 
 const OvertimeForm = ({ initialData, onSubmit, onClose }) => {
-  const { data: employeesData } = useQuery({ queryKey: ["employees-list"], queryFn: () => getEmployees({ limit: 1000 }) });
+  const { can } = usePermission();
+  const { data: employeesData } = useQuery({ 
+    queryKey: ["employees-list"], 
+    queryFn: () => getEmployees({ limit: 1000 }),
+    enabled: can("employees.read")
+  });
   const employees = unwrapListResponse(employeesData).items || [];
   
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
@@ -84,7 +89,11 @@ export const OvertimesList = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
 
-  const { data: employeesData } = useQuery({ queryKey: ["employees-list"], queryFn: () => getEmployees({ limit: 1000 }) });
+  const { data: employeesData } = useQuery({ 
+    queryKey: ["employees-list"], 
+    queryFn: () => getEmployees({ limit: 1000 }),
+    enabled: can("employees.read")
+  });
   const employees = unwrapListResponse(employeesData).items || [];
 
   const params = useMemo(() => ({

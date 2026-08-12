@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { usePermission } from "../../../hooks/usePermission";
 import { useQuery } from "@tanstack/react-query";
 import { 
   X, Check, Shield, Users, Key, Package, 
@@ -42,11 +43,12 @@ const getModuleIcon = (moduleName) => {
 
 export const AssignPermissionsModal = ({ isOpen, onClose, onSubmit, role, isSubmitting }) => {
   const [selectedPermissions, setSelectedPermissions] = useState(new Set());
+  const { can } = usePermission();
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["permissions"],
     queryFn: getPermissions,
-    enabled: isOpen,
+    enabled: isOpen && can("permissions.read"),
   });
 
   useEffect(() => {

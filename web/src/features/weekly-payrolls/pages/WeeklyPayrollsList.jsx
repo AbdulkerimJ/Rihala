@@ -22,12 +22,14 @@ import { Calendar, CheckCircle } from "lucide-react";
 import { Skeleton } from "../../../components/ui/skeletons";
 
 const PayrollClosureModal = ({ isOpen, onClose }) => {
+  const { can } = usePermission();
   const queryClient = useQueryClient();
   const [selectedEmployee, setSelectedEmployee] = useState("");
 
   const { data: employeesData } = useQuery({ 
     queryKey: ["employees-list", "daily"], 
-    queryFn: () => getEmployees({ employmentType: "daily", limit: 1000 }) 
+    queryFn: () => getEmployees({ employmentType: "daily", limit: 1000 }),
+    enabled: can("employees.read")
   });
   const employees = unwrapListResponse(employeesData).items || [];
 
@@ -133,7 +135,11 @@ export const WeeklyPayrollsList = () => {
   const [filters, setFilters] = useState({ search: "", employee: "", from: "", to: "" });
   const [isOpen, setIsOpen] = useState(false);
 
-  const { data: employeesData } = useQuery({ queryKey: ["employees-list"], queryFn: () => getEmployees({ limit: 1000 }) });
+  const { data: employeesData } = useQuery({ 
+    queryKey: ["employees-list"], 
+    queryFn: () => getEmployees({ limit: 1000 }),
+    enabled: can("employees.read")
+  });
   const employees = unwrapListResponse(employeesData).items || [];
 
   const params = useMemo(() => ({

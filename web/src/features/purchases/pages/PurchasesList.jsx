@@ -39,8 +39,17 @@ const purchaseSchema = z.object({
 });
 
 const PurchaseForm = ({ initialData, onSubmit, onClose }) => {
-  const { data: suppliersData } = useQuery({ queryKey: ["suppliers-list"], queryFn: () => getSuppliers({ limit: 1000 }) });
-  const { data: materialsData } = useQuery({ queryKey: ["materials-list"], queryFn: () => getMaterials({ limit: 1000 }) });
+  const { can } = usePermission();
+  const { data: suppliersData } = useQuery({ 
+    queryKey: ["suppliers-list"], 
+    queryFn: () => getSuppliers({ limit: 1000 }),
+    enabled: can("suppliers.read")
+  });
+  const { data: materialsData } = useQuery({ 
+    queryKey: ["materials-list"], 
+    queryFn: () => getMaterials({ limit: 1000 }),
+    enabled: can("materials.read")
+  });
   
   const suppliers = unwrapListResponse(suppliersData).items || [];
   const materials = unwrapListResponse(materialsData).items || [];
@@ -149,7 +158,11 @@ export const PurchasesList = () => {
   const [filters, setFilters] = useState({ search: "", supplier: "", from: "", to: "" });
   const [isOpen, setIsOpen] = useState(false);
 
-  const { data: suppliersData } = useQuery({ queryKey: ["suppliers-list"], queryFn: () => getSuppliers({ limit: 1000 }) });
+  const { data: suppliersData } = useQuery({ 
+    queryKey: ["suppliers-list"], 
+    queryFn: () => getSuppliers({ limit: 1000 }),
+    enabled: can("suppliers.read")
+  });
   const suppliers = unwrapListResponse(suppliersData).items || [];
 
   const params = useMemo(() => ({

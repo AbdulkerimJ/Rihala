@@ -6,7 +6,7 @@ export const RequirePermission = ({ permission, children }) => {
   const { can } = usePermission();
 
   if (!can(permission)) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return children;

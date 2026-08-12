@@ -4,12 +4,14 @@ import { AuthLayout } from "../layouts/AuthLayout";
 import { DashboardLayout } from "../layouts/DashboardLayout";
 import { ProtectedRoute } from "../routes/ProtectedRoute";
 import { RequirePermission } from "../routes/RequirePermission";
+import { RootRedirect } from "../routes/RootRedirect";
 
 import { Login } from "../features/auth/pages/Login";
 import { ForgotPassword } from "../features/auth/pages/ForgotPassword";
 import { ResetPassword } from "../features/auth/pages/ResetPassword";
 import { AcceptInvitation } from "../features/auth/pages/AcceptInvitation";
 import { Dashboard } from "../features/dashboard/pages/Dashboard";
+import { Welcome } from "../features/dashboard/pages/Welcome";
 import { UsersList } from "../features/users/pages/UsersList";
 import { UserDetail } from "../features/users/pages/UserDetail";
 import { RolesList } from "../features/roles/pages/RolesList";
@@ -36,7 +38,7 @@ import { WeeklyPayrollDetail } from "../features/weekly-payrolls/pages/WeeklyPay
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <Navigate to="/dashboard" replace />,
+    element: <RootRedirect />,
   },
   {
     path: "/",
@@ -70,7 +72,15 @@ export const router = createBrowserRouter([
     children: [
       {
         path: "dashboard",
-        element: <Dashboard />,
+        element: (
+          <RequirePermission permission="dashboard.read">
+            <Dashboard />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "welcome",
+        element: <Welcome />,
       },
       {
         path: "users",
@@ -252,6 +262,6 @@ export const router = createBrowserRouter([
   },
   {
     path: "*",
-    element: <Navigate to="/dashboard" replace />,
+    element: <RootRedirect />,
   },
 ]);
