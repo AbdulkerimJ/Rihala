@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { Lock, Eye, EyeOff, ArrowLeft, ShieldCheck } from "lucide-react";
 import { resetPassword } from "../api";
 import { useAuth } from "../../../hooks/useAuth";
+import { applyServerErrors } from "../../../utils/apiResponse";
 
 const schema = z
   .object({
@@ -69,9 +70,7 @@ export const ResetPassword = () => {
         reset();
       }
     } catch (error) {
-      setError("root", {
-        message: error.response?.data?.message || "Failed to reset password.",
-      });
+      applyServerErrors(setError, error);
     }
   };
 

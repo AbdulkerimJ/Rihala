@@ -6,6 +6,7 @@ import { z } from "zod";
 import toast from "react-hot-toast";
 import { Mail, ArrowLeft, Send, CheckCircle2 } from "lucide-react";
 import { forgotPassword } from "../api";
+import { getApiErrorMessage } from "../../../utils/apiResponse";
 
 const schema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email format"),
@@ -32,7 +33,7 @@ export const ForgotPassword = () => {
       toast.success(result.message || "If the account exists, a reset link was sent.");
       setSubmitted(true);
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to send reset link.");
+      toast.error(getApiErrorMessage(error, "Failed to send reset link."));
     }
   };
 

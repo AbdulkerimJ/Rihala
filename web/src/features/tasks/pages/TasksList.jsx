@@ -166,8 +166,7 @@ export const TasksList = () => {
       toast.success("Task deleted successfully");
       setDeletingTask(null);
     },
-    onError: (err) => {
-      toast.error(getApiErrorMessage(err, "Failed to delete task."));
+    onError: () => {
       setDeletingTask(null);
     },
   });

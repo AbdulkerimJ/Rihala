@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Eye, EyeOff, LogIn } from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth";
+import { applyServerErrors } from "../../../utils/apiResponse";
 
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email format"),
@@ -40,6 +41,7 @@ export const Login = () => {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm({ resolver: zodResolver(loginSchema) });
 
@@ -49,10 +51,7 @@ export const Login = () => {
       await login(data);
       toast.success("Successfully logged in!");
     } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-          "Failed to login. Please check your credentials."
-      );
+      applyServerErrors(setError, error);
     } finally {
       setIsSubmitting(false);
     }
@@ -110,7 +109,6 @@ export const Login = () => {
           </div>
         </Field>
 
-        {/* Forgot password */}
         <div className="flex justify-end">
           <Link
             to="/forgot-password"
@@ -119,6 +117,13 @@ export const Login = () => {
             Forgot your password?
           </Link>
         </div>
+
+        {/* Server error */}
+        {errors.root && (
+          <div className="rounded-xl bg-danger/8 border border-danger/20 px-4 py-3 text-sm text-danger">
+            {errors.root.message}
+          </div>
+        )}
 
         {/* Submit */}
         <button

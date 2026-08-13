@@ -198,9 +198,6 @@ export const ContractsList = () => {
       setIsOpen(false);
       navigate(`/contracts/${data.data.contract._id}`);
     },
-    onError: (err) => {
-      toast.error(getApiErrorMessage(err, "Failed to create contract."));
-    }
   });
 
   const columns = [

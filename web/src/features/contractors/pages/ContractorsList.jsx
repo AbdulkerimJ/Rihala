@@ -127,9 +127,6 @@ export const ContractorsList = () => {
       toast.success("Contractor created successfully");
       setIsOpen(false);
     },
-    onError: (err) => {
-        toast.error(getApiErrorMessage(err, "Failed to create contractor. Phone number might be duplicated."));
-    }
   });
 
   const updateMutation = useMutation({
@@ -139,9 +136,6 @@ export const ContractorsList = () => {
       toast.success("Contractor updated successfully");
       setIsOpen(false);
     },
-    onError: (err) => {
-        toast.error(getApiErrorMessage(err, "Failed to update contractor. Phone number might be duplicated."));
-    }
   });
 
   const deleteMutation = useMutation({
@@ -151,8 +145,7 @@ export const ContractorsList = () => {
       toast.success("Contractor deleted successfully");
       setDeletingContractor(null);
     },
-    onError: (err) => {
-      toast.error(getApiErrorMessage(err, "Failed to delete contractor."));
+    onError: () => {
       setDeletingContractor(null);
     },
   });

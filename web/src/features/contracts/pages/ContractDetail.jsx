@@ -130,7 +130,6 @@ export const ContractDetail = () => {
       toast.success("Completion recorded");
       setCompletionModalOpen(false);
     },
-    onError: (err) => toast.error(getApiErrorMessage(err, "Failed to record completion."))
   });
 
   const recordPaymentMutation = useMutation({
@@ -140,7 +139,6 @@ export const ContractDetail = () => {
       toast.success("Payment recorded");
       setPaymentModalOpen(false);
     },
-    onError: (err) => toast.error(getApiErrorMessage(err, "Failed to record payment."))
   });
 
   const voidCompletionMutation = useMutation({
@@ -151,7 +149,6 @@ export const ContractDetail = () => {
       setVoidingCompletion(null);
       setVoidReason("");
     },
-    onError: (err) => toast.error(getApiErrorMessage(err, "Failed to void completion."))
   });
 
   const voidPaymentMutation = useMutation({
@@ -162,7 +159,6 @@ export const ContractDetail = () => {
       setVoidingPayment(null);
       setVoidReason("");
     },
-    onError: (err) => toast.error(getApiErrorMessage(err, "Failed to void payment."))
   });
 
   const cancelMutation = useMutation({
@@ -173,7 +169,6 @@ export const ContractDetail = () => {
       setCancelModalOpen(false);
       setCancelReason("");
     },
-    onError: (err) => toast.error(getApiErrorMessage(err, "Failed to cancel contract."))
   });
 
   if (contractQuery.isLoading) return <DetailSkeleton />;

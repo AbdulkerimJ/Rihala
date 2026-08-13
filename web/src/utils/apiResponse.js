@@ -48,3 +48,19 @@ export const getApiErrorMessage = (
 export const getApiFieldErrors = (error) => {
   return error?.response?.data?.errors || [];
 };
+
+export const applyServerErrors = (setError, error) => {
+  const fieldErrors = getApiFieldErrors(error);
+  
+  if (fieldErrors && fieldErrors.length > 0) {
+    fieldErrors.forEach((err) => {
+      if (err.field === "general") {
+        setError("root", { message: err.message });
+      } else {
+        setError(err.field, { message: err.message });
+      }
+    });
+  } else {
+    setError("root", { message: getApiErrorMessage(error) });
+  }
+};

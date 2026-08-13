@@ -126,8 +126,7 @@ export const TaskTypesList = () => {
       toast.success("Task Type deleted successfully");
       setDeletingTaskType(null);
     },
-    onError: (err) => {
-      toast.error(getApiErrorMessage(err, "Failed to delete task type."));
+    onError: () => {
       setDeletingTaskType(null);
     },
   });

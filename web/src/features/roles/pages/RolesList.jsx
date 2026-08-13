@@ -38,6 +38,7 @@ export const RolesList = () => {
       queryClient.invalidateQueries(["roles"]);
       toast.success("Role created successfully");
     },
+    meta: { suppressToast: true },
   });
 
   const updateMutation = useMutation({
@@ -46,6 +47,7 @@ export const RolesList = () => {
       queryClient.invalidateQueries(["roles"]);
       toast.success("Role updated successfully");
     },
+    meta: { suppressToast: true },
   });
 
   const deleteMutation = useMutation({

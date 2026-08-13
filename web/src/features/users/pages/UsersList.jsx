@@ -2,9 +2,9 @@ import { usePermission } from "../../../hooks/usePermission";
 import React, { useMemo, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { UserPlus, CheckCircle } from "lucide-react";
+import { UserPlus, CheckCircle, ShieldCheck } from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth";
 import { Can } from "../../../components/Can";
 import { TableSkeleton } from "../../../components/ui/skeletons";
@@ -15,6 +15,7 @@ import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { UserModal } from "../components/UserModal";
+import { AssignRolesModal } from "../components/AssignRolesModal";
 import {
   getUsers,
   createUser,
@@ -33,10 +34,13 @@ const USERS_QUERY_KEY = "users";
 
 export const UsersList = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { can } = usePermission();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [isRolesModalOpen, setIsRolesModalOpen] = useState(false);
+  const [rolesUser, setRolesUser] = useState(null);
   const [userToDelete, setUserToDelete] = useState(null);
   const [showDeleted, setShowDeleted] = useState(false);
   const [resendData, setResendData] = useState(null);
@@ -75,8 +79,7 @@ export const UsersList = () => {
       queryClient.invalidateQueries({ queryKey: [USERS_QUERY_KEY] });
       toast.success("User invited successfully");
     },
-    onError: (error) =>
-      toast.error(getApiErrorMessage(error, "Failed to invite user")),
+    meta: { suppressToast: true },
   });
 
   const updateMutation = useMutation({
@@ -85,8 +88,7 @@ export const UsersList = () => {
       queryClient.invalidateQueries({ queryKey: [USERS_QUERY_KEY] });
       toast.success("User updated successfully");
     },
-    onError: (error) =>
-      toast.error(getApiErrorMessage(error, "Failed to update user")),
+    meta: { suppressToast: true },
   });
 
   const deleteMutation = useMutation({
@@ -144,6 +146,12 @@ export const UsersList = () => {
     return response;
   };
 
+  const handleAssignRolesSubmit = async (data) => {
+    if (rolesUser) {
+      await updateMutation.mutateAsync({ id: rolesUser._id, data });
+    }
+  };
+
   const handleDelete = (id) => {
     setUserToDelete(id);
   };
@@ -154,8 +162,6 @@ export const UsersList = () => {
       setUserToDelete(null);
     }
   };
-
-
 
   if (usersQuery.isError) {
     return (
@@ -240,15 +246,13 @@ export const UsersList = () => {
                 {users.map((user) => (
                   <tr
                     key={user._id}
-                    className="hover:bg-main transition-colors"
+                    onClick={() => navigate(`/users/${user._id}`)}
+                    className="hover:bg-main transition-colors cursor-pointer"
                   >
                     <td className="px-6 py-4 text-sm font-medium text-primary">
-                      <Link
-                        className="hover:text-brand"
-                        to={`/users/${user._id}`}
-                      >
+                      <span className="hover:text-brand font-medium text-primary">
                         {user.name}
-                      </Link>
+                      </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-secondary">
                       {user.email}
@@ -264,10 +268,27 @@ export const UsersList = () => {
                     <td className="px-6 py-4 text-sm text-secondary">
                       {formatDateTime(user.createdAt)}
                     </td>
-                    <td className="px-6 py-4 text-right text-sm">
+                    <td
+                      className="px-6 py-4 text-right text-sm"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <div className="flex justify-end gap-2">
                         {!user.deletedAt && (
                           <>
+                            <Can permission="users.assign-role">
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => {
+                                  setRolesUser(user);
+                                  setIsRolesModalOpen(true);
+                                }}
+                                title="Assign Roles"
+                              >
+                                <ShieldCheck className="h-4 w-4 mr-1 sm:mr-1.5" />
+                                Assign Roles
+                              </Button>
+                            </Can>
                             <Can permission="users.update">
                               <Button
                                 variant="secondary"
@@ -304,9 +325,7 @@ export const UsersList = () => {
                                 <Button
                                   variant="secondary"
                                   size="sm"
-                                  onClick={() =>
-                                    deactivateMutation.mutate(user._id)
-                                  }
+                                  onClick={() => deactivateMutation.mutate(user._id)}
                                   disabled={deactivateMutation.isPending && deactivateMutation.variables === user._id}
                                 >
                                   Deactivate
@@ -352,6 +371,13 @@ export const UsersList = () => {
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleSubmit}
         initialData={editingUser}
+      />
+      <AssignRolesModal
+        isOpen={isRolesModalOpen}
+        onClose={() => setIsRolesModalOpen(false)}
+        onSubmit={handleAssignRolesSubmit}
+        user={rolesUser}
+        isSubmitting={updateMutation.isPending}
       />
       <ConfirmDialog
         isOpen={!!userToDelete}

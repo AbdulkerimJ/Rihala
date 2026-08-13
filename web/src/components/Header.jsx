@@ -15,8 +15,8 @@ export const Header = ({ currentUser, onMobileMenuToggle }) => {
     return name.slice(0, 2).toUpperCase();
   };
 
-  const userRole = currentUser?.roles?.[0]?.name || "Operations";
-  const userName = currentUser?.name || "Team member";
+  const userRole = currentUser?.roles?.[0]?.name || "No Role";
+  const userName = currentUser?.name || "No User";
 
   return (
     <header className="sticky top-0 z-20 flex h-16 w-full items-center justify-between bg-surface/90 px-4 sm:px-6 backdrop-blur-md transition-colors duration-200">

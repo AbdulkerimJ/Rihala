@@ -4,8 +4,10 @@ import { getApiErrorMessage } from '../utils/apiResponse';
 
 export const queryClient = new QueryClient({
   mutationCache: new MutationCache({
-    onError: (error) => {
-      toast.error(getApiErrorMessage(error, "An error occurred"));
+    onError: (error, _variables, _context, mutation) => {
+      if (!mutation.meta?.suppressToast) {
+        toast.error(getApiErrorMessage(error, "An error occurred"));
+      }
     },
   }),
   queryCache: new QueryCache({

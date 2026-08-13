@@ -65,9 +65,6 @@ export const ContractorPaymentsList = () => {
       setVoidingPayment(null);
       setVoidReason("");
     },
-    onError: (err) => {
-      toast.error(getApiErrorMessage(err, "Failed to void payment."));
-    }
   });
 
   const columns = [

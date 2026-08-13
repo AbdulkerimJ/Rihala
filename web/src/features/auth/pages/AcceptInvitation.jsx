@@ -15,6 +15,7 @@ import {
   ArrowLeft,
   KeyRound,
 } from "lucide-react";
+import { applyServerErrors, getApiErrorMessage } from "../../../utils/apiResponse";
 
 const schema = z
   .object({
@@ -69,8 +70,7 @@ export const AcceptInvitation = () => {
       .catch((err) => {
         setTokenState("invalid");
         setTokenError(
-          err?.response?.data?.message ||
-            "This invitation link is invalid or has expired."
+          getApiErrorMessage(err, "This invitation link is invalid or has expired.")
         );
       });
   }, [token]);
@@ -90,9 +90,7 @@ export const AcceptInvitation = () => {
         setSuccess(true);
       }
     } catch (err) {
-      const message =
-        err?.response?.data?.message || "Something went wrong. Please try again.";
-      setError("root", { message });
+      applyServerErrors(setError, err);
     }
   };
 

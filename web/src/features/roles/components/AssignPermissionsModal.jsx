@@ -13,6 +13,7 @@ import { Button } from "../../../components/ui/Button";
 import { getPermissions } from "../../permissions/api";
 import { Skeleton } from "../../../components/ui/skeletons";
 import { ErrorState } from "../../../components/ui/ErrorState";
+import { getApiErrorMessage } from "../../../utils/apiResponse";
 
 const getModuleIcon = (moduleName) => {
   const icons = {
@@ -43,6 +44,7 @@ const getModuleIcon = (moduleName) => {
 
 export const AssignPermissionsModal = ({ isOpen, onClose, onSubmit, role, isSubmitting }) => {
   const [selectedPermissions, setSelectedPermissions] = useState(new Set());
+  const [submitError, setSubmitError] = useState(null);
   const { can } = usePermission();
 
   const { data, isLoading, isError } = useQuery({
@@ -52,9 +54,12 @@ export const AssignPermissionsModal = ({ isOpen, onClose, onSubmit, role, isSubm
   });
 
   useEffect(() => {
-    if (isOpen && role) {
-      const initialIds = (role.permissions || []).map(p => typeof p === 'string' ? p : p._id);
-      setSelectedPermissions(new Set(initialIds));
+    if (isOpen) {
+      setSubmitError(null);
+      if (role) {
+        const initialIds = (role.permissions || []).map(p => typeof p === 'string' ? p : p._id);
+        setSelectedPermissions(new Set(initialIds));
+      }
     }
   }, [isOpen, role]);
 
@@ -93,13 +98,24 @@ export const AssignPermissionsModal = ({ isOpen, onClose, onSubmit, role, isSubm
   };
 
   const handleSave = async () => {
-    await onSubmit({ permissions: Array.from(selectedPermissions) });
-    onClose();
+    try {
+      setSubmitError(null);
+      await onSubmit({ permissions: Array.from(selectedPermissions) });
+      onClose();
+    } catch (error) {
+      setSubmitError(getApiErrorMessage(error));
+    }
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto overflow-x-hidden bg-black bg-opacity-50 p-4">
-      <div className="w-full max-w-4xl rounded-lg bg-surface shadow-2xl border border-border flex flex-col max-h-[90vh]">
+    <div 
+      className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-black bg-opacity-50 p-4"
+      onClick={onClose}
+    >
+      <div 
+        className="w-full max-w-4xl rounded-lg bg-surface shadow-2xl border border-border flex flex-col max-h-[90vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex flex-shrink-0 items-center justify-between border-b border-border px-6 py-4 bg-surface rounded-t-lg">
           <div>
             <h3 className="text-lg font-semibold text-primary">
@@ -148,40 +164,52 @@ export const AssignPermissionsModal = ({ isOpen, onClose, onSubmit, role, isSubm
                       </Button>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
-                      {perms.map(perm => (
-                        <label
-                          key={perm._id}
-                          className={`flex items-start gap-3 p-3 rounded-md border cursor-pointer transition-colors ${
-                            selectedPermissions.has(perm._id)
-                              ? "bg-brand/10 border-brand/30"
-                              : "bg-surface border-border hover:border-brand/30"
-                          }`}
-                        >
-                          <div className={`mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border ${
-                            selectedPermissions.has(perm._id)
-                              ? "bg-brand border-brand text-white"
-                              : "border-secondary/40 bg-surface"
-                          }`}>
-                            <input 
-                              type="checkbox"
-                              className="sr-only"
-                              checked={selectedPermissions.has(perm._id)}
-                              onChange={() => handleToggle(perm._id)}
-                            />
-                            {selectedPermissions.has(perm._id) && <Check className="h-3 w-3" />}
+                      {perms.map(perm => {
+                        const isSelected = selectedPermissions.has(perm._id);
+                        return (
+                          <div
+                            key={perm._id}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => handleToggle(perm._id)}
+                            onKeyDown={(e) => {
+                              if (e.key === " " || e.key === "Enter") {
+                                e.preventDefault();
+                                handleToggle(perm._id);
+                              }
+                            }}
+                            className={`flex items-start gap-3 p-3 rounded-md border cursor-pointer transition-colors select-none ${
+                              isSelected
+                                ? "bg-brand/10 border-brand/30"
+                                : "bg-surface border-border hover:border-brand/30"
+                            }`}
+                          >
+                            <div className={`mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border ${
+                              isSelected
+                                ? "bg-brand border-brand text-white"
+                                : "border-secondary/40 bg-surface"
+                            }`}>
+                              {isSelected && <Check className="h-3 w-3 text-white" />}
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-primary leading-none mb-1">{perm.name}</p>
+                              {perm.description && (
+                                <p className="text-xs text-secondary leading-tight">{perm.description}</p>
+                              )}
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-sm font-medium text-primary leading-none mb-1">{perm.name}</p>
-                            {perm.description && (
-                              <p className="text-xs text-secondary leading-tight">{perm.description}</p>
-                            )}
-                          </div>
-                        </label>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {submitError && (
+            <div className="mt-6 rounded-xl bg-danger/8 border border-danger/20 px-4 py-3 text-sm text-danger">
+              {submitError}
             </div>
           )}
         </div>

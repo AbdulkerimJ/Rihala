@@ -64,9 +64,6 @@ export const ContractCompletionsList = () => {
       setVoidingCompletion(null);
       setVoidReason("");
     },
-    onError: (err) => {
-      toast.error(getApiErrorMessage(err, "Failed to void completion."));
-    }
   });
 
   const columns = [

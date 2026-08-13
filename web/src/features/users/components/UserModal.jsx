@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
 import { getRoles } from "../../roles/api";
+import { applyServerErrors } from "../../../utils/apiResponse";
 import { X, CheckCircle, Mail } from "lucide-react";
 import { Button } from "../../../components/ui/Button";
 
@@ -36,6 +37,7 @@ export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
     reset,
     setValue,
     watch,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(isEditing ? updateUserSchema : createUserSchema),
@@ -81,20 +83,24 @@ export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
   };
 
   const handleFormSubmit = async (data) => {
-    const response = await onSubmit(data);
-    
-    if (response?.data?.invitationCode) {
-      setInvitationData({
-        email: response.data.user.email,
-        code: response.data.invitationCode,
-      });
-    } else if (!isEditing) {
-      setInvitationData({
-        email: data.email,
-        code: null,
-      });
-    } else {
-      onClose();
+    try {
+      const response = await onSubmit(data);
+      
+      if (response?.data?.invitationCode) {
+        setInvitationData({
+          email: response.data.user.email,
+          code: response.data.invitationCode,
+        });
+      } else if (!isEditing) {
+        setInvitationData({
+          email: data.email,
+          code: null,
+        });
+      } else {
+        onClose();
+      }
+    } catch (error) {
+      applyServerErrors(setError, error);
     }
   };
 
@@ -144,8 +150,14 @@ export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto overflow-x-hidden bg-black bg-opacity-50 p-4">
-      <div className="relative w-full max-w-md rounded-lg bg-surface shadow-2xl border border-border overflow-hidden">
+    <div 
+      className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto overflow-x-hidden bg-black bg-opacity-50 p-4"
+      onClick={onClose}
+    >
+      <div 
+        className="relative w-full max-w-md rounded-lg bg-surface shadow-2xl border border-border overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <h3 className="text-lg font-semibold text-primary">
             {isEditing ? "Edit User" : "Invite New User"}
@@ -227,6 +239,12 @@ export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
               An invitation email will be sent to this address with a secure
               link to set their password.
             </p>
+          )}
+
+          {errors.root && (
+            <div className="mt-4 rounded-xl bg-danger/8 border border-danger/20 px-4 py-3 text-sm text-danger">
+              {errors.root.message}
+            </div>
           )}
 
           <div className="mt-6 flex justify-end gap-3">

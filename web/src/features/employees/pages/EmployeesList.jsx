@@ -33,7 +33,7 @@ const employeeSchema = z.object({
 });
 
 const EmployeeForm = ({ initialData, onSubmit, onClose }) => {
-  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, watch, setError, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(employeeSchema),
     defaultValues: initialData ? {
       ...initialData,
@@ -52,8 +52,18 @@ const EmployeeForm = ({ initialData, onSubmit, onClose }) => {
 
   const empType = watch("employmentType");
 
+  const handleFormSubmit = async (data) => {
+    try {
+      await onSubmit(data);
+    } catch (error) {
+      import("../../../utils/apiResponse").then(({ applyServerErrors }) => {
+        applyServerErrors(setError, error);
+      });
+    }
+  };
+
   return (
-    <form className="space-y-4 p-6" onSubmit={handleSubmit(onSubmit)}>
+    <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
       <FormField label="Full Name" required error={errors.name?.message}>
         <input {...register("name")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
       </FormField>
@@ -99,6 +109,12 @@ const EmployeeForm = ({ initialData, onSubmit, onClose }) => {
           <option value="inactive">Inactive</option>
         </select>
       </FormField>
+
+      {errors.root && (
+        <div className="rounded-xl bg-danger/8 border border-danger/20 px-4 py-3 text-sm text-danger">
+          {errors.root.message}
+        </div>
+      )}
 
       <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
         <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
@@ -147,6 +163,7 @@ export const EmployeesList = () => {
       toast.success("Employee created successfully");
       setIsOpen(false);
     },
+    meta: { suppressToast: true },
   });
   
   const updateMutation = useMutation({
@@ -156,6 +173,7 @@ export const EmployeesList = () => {
       toast.success("Employee updated successfully");
       setIsOpen(false);
     },
+    meta: { suppressToast: true },
   });
 
   const columns = [
@@ -255,7 +273,13 @@ export const EmployeesList = () => {
         <EmployeeForm
           initialData={editingEmployee}
           onClose={() => setIsOpen(false)}
-          onSubmit={(data) => editingEmployee ? updateMutation.mutateAsync({ id: editingEmployee._id, data }) : createMutation.mutateAsync(data)}
+          onSubmit={async (data) => {
+            if (editingEmployee) {
+              await updateMutation.mutateAsync({ id: editingEmployee._id, data });
+            } else {
+              await createMutation.mutateAsync(data);
+            }
+          }}
         />
       </Modal>
     </div>
