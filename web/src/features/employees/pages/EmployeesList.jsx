@@ -14,12 +14,14 @@ import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { DataTable } from "../../../components/ui/DataTable";
 import { FilterBar } from "../../../components/ui/FilterBar";
 import { FormField } from "../../../components/ui/FormField";
+import { Input } from "../../../components/ui/Input";
+import { Select } from "../../../components/ui/Select";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
-import { getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
+import { getApiErrorMessage, unwrapListResponse, applyServerErrors } from "../../../utils/apiResponse";
 
 const employeeSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -56,58 +58,64 @@ const EmployeeForm = ({ initialData, onSubmit, onClose }) => {
     try {
       await onSubmit(data);
     } catch (error) {
-      import("../../../utils/apiResponse").then(({ applyServerErrors }) => {
-        applyServerErrors(setError, error);
-      });
+      applyServerErrors(setError, error);
     }
   };
 
   return (
     <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
       <FormField label="Full Name" required error={errors.name?.message}>
-        <input {...register("name")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+        <Input {...register("name")} error={errors.name?.message} />
       </FormField>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Position" required error={errors.position?.message}>
-          <input {...register("position")} placeholder="e.g. Carpenter, Painter" className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+          <Input {...register("position")} placeholder="e.g. Carpenter, Painter" error={errors.position?.message} />
         </FormField>
         
         <FormField label="Phone" error={errors.phone?.message}>
-          <input {...register("phone")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+          <Input {...register("phone")} error={errors.phone?.message} />
         </FormField>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Employment Type" required error={errors.employmentType?.message}>
-          <select {...register("employmentType")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent">
-            <option value="permanent">Permanent</option>
-            <option value="contract">Contract</option>
-            <option value="daily">Daily Wage</option>
-          </select>
+          <Select
+            {...register("employmentType")}
+            error={errors.employmentType?.message}
+            options={[
+              { value: "permanent", label: "Permanent" },
+              { value: "contract", label: "Contract" },
+              { value: "daily", label: "Daily Wage" },
+            ]}
+          />
         </FormField>
         
         <FormField label="Hire Date" required error={errors.hireDate?.message}>
-          <input type="date" {...register("hireDate")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+          <Input type="date" {...register("hireDate")} error={errors.hireDate?.message} />
         </FormField>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Monthly Base Salary" error={errors.baseSalary?.message}>
-          <input type="number" step="0.01" {...register("baseSalary")} disabled={empType === "daily"} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50" />
+          <Input type="number" step="0.01" {...register("baseSalary")} disabled={empType === "daily"} error={errors.baseSalary?.message} />
         </FormField>
 
         <FormField label="Daily Rate (if applicable)" error={errors.dailyRate?.message}>
-          <input type="number" step="0.01" {...register("dailyRate")} disabled={empType !== "daily"} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50" />
+          <Input type="number" step="0.01" {...register("dailyRate")} disabled={empType !== "daily"} error={errors.dailyRate?.message} />
         </FormField>
       </div>
 
       <FormField label="Status" error={errors.status?.message}>
-        <select {...register("status")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent">
-          <option value="active">Active</option>
-          <option value="on_leave">On Leave</option>
-          <option value="inactive">Inactive</option>
-        </select>
+        <Select
+          {...register("status")}
+          error={errors.status?.message}
+          options={[
+            { value: "active", label: "Active" },
+            { value: "on_leave", label: "On Leave" },
+            { value: "inactive", label: "Inactive" },
+          ]}
+        />
       </FormField>
 
       {errors.root && (
@@ -118,7 +126,7 @@ const EmployeeForm = ({ initialData, onSubmit, onClose }) => {
 
       <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
         <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
-        <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save Employee"}</Button>
+        <Button type="submit" isLoading={isSubmitting}>Save Employee</Button>
       </div>
     </form>
   );
@@ -207,7 +215,6 @@ export const EmployeesList = () => {
     }
   ];
 
-
   if (isError) return <ErrorState description={getApiErrorMessage(error, "Failed to load employees.")} />;
 
   return (
@@ -228,26 +235,26 @@ export const EmployeesList = () => {
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}
         onClear={filters.search || filters.status || filters.employmentType ? () => { setFilters({ search: "", status: "", employmentType: "" }); setPage(1); } : undefined}
       >
-        <select
+        <Select
           value={filters.employmentType}
           onChange={(e) => { setFilters(p => ({ ...p, employmentType: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All Types</option>
-          <option value="permanent">Permanent</option>
-          <option value="contract">Contract</option>
-          <option value="daily">Daily Wage</option>
-        </select>
-        <select
+          placeholder="All Types"
+          options={[
+            { value: "permanent", label: "Permanent" },
+            { value: "contract", label: "Contract" },
+            { value: "daily", label: "Daily Wage" },
+          ]}
+        />
+        <Select
           value={filters.status}
           onChange={(e) => { setFilters(p => ({ ...p, status: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All Statuses</option>
-          <option value="active">Active</option>
-          <option value="on_leave">On Leave</option>
-          <option value="inactive">Inactive</option>
-        </select>
+          placeholder="All Statuses"
+          options={[
+            { value: "active", label: "Active" },
+            { value: "on_leave", label: "On Leave" },
+            { value: "inactive", label: "Inactive" },
+          ]}
+        />
       </FilterBar>
 
       <DataTable 

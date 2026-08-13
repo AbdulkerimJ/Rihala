@@ -15,6 +15,9 @@ import { DataTable } from "../../../components/ui/DataTable";
 import { Modal } from "../../../components/ui/Modal";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { FormField } from "../../../components/ui/FormField";
+import { Input } from "../../../components/ui/Input";
+import { Select } from "../../../components/ui/Select";
+import { Textarea } from "../../../components/ui/Textarea";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -44,14 +47,14 @@ const CompletionForm = ({ contract, onSubmit, onClose }) => {
         <p className="text-sm text-blue-800">Remaining to complete: <strong>{maxQty}</strong> units.</p>
       </div>
       <FormField label="Quantity Completed" required error={errors.quantity?.message}>
-        <input type="number" max={maxQty} {...register("quantity")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+        <Input type="number" max={maxQty} {...register("quantity")} error={errors.quantity?.message} />
       </FormField>
       <FormField label="Completion Date" required error={errors.recordedAt?.message}>
-        <input type="date" {...register("recordedAt")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+        <Input type="date" {...register("recordedAt")} error={errors.recordedAt?.message} />
       </FormField>
       <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
         <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
-        <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Record Completion"}</Button>
+        <Button type="submit" isLoading={isSubmitting}>Record Completion</Button>
       </div>
     </form>
   );
@@ -76,25 +79,29 @@ const PaymentForm = ({ contract, onSubmit, onClose }) => {
         <p className="text-sm text-blue-800">Max payable amount: <strong><MoneyDisplay amount={contract.stats.payableAmount} /></strong></p>
       </div>
       <FormField label="Amount (ETB)" required error={errors.amount?.message}>
-        <input type="number" step="0.01" max={contract.stats.payableAmount} {...register("amount")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+        <Input type="number" step="0.01" max={contract.stats.payableAmount} {...register("amount")} error={errors.amount?.message} />
       </FormField>
       <FormField label="Payment Date" required error={errors.paymentDate?.message}>
-        <input type="date" {...register("paymentDate")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+        <Input type="date" {...register("paymentDate")} error={errors.paymentDate?.message} />
       </FormField>
       <FormField label="Payment Method" required error={errors.paymentMethod?.message}>
-        <select {...register("paymentMethod")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent">
-          <option value="CASH">Cash</option>
-          <option value="BANK_TRANSFER">Bank Transfer</option>
-          <option value="CHEQUE">Cheque</option>
-          <option value="OTHER">Other</option>
-        </select>
+        <Select
+          {...register("paymentMethod")}
+          options={[
+            { value: "CASH", label: "Cash" },
+            { value: "BANK_TRANSFER", label: "Bank Transfer" },
+            { value: "CHEQUE", label: "Cheque" },
+            { value: "OTHER", label: "Other" },
+          ]}
+          error={errors.paymentMethod?.message}
+        />
       </FormField>
       <FormField label="Note (Optional)" error={errors.note?.message}>
-        <textarea {...register("note")} rows={2} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+        <Textarea {...register("note")} rows={2} error={errors.note?.message} />
       </FormField>
       <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
         <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
-        <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Record Payment"}</Button>
+        <Button type="submit" isLoading={isSubmitting}>Record Payment</Button>
       </div>
     </form>
   );
@@ -117,7 +124,7 @@ export const ContractDetail = () => {
   const contractQuery = useQuery({
     queryKey: ["contracts", id],
     queryFn: () => getContractById(id),
-    enabled: !!id,
+    enabled: can("contracts.read") && !!id,
   });
 
   const contract = unwrapEntityResponse(contractQuery.data);
@@ -351,8 +358,9 @@ export const ContractDetail = () => {
         isLoading={cancelMutation.isPending}
       >
         <div className="mt-4">
-          <label className="block text-sm font-medium text-secondary mb-1">Reason for cancellation (required)</label>
-          <input type="text" value={cancelReason} onChange={(e) => setCancelReason(e.target.value)} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-danger focus:outline-none focus:ring-1 focus:ring-danger" required />
+          <FormField label="Reason for cancellation (required)">
+            <Input type="text" value={cancelReason} onChange={(e) => setCancelReason(e.target.value)} required />
+          </FormField>
         </div>
       </ConfirmDialog>
 
@@ -368,8 +376,9 @@ export const ContractDetail = () => {
         isLoading={voidCompletionMutation.isPending}
       >
         <div className="mt-4">
-          <label className="block text-sm font-medium text-secondary mb-1">Reason (required)</label>
-          <input type="text" value={voidReason} onChange={(e) => setVoidReason(e.target.value)} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-danger focus:outline-none focus:ring-1 focus:ring-danger" required />
+          <FormField label="Reason (required)">
+            <Input type="text" value={voidReason} onChange={(e) => setVoidReason(e.target.value)} required />
+          </FormField>
         </div>
       </ConfirmDialog>
 
@@ -385,10 +394,12 @@ export const ContractDetail = () => {
         isLoading={voidPaymentMutation.isPending}
       >
         <div className="mt-4">
-          <label className="block text-sm font-medium text-secondary mb-1">Reason (required)</label>
-          <input type="text" value={voidReason} onChange={(e) => setVoidReason(e.target.value)} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-danger focus:outline-none focus:ring-1 focus:ring-danger" required />
+          <FormField label="Reason (required)">
+            <Input type="text" value={voidReason} onChange={(e) => setVoidReason(e.target.value)} required />
+          </FormField>
         </div>
       </ConfirmDialog>
     </div>
   );
 };
+

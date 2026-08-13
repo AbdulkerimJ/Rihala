@@ -11,6 +11,9 @@ import { Modal } from "../../../components/ui/Modal";
 import { DataTable } from "../../../components/ui/DataTable";
 import { FilterBar } from "../../../components/ui/FilterBar";
 import { FormField } from "../../../components/ui/FormField";
+import { Input } from "../../../components/ui/Input";
+import { Select } from "../../../components/ui/Select";
+import { Checkbox } from "../../../components/ui/Checkbox";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { useForm } from "react-hook-form";
@@ -37,31 +40,27 @@ const TaskTypeForm = ({ initialData, onSubmit, onClose }) => {
   return (
     <form className="space-y-4 p-6" onSubmit={handleSubmit(onSubmit)}>
       <FormField label="Name" required error={errors.name?.message}>
-        <input
+        <Input
           {...register("name")}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           placeholder="e.g. Painting, Finishing"
+          error={errors.name?.message}
         />
       </FormField>
 
-      <div className="flex items-center gap-2 pt-2">
-        <input
-          type="checkbox"
+      <div className="pt-2">
+        <Checkbox
           id="isActive"
+          label="Active"
           {...register("isActive")}
-          className="h-4 w-4 rounded border-border text-accent focus:ring-accent bg-main"
         />
-        <label htmlFor="isActive" className="text-sm font-medium text-primary">
-          Active
-        </label>
       </div>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
         <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>
           Cancel
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Saving..." : "Save Task Type"}
+        <Button type="submit" isLoading={isSubmitting}>
+          Save Task Type
         </Button>
       </div>
     </form>
@@ -87,6 +86,7 @@ export const TaskTypesList = () => {
     queryKey: ["task-types", params],
     queryFn: () => getTaskTypes(params),
     placeholderData: keepPreviousData,
+    enabled: can("taskTypes.read"),
   });
 
   const { items: taskTypes, pagination } = unwrapListResponse(data);
@@ -195,15 +195,15 @@ export const TaskTypesList = () => {
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}
         onClear={(filters.search || filters.isActive !== "") ? () => { setFilters({ search: "", isActive: "" }); setPage(1); } : undefined}
       >
-        <select
+        <Select
           value={filters.isActive}
           onChange={(e) => { setFilters(p => ({ ...p, isActive: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All Statuses</option>
-          <option value="true">Active</option>
-          <option value="false">Inactive</option>
-        </select>
+          options={[
+            { value: "", label: "All Statuses" },
+            { value: "true", label: "Active" },
+            { value: "false", label: "Inactive" },
+          ]}
+        />
       </FilterBar>
 
       <DataTable 
@@ -254,3 +254,4 @@ export const TaskTypesList = () => {
     </div>
   );
 };
+

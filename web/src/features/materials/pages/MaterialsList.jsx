@@ -13,6 +13,9 @@ import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { DataTable } from "../../../components/ui/DataTable";
 import { FilterBar } from "../../../components/ui/FilterBar";
 import { FormField } from "../../../components/ui/FormField";
+import { Input } from "../../../components/ui/Input";
+import { Textarea } from "../../../components/ui/Textarea";
+import { Select } from "../../../components/ui/Select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -42,40 +45,48 @@ const MaterialForm = ({ initialData, onSubmit, onClose }) => {
   return (
     <form className="space-y-4 p-6" onSubmit={handleSubmit(onSubmit)}>
       <FormField label="Material Name" required error={errors.name?.message}>
-        <input {...register("name")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+        <Input {...register("name")} error={errors.name?.message} />
       </FormField>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Category" error={errors.category?.message}>
-          <input {...register("category")} placeholder="e.g. Wood, Fabric, Hardware" className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+          <Input {...register("category")} placeholder="e.g. Wood, Fabric, Hardware" error={errors.category?.message} />
         </FormField>
         
         <FormField label="Unit of Measurement" required error={errors.unit?.message}>
-          <select {...register("unit")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent">
-            <option value="pcs">Pieces (pcs)</option>
-            <option value="m">Meters (m)</option>
-            <option value="kg">Kilograms (kg)</option>
-            <option value="liters">Liters (l)</option>
-            <option value="rolls">Rolls</option>
-            <option value="sets">Sets</option>
-          </select>
+          <Select
+            {...register("unit")}
+            error={errors.unit?.message}
+            options={[
+              { value: "pcs", label: "Pieces (pcs)" },
+              { value: "m", label: "Meters (m)" },
+              { value: "kg", label: "Kilograms (kg)" },
+              { value: "liters", label: "Liters (l)" },
+              { value: "rolls", label: "Rolls" },
+              { value: "sets", label: "Sets" },
+            ]}
+          />
         </FormField>
       </div>
 
       <FormField label="Description" error={errors.description?.message}>
-        <textarea {...register("description")} rows={2} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+        <Textarea {...register("description")} rows={2} error={errors.description?.message} />
       </FormField>
 
       <FormField label="Status" error={errors.status?.message}>
-        <select {...register("status")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent">
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
+        <Select
+          {...register("status")}
+          error={errors.status?.message}
+          options={[
+            { value: "active", label: "Active" },
+            { value: "inactive", label: "Inactive" },
+          ]}
+        />
       </FormField>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
         <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
-        <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save Material"}</Button>
+        <Button type="submit" isLoading={isSubmitting}>Save Material</Button>
       </div>
     </form>
   );
@@ -115,7 +126,7 @@ export const MaterialsList = () => {
   // Extract unique categories for filter
   const categoriesQuery = useQuery({
     queryKey: ["materials-categories"],
-    queryFn: () => getMaterials({ limit: 1000 }), // Simplified way to get categories
+    queryFn: () => getMaterials({ limit: 1000 }),
   });
   const uniqueCategories = useMemo(() => {
     const all = unwrapListResponse(categoriesQuery.data).items || [];
@@ -158,7 +169,6 @@ export const MaterialsList = () => {
     }
   ];
 
-
   if (isError) return <ErrorState description={getApiErrorMessage(error, "Failed to load materials.")} />;
 
   return (
@@ -179,25 +189,21 @@ export const MaterialsList = () => {
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}
         onClear={filters.search || filters.status || filters.category ? () => { setFilters({ search: "", status: "", category: "" }); setPage(1); } : undefined}
       >
-        <select
+        <Select
           value={filters.category}
           onChange={(e) => { setFilters(p => ({ ...p, category: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All Categories</option>
-          {uniqueCategories.map(cat => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </select>
-        <select
+          placeholder="All Categories"
+          options={uniqueCategories.map(cat => ({ value: cat, label: cat }))}
+        />
+        <Select
           value={filters.status}
           onChange={(e) => { setFilters(p => ({ ...p, status: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All Statuses</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
+          placeholder="All Statuses"
+          options={[
+            { value: "active", label: "Active" },
+            { value: "inactive", label: "Inactive" },
+          ]}
+        />
       </FilterBar>
 
       <DataTable 

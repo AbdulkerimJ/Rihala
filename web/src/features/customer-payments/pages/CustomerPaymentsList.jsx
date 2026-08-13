@@ -15,6 +15,9 @@ import { Modal } from "../../../components/ui/Modal";
 import { DataTable } from "../../../components/ui/DataTable";
 import { FilterBar } from "../../../components/ui/FilterBar";
 import { FormField } from "../../../components/ui/FormField";
+import { Input } from "../../../components/ui/Input";
+import { Select } from "../../../components/ui/Select";
+import { Textarea } from "../../../components/ui/Textarea";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
@@ -23,7 +26,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
 import { getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
-import { formatDateTime, formatDate } from "../../../utils/formatters";
+import { formatDate } from "../../../utils/formatters";
 
 const paymentSchema = z.object({
   customer: z.string().min(1, "Customer is required"),
@@ -69,52 +72,61 @@ const PaymentForm = ({ onSubmit, onClose }) => {
   return (
     <form className="space-y-4 p-6" onSubmit={handleSubmit(onSubmit)}>
       <FormField label="Customer" required error={errors.customer?.message}>
-        <select {...register("customer")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent">
-          <option value="">Select a customer</option>
-          {customers.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
-        </select>
+        <Select
+          {...register("customer")}
+          placeholder="Select a customer"
+          options={customers.map(c => ({ value: c._id, label: c.name }))}
+          error={errors.customer?.message}
+        />
       </FormField>
 
       <FormField label="Order (Optional)" error={errors.order?.message}>
-        <select {...register("order")} disabled={!selectedCustomer} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50">
-          <option value="">Apply to general balance</option>
-          {orders.map(o => <option key={o._id} value={o._id}>{o.description} - {o.agreedAmount} ETB</option>)}
-        </select>
+        <Select
+          {...register("order")}
+          disabled={!selectedCustomer}
+          placeholder="Apply to general balance"
+          options={orders.map(o => ({ value: o._id, label: `${o.description} - ${o.agreedAmount} ETB` }))}
+          error={errors.order?.message}
+        />
         {!selectedCustomer && <p className="text-xs text-secondary mt-1">Select a customer first</p>}
       </FormField>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Amount (ETB)" required error={errors.amount?.message}>
-          <input type="number" step="0.01" {...register("amount")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+          <Input type="number" step="0.01" {...register("amount")} error={errors.amount?.message} />
         </FormField>
         
         <FormField label="Payment Date" required error={errors.paymentDate?.message}>
-          <input type="date" {...register("paymentDate")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+          <Input type="date" {...register("paymentDate")} error={errors.paymentDate?.message} />
         </FormField>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Payment Method" error={errors.paymentMethod?.message}>
-          <select {...register("paymentMethod")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent">
-            <option value="cash">Cash</option>
-            <option value="bank_transfer">Bank Transfer</option>
-            <option value="check">Check</option>
-            <option value="other">Other</option>
-          </select>
+          <Select
+            {...register("paymentMethod")}
+            options={[
+              { value: "cash", label: "Cash" },
+              { value: "bank_transfer", label: "Bank Transfer" },
+              { value: "check", label: "Check" },
+              { value: "other", label: "Other" },
+            ]}
+            error={errors.paymentMethod?.message}
+          />
         </FormField>
 
         <FormField label="Reference Number" error={errors.referenceNumber?.message}>
-          <input {...register("referenceNumber")} placeholder="e.g. Check # or TXN ID" className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+          <Input {...register("referenceNumber")} placeholder="e.g. Check # or TXN ID" error={errors.referenceNumber?.message} />
         </FormField>
       </div>
 
       <FormField label="Notes" error={errors.notes?.message}>
-        <textarea {...register("notes")} rows={2} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+        <Textarea {...register("notes")} rows={2} error={errors.notes?.message} />
       </FormField>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
         <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
-        <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Processing..." : "Record Payment"}</Button>
+        <Button type="submit" isLoading={isSubmitting}>Record Payment</Button>
       </div>
     </form>
   );
@@ -147,6 +159,7 @@ export const CustomerPaymentsList = () => {
     queryKey: ["customer-payments", params],
     queryFn: () => getCustomerPayments(params),
     placeholderData: keepPreviousData,
+    enabled: can("customerPayments.read"),
   });
   const { items: payments, pagination } = unwrapListResponse(data);
 
@@ -189,18 +202,13 @@ export const CustomerPaymentsList = () => {
     { header: "Method", accessor: (row) => <span className="capitalize">{row.paymentMethod?.replace('_', ' ') || "—"}</span>, className: "text-secondary hidden md:table-cell" },
     { 
       header: "Status", 
-      accessor: (row) => (
-        <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${row.status === 'voided' ? 'bg-danger/10 text-danger' : 'bg-success/10 text-success'}`}>
-          {row.status === 'voided' ? 'Voided' : 'Valid'}
-        </span>
-      )
+      accessor: (row) => <StatusBadge status={row.status} />
     },
     { 
       header: "Actions", 
       isActions: true,
       accessor: (row) => (
         <div className="flex justify-end gap-2">
-          {/* We'll use a modal or drill-down for view, for now just void if valid */}
           <Can permission="customerPayments.void">
             {row.status !== 'voided' && (
               <Button variant="ghostDanger" size="sm" onClick={(e) => { e.stopPropagation(); setVoidingPayment(row); }}>
@@ -212,7 +220,6 @@ export const CustomerPaymentsList = () => {
       ) 
     }
   ];
-
 
   if (isError) return <ErrorState description={getApiErrorMessage(error, "Failed to load payments.")} />;
 
@@ -234,23 +241,23 @@ export const CustomerPaymentsList = () => {
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}
         onClear={Object.values(filters).some(Boolean) ? () => { setFilters({ search: "", customer: "", status: "", from: "", to: "" }); setPage(1); } : undefined}
       >
-        <select
+        <Select
           value={filters.customer}
           onChange={(e) => { setFilters(p => ({ ...p, customer: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All Customers</option>
-          {customers.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
-        </select>
-        <select
+          options={[
+            { value: "", label: "All Customers" },
+            ...customers.map(c => ({ value: c._id, label: c.name }))
+          ]}
+        />
+        <Select
           value={filters.status}
           onChange={(e) => { setFilters(p => ({ ...p, status: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All Statuses</option>
-          <option value="valid">Valid</option>
-          <option value="voided">Voided</option>
-        </select>
+          options={[
+            { value: "", label: "All Statuses" },
+            { value: "valid", label: "Valid" },
+            { value: "voided", label: "Voided" },
+          ]}
+        />
       </FilterBar>
 
       <DataTable 
@@ -290,17 +297,18 @@ export const CustomerPaymentsList = () => {
         isLoading={voidMutation.isPending}
       >
         <div className="mt-4">
-          <label className="block text-sm font-medium text-secondary mb-1">Reason for voiding (required)</label>
-          <input
-            type="text"
-            value={voidReason}
-            onChange={(e) => setVoidReason(e.target.value)}
-            className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-danger focus:outline-none focus:ring-1 focus:ring-danger"
-            placeholder="Entered by mistake, bounced check, etc."
-            required
-          />
+          <FormField label="Reason for voiding (required)">
+            <Input
+              type="text"
+              value={voidReason}
+              onChange={(e) => setVoidReason(e.target.value)}
+              placeholder="Entered by mistake, bounced check, etc."
+              required
+            />
+          </FormField>
         </div>
       </ConfirmDialog>
     </div>
   );
 };
+

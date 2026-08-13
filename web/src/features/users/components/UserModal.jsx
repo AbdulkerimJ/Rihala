@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { usePermission } from "../../../hooks/usePermission";
-import { createPortal } from "react-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
 import { getRoles } from "../../roles/api";
 import { applyServerErrors } from "../../../utils/apiResponse";
-import { X, CheckCircle, Mail } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import { Button } from "../../../components/ui/Button";
+import { Modal } from "../../../components/ui/Modal";
+import { FormField } from "../../../components/ui/FormField";
+import { Input } from "../../../components/ui/Input";
+import { Checkbox } from "../../../components/ui/Checkbox";
 
 const createUserSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -106,9 +109,9 @@ export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
 
   // Success state after invitation sent
   if (invitationData) {
-    return createPortal(
-      <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto overflow-x-hidden bg-black bg-opacity-50 p-4">
-        <div className="relative w-full max-w-md rounded-lg bg-surface shadow-2xl border border-border p-8 flex flex-col items-center text-center gap-4">
+    return (
+      <Modal isOpen={isOpen} onClose={onClose} maxWidth="max-w-md" showCloseButton={false}>
+        <div className="p-8 flex flex-col items-center text-center gap-4">
           <div className="h-16 w-16 rounded-full bg-success/10 flex items-center justify-center">
             <CheckCircle className="h-8 w-8 text-success" />
           </div>
@@ -118,8 +121,7 @@ export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
           <p className="text-sm text-secondary">
             An invitation email has been sent to{" "}
             <span className="font-medium text-primary">{invitationData.email}</span>.
-            They'll receive a link to set their password and activate their
-            account.
+            They'll receive a link to set their password and activate their account.
           </p>
           
           {invitationData.code && (
@@ -144,134 +146,87 @@ export const UserModal = ({ isOpen, onClose, onSubmit, initialData }) => {
             Done
           </Button>
         </div>
-      </div>,
-      document.body
+      </Modal>
     );
   }
 
-  return createPortal(
-    <div 
-      className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto overflow-x-hidden bg-black bg-opacity-50 p-4"
-      onClick={onClose}
+  return (
+    <Modal
+      isOpen={isOpen}
+      title={isEditing ? "Edit User" : "Invite New User"}
+      onClose={isSubmitting ? undefined : onClose}
+      maxWidth="max-w-md"
     >
-      <div 
-        className="relative w-full max-w-md rounded-lg bg-surface shadow-2xl border border-border overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between border-b border-border px-6 py-4">
-          <h3 className="text-lg font-semibold text-primary">
-            {isEditing ? "Edit User" : "Invite New User"}
-          </h3>
-          <Button variant="ghost" size="icon" onClick={isSubmitting ? undefined : onClose} disabled={isSubmitting} aria-label="Close">
-            <X className="h-5 w-5" />
-          </Button>
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="p-6 space-y-4">
+        {/* Name */}
+        <FormField label="Name" required error={errors.name?.message}>
+          <Input
+            type="text"
+            error={errors.name?.message}
+            {...register("name")}
+          />
+        </FormField>
+
+        {/* Email */}
+        <FormField label="Email" required error={errors.email?.message}>
+          <Input
+            type="email"
+            error={errors.email?.message}
+            {...register("email")}
+          />
+        </FormField>
+
+        {/* Role Selection */}
+        <div>
+          <label className="mb-2 block text-sm font-medium text-primary">
+            Assign Roles{" "}
+            <span className="text-muted font-normal">(optional)</span>
+          </label>
+          {availableRoles.length === 0 ? (
+            <p className="text-sm text-muted italic">Loading roles...</p>
+          ) : (
+            <div className="space-y-2 max-h-40 overflow-y-auto rounded-md border border-border p-2 bg-main">
+              {availableRoles.map((role) => (
+                <Checkbox
+                  key={role._id}
+                  label={role.name}
+                  checked={selectedRoles.includes(role._id)}
+                  onChange={() => toggleRole(role._id)}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="p-6">
-          <div className="space-y-4">
-            {/* Name */}
-            <div>
-              <label className="mb-1 block text-sm font-medium text-primary">
-                Name
-              </label>
-              <input
-                {...register("name")}
-                type="text"
-                className="block w-full rounded-md border border-border px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand bg-main text-primary"
-              />
-              {errors.name && (
-                <p className="mt-1 text-xs text-danger">
-                  {errors.name.message}
-                </p>
-              )}
-            </div>
+        {!isEditing && (
+          <p className="mt-4 text-xs text-muted bg-main rounded-lg px-3 py-2 border border-border">
+            An invitation email will be sent to this address with a secure link to set their password.
+          </p>
+        )}
 
-            {/* Email */}
-            <div>
-              <label className="mb-1 block text-sm font-medium text-primary">
-                Email
-              </label>
-              <input
-                {...register("email")}
-                type="email"
-                className="block w-full rounded-md border border-border px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand bg-main text-primary"
-              />
-              {errors.email && (
-                <p className="mt-1 text-xs text-danger">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
-
-            {/* Role Selection */}
-            <div>
-                <label className="mb-2 block text-sm font-medium text-primary">
-                  Assign Roles{" "}
-                  <span className="text-muted font-normal">(optional)</span>
-                </label>
-                {availableRoles.length === 0 ? (
-                  <p className="text-sm text-muted italic">Loading roles...</p>
-                ) : (
-                  <div className="space-y-2 max-h-40 overflow-y-auto rounded-md border border-border p-2 bg-main">
-                    {availableRoles.map((role) => (
-                      <label
-                        key={role._id}
-                        className="flex items-center gap-2 rounded px-2 py-1.5 cursor-pointer hover:bg-surface transition-colors"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedRoles.includes(role._id)}
-                          onChange={() => toggleRole(role._id)}
-                          className="rounded border-border text-brand focus:ring-brand accent-brand"
-                        />
-                        <span className="text-sm text-primary">
-                          {role.name}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
+        {errors.root && (
+          <div className="rounded-xl bg-danger/8 border border-danger/20 px-4 py-3 text-sm text-danger">
+            {errors.root.message}
           </div>
+        )}
 
-          {!isEditing && (
-            <p className="mt-4 text-xs text-muted bg-main rounded-lg px-3 py-2 border border-border">
-              An invitation email will be sent to this address with a secure
-              link to set their password.
-            </p>
-          )}
-
-          {errors.root && (
-            <div className="mt-4 rounded-xl bg-danger/8 border border-danger/20 px-4 py-3 text-sm text-danger">
-              {errors.root.message}
-            </div>
-          )}
-
-          <div className="mt-6 flex justify-end gap-3">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={onClose}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-            >
-              {isSubmitting
-                ? isEditing
-                  ? "Saving..."
-                  : "Sending Invitation..."
-                : isEditing
-                  ? "Save Changes"
-                  : "Send Invitation"}
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>,
-    document.body
+        <div className="mt-6 flex justify-end gap-3 border-t border-border/50 pt-4">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={onClose}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            isLoading={isSubmitting}
+          >
+            {isEditing ? "Save Changes" : "Send Invitation"}
+          </Button>
+        </div>
+      </form>
+    </Modal>
   );
 };

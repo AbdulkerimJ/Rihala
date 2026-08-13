@@ -1,7 +1,7 @@
 import { usePermission } from "../../../hooks/usePermission";
 import React, { useMemo, useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Can } from "../../../components/Can";
 import { createOrder, getOrders, updateOrder } from "../api";
 import { getCustomers } from "../../customers/api";
@@ -16,6 +16,9 @@ import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { DataTable } from "../../../components/ui/DataTable";
 import { FilterBar } from "../../../components/ui/FilterBar";
 import { FormField } from "../../../components/ui/FormField";
+import { Input } from "../../../components/ui/Input";
+import { Textarea } from "../../../components/ui/Textarea";
+import { Select } from "../../../components/ui/Select";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -72,72 +75,65 @@ const OrderForm = ({ initialData, customers, onSubmit, onClose }) => {
   return (
     <form className="space-y-4 p-6" onSubmit={handleSubmit(onSubmit)}>
       <FormField label="Customer" required error={errors.customer?.message}>
-        <select
+        <Select
           {...register("customer")}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">Select customer</option>
-          {customers.map((customer) => (
-            <option key={customer._id} value={customer._id}>
-              {customer.name}
-            </option>
-          ))}
-        </select>
+          placeholder="Select customer"
+          error={errors.customer?.message}
+          options={customers.map((c) => ({ value: c._id, label: c.name }))}
+        />
       </FormField>
 
       <FormField label="Description" required error={errors.description?.message}>
-        <textarea
+        <Textarea
           placeholder="Describe the agreed furniture/design"
           {...register("description")}
           rows={3}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          error={errors.description?.message}
         />
       </FormField>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Agreed Amount (ETB)" required error={errors.agreedAmount?.message}>
-          <input
+          <Input
             type="number"
             step="0.01"
             placeholder="0.00"
             {...register("agreedAmount")}
-            className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            error={errors.agreedAmount?.message}
           />
         </FormField>
 
         <FormField label="Expected Completion Date" required error={errors.expectedCompletionDate?.message}>
-          <input
+          <Input
             type="date"
             {...register("expectedCompletionDate")}
-            className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            error={errors.expectedCompletionDate?.message}
           />
         </FormField>
       </div>
 
       <FormField label="Notes" error={errors.notes?.message}>
-        <textarea
+        <Textarea
           placeholder="Optional notes"
           {...register("notes")}
           rows={2}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          error={errors.notes?.message}
         />
       </FormField>
 
       {isEditing && (
         <FormField label="Status" error={errors.status?.message}>
-          <select
+          <Select
             {...register("status")}
-            className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-          >
-            <option value={initialData.status}>
-              {ORDER_STATUS_LABELS[initialData.status]}
-            </option>
-            {allowedStatuses.map((status) => (
-              <option key={status} value={status}>
-                {ORDER_STATUS_LABELS[status]}
-              </option>
-            ))}
-          </select>
+            error={errors.status?.message}
+            options={[
+              { value: initialData.status, label: ORDER_STATUS_LABELS[initialData.status] },
+              ...allowedStatuses.map((status) => ({
+                value: status,
+                label: ORDER_STATUS_LABELS[status],
+              })),
+            ]}
+          />
         </FormField>
       )}
 
@@ -145,8 +141,8 @@ const OrderForm = ({ initialData, customers, onSubmit, onClose }) => {
         <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>
           Cancel
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Saving..." : "Save Order"}
+        <Button type="submit" isLoading={isSubmitting}>
+          Save Order
         </Button>
       </div>
     </form>
@@ -308,44 +304,32 @@ export const OrdersList = () => {
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}
         onClear={hasActiveFilters ? handleClearFilters : undefined}
       >
-        <select
+        <Select
           value={filters.status}
           onChange={(e) => { setFilters((p) => ({ ...p, status: e.target.value })); setPage(1); }}
-          className="rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All statuses</option>
-          {Object.entries(ORDER_STATUS_LABELS).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
+          placeholder="All statuses"
+          options={Object.entries(ORDER_STATUS_LABELS).map(([val, label]) => ({ value: val, label }))}
+        />
 
-        <select
+        <Select
           value={filters.customer}
           onChange={(e) => { setFilters((p) => ({ ...p, customer: e.target.value })); setPage(1); }}
-          className="rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All customers</option>
-          {customers.map((customer) => (
-            <option key={customer._id} value={customer._id}>
-              {customer.name}
-            </option>
-          ))}
-        </select>
+          placeholder="All customers"
+          options={customers.map((c) => ({ value: c._id, label: c.name }))}
+        />
 
-        <select
+        <Select
           value={filters.sort}
           onChange={(e) => { setFilters((p) => ({ ...p, sort: e.target.value })); setPage(1); }}
-          className="rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="-expectedCompletionDate">Expected completion (Newest)</option>
-          <option value="expectedCompletionDate">Expected completion (Oldest)</option>
-          <option value="-createdAt">Created (Newest)</option>
-          <option value="createdAt">Created (Oldest)</option>
-          <option value="-agreedAmount">Amount (High to Low)</option>
-          <option value="agreedAmount">Amount (Low to High)</option>
-        </select>
+          options={[
+            { value: "-expectedCompletionDate", label: "Expected completion (Newest)" },
+            { value: "expectedCompletionDate", label: "Expected completion (Oldest)" },
+            { value: "-createdAt", label: "Created (Newest)" },
+            { value: "createdAt", label: "Created (Oldest)" },
+            { value: "-agreedAmount", label: "Amount (High to Low)" },
+            { value: "agreedAmount", label: "Amount (Low to High)" },
+          ]}
+        />
       </FilterBar>
 
       <DataTable 

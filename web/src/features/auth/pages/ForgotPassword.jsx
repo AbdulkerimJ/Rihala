@@ -7,15 +7,13 @@ import toast from "react-hot-toast";
 import { Mail, ArrowLeft, Send, CheckCircle2 } from "lucide-react";
 import { forgotPassword } from "../api";
 import { getApiErrorMessage } from "../../../utils/apiResponse";
+import { FormField } from "../../../components/ui/FormField";
+import { Input } from "../../../components/ui/Input";
+import { Button } from "../../../components/ui/Button";
 
 const schema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email format"),
 });
-
-const inputBase =
-  "block w-full rounded-xl border bg-main px-4 py-2.5 text-sm text-primary placeholder:text-muted transition-all duration-150 focus:outline-none focus:ring-2 disabled:opacity-50";
-const inputNormal = "border-border focus:border-accent focus:ring-accent/20";
-const inputError  = "border-danger focus:border-danger focus:ring-danger/20";
 
 export const ForgotPassword = () => {
   const [submitted, setSubmitted] = useState(false);
@@ -90,44 +88,30 @@ export const ForgotPassword = () => {
       </div>
 
       <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
-        <div className="space-y-1.5">
-          <label htmlFor="email" className="block text-sm font-medium text-primary">
-            Email address
-          </label>
-          <input
+        <FormField label="Email address" error={errors.email?.message}>
+          <Input
             id="email"
             type="email"
+            size="lg"
             autoComplete="email"
             placeholder="you@example.com"
-            className={`${inputBase} ${errors.email ? inputError : inputNormal}`}
+            disabled={isSubmitting}
+            error={errors.email?.message}
             {...register("email")}
           />
-          {errors.email && (
-            <p className="flex items-center gap-1 text-xs text-danger">
-              <span className="inline-block h-1 w-1 shrink-0 rounded-full bg-danger" />
-              {errors.email.message}
-            </p>
-          )}
-        </div>
+        </FormField>
 
-        <button
+        <Button
           id="forgot-password-submit"
           type="submit"
-          disabled={isSubmitting}
-          className="group flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent/40 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          size="lg"
+          fullWidth
+          isLoading={isSubmitting}
+          leftIcon={isSubmitting ? undefined : Send}
+          className="rounded-xl"
         >
-          {isSubmitting ? (
-            <>
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-              Sending…
-            </>
-          ) : (
-            <>
-              <Send className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-              Send reset link
-            </>
-          )}
-        </button>
+          {isSubmitting ? "Sending…" : "Send reset link"}
+        </Button>
       </form>
 
       <Link

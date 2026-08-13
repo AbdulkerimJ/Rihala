@@ -16,6 +16,9 @@ import {
   KeyRound,
 } from "lucide-react";
 import { applyServerErrors, getApiErrorMessage } from "../../../utils/apiResponse";
+import { FormField } from "../../../components/ui/FormField";
+import { Input } from "../../../components/ui/Input";
+import { Button } from "../../../components/ui/Button";
 
 const schema = z
   .object({
@@ -27,19 +30,6 @@ const schema = z
     message: "Passwords do not match",
     path: ["confirmPassword"],
   });
-
-const inputBase =
-  "block w-full rounded-xl border bg-main px-4 py-2.5 text-sm text-primary placeholder:text-muted transition-all duration-150 focus:outline-none focus:ring-2";
-const inputNormal = "border-border focus:border-accent focus:ring-accent/20";
-const inputError  = "border-danger focus:border-danger focus:ring-danger/20";
-
-const FieldError = ({ message }) =>
-  message ? (
-    <p className="flex items-center gap-1 text-xs text-danger">
-      <span className="inline-block h-1 w-1 shrink-0 rounded-full bg-danger" />
-      {message}
-    </p>
-  ) : null;
 
 export const AcceptInvitation = () => {
   const { token } = useParams();
@@ -113,12 +103,14 @@ export const AcceptInvitation = () => {
             </p>
           </div>
         </div>
-        <button
+        <Button
           onClick={() => navigate("/login")}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent/40 focus:ring-offset-2"
+          size="lg"
+          fullWidth
+          className="rounded-xl"
         >
           Go to login
-        </button>
+        </Button>
       </div>
     );
   }
@@ -176,34 +168,28 @@ export const AcceptInvitation = () => {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {/* Verification code */}
-        <div className="space-y-1.5">
-          <label className="block text-sm font-medium text-primary">
-            Verification code
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-              <KeyRound className="h-4 w-4 text-muted" />
-            </div>
-            <input
-              {...register("code")}
-              inputMode="numeric"
-              maxLength={4}
-              placeholder="4-digit code"
-              className={`${inputBase} pl-11 tracking-widest font-mono ${errors.code ? inputError : inputNormal}`}
-            />
-          </div>
-          <FieldError message={errors.code?.message} />
-        </div>
+        <FormField label="Verification code" error={errors.code?.message}>
+          <Input
+            size="lg"
+            leftIcon={KeyRound}
+            inputMode="numeric"
+            maxLength={4}
+            placeholder="4-digit code"
+            className="tracking-widest font-mono"
+            error={errors.code?.message}
+            {...register("code")}
+          />
+        </FormField>
 
         {/* Password */}
-        <div className="space-y-1.5">
-          <label className="block text-sm font-medium text-primary">Password</label>
+        <FormField label="Password" error={errors.password?.message}>
           <div className="relative">
-            <input
-              {...register("password")}
+            <Input
               type={showPassword ? "text" : "password"}
+              size="lg"
               placeholder="At least 6 characters"
-              className={`${inputBase} pr-11 ${errors.password ? inputError : inputNormal}`}
+              error={errors.password?.message}
+              {...register("password")}
             />
             <button
               type="button"
@@ -214,18 +200,17 @@ export const AcceptInvitation = () => {
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
-          <FieldError message={errors.password?.message} />
-        </div>
+        </FormField>
 
         {/* Confirm password */}
-        <div className="space-y-1.5">
-          <label className="block text-sm font-medium text-primary">Confirm password</label>
+        <FormField label="Confirm password" error={errors.confirmPassword?.message}>
           <div className="relative">
-            <input
-              {...register("confirmPassword")}
+            <Input
               type={showConfirm ? "text" : "password"}
+              size="lg"
               placeholder="Repeat your password"
-              className={`${inputBase} pr-11 ${errors.confirmPassword ? inputError : inputNormal}`}
+              error={errors.confirmPassword?.message}
+              {...register("confirmPassword")}
             />
             <button
               type="button"
@@ -236,8 +221,7 @@ export const AcceptInvitation = () => {
               {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
-          <FieldError message={errors.confirmPassword?.message} />
-        </div>
+        </FormField>
 
         {/* Server error */}
         {errors.root && (
@@ -246,24 +230,17 @@ export const AcceptInvitation = () => {
           </div>
         )}
 
-        <button
+        <Button
           id="accept-invitation-submit"
           type="submit"
-          disabled={isSubmitting}
-          className="group flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent/40 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          size="lg"
+          fullWidth
+          isLoading={isSubmitting}
+          leftIcon={isSubmitting ? undefined : ShieldCheck}
+          className="rounded-xl"
         >
-          {isSubmitting ? (
-            <>
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-              Activating account…
-            </>
-          ) : (
-            <>
-              <ShieldCheck className="h-4 w-4" />
-              Set password & activate account
-            </>
-          )}
-        </button>
+          {isSubmitting ? "Activating account…" : "Set password & activate account"}
+        </Button>
       </form>
 
       <p className="text-center text-xs text-muted">

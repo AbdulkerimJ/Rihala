@@ -11,6 +11,9 @@ import { Modal } from "../../../components/ui/Modal";
 import { DataTable } from "../../../components/ui/DataTable";
 import { FilterBar } from "../../../components/ui/FilterBar";
 import { FormField } from "../../../components/ui/FormField";
+import { Input } from "../../../components/ui/Input";
+import { Textarea } from "../../../components/ui/Textarea";
+import { Select } from "../../../components/ui/Select";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { useForm } from "react-hook-form";
@@ -41,46 +44,47 @@ const ContractorForm = ({ initialData, onSubmit, onClose }) => {
   return (
     <form className="space-y-4 p-6" onSubmit={handleSubmit(onSubmit)}>
       <FormField label="Name" required error={errors.name?.message}>
-        <input
+        <Input
           {...register("name")}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          error={errors.name?.message}
           placeholder="e.g. Ali Ahmed"
         />
       </FormField>
 
       <FormField label="Phone (Optional)" error={errors.phone?.message}>
-        <input
+        <Input
           {...register("phone")}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          error={errors.phone?.message}
           placeholder="e.g. +251 911 234 567"
         />
       </FormField>
 
       <FormField label="Notes" error={errors.notes?.message}>
-        <textarea
+        <Textarea
           {...register("notes")}
           rows={3}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          error={errors.notes?.message}
           placeholder="Optional notes"
         />
       </FormField>
 
       <FormField label="Status" error={errors.status?.message}>
-        <select
+        <Select
           {...register("status")}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
+          error={errors.status?.message}
+          options={[
+            { value: "active", label: "Active" },
+            { value: "inactive", label: "Inactive" },
+          ]}
+        />
       </FormField>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
         <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>
           Cancel
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Saving..." : "Save Contractor"}
+        <Button type="submit" isLoading={isSubmitting}>
+          Save Contractor
         </Button>
       </div>
     </form>
@@ -212,15 +216,15 @@ export const ContractorsList = () => {
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}
         onClear={(filters.search || filters.status !== "") ? () => { setFilters({ search: "", status: "" }); setPage(1); } : undefined}
       >
-        <select
+        <Select
           value={filters.status}
           onChange={(e) => { setFilters(p => ({ ...p, status: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All Statuses</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
+          placeholder="All Statuses"
+          options={[
+            { value: "active", label: "Active" },
+            { value: "inactive", label: "Inactive" },
+          ]}
+        />
       </FilterBar>
 
       <DataTable 
@@ -260,13 +264,13 @@ export const ContractorsList = () => {
       <ConfirmDialog
         isOpen={!!deletingContractor}
         title="Delete Contractor"
-        message={`Are you sure you want to delete "${deletingContractor?.name}"? This action cannot be undone. You can only delete contractors that have no associated contracts.`}
+        description={`Are you sure you want to delete "${deletingContractor?.name}"? This action cannot be undone. You can only delete contractors that have no associated contracts.`}
         confirmLabel="Delete"
         cancelLabel="Cancel"
         onConfirm={() => deleteMutation.mutateAsync(deletingContractor._id)}
         onCancel={() => setDeletingContractor(null)}
-        isDestructive
-        isLoading={deleteMutation.isPending}
+        variant="danger"
+        isSubmitting={deleteMutation.isPending}
       />
     </div>
   );

@@ -10,6 +10,9 @@ import { EmptyState } from "../../../components/ui/EmptyState";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { DataTable } from "../../../components/ui/DataTable";
 import { FilterBar } from "../../../components/ui/FilterBar";
+import { FormField } from "../../../components/ui/FormField";
+import { Input } from "../../../components/ui/Input";
+import { Select } from "../../../components/ui/Select";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
@@ -42,6 +45,7 @@ export const ContractorPaymentsList = () => {
     queryKey: ["contractor-payments", params],
     queryFn: () => getContractorPayments(params),
     placeholderData: keepPreviousData,
+    enabled: can("contractorPayments.read"),
   });
 
   const { items: payments, pagination } = unwrapListResponse(data);
@@ -110,34 +114,34 @@ export const ContractorPaymentsList = () => {
       <FilterBar 
         onClear={Object.values(filters).some(v => v !== "") ? () => { setFilters({ contract: "", status: "", paymentMethod: "" }); setPage(1); } : undefined}
       >
-        <select
+        <Select
           value={filters.contract}
           onChange={(e) => { setFilters(p => ({ ...p, contract: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All Contracts</option>
-          {contracts.map(c => <option key={c._id} value={c._id}>{c.contractNumber} ({c.contractor?.name})</option>)}
-        </select>
-        <select
+          options={[
+            { value: "", label: "All Contracts" },
+            ...contracts.map(c => ({ value: c._id, label: `${c.contractNumber} (${c.contractor?.name})` }))
+          ]}
+        />
+        <Select
           value={filters.paymentMethod}
           onChange={(e) => { setFilters(p => ({ ...p, paymentMethod: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All Methods</option>
-          <option value="CASH">Cash</option>
-          <option value="BANK_TRANSFER">Bank Transfer</option>
-          <option value="CHEQUE">Cheque</option>
-          <option value="OTHER">Other</option>
-        </select>
-        <select
+          options={[
+            { value: "", label: "All Methods" },
+            { value: "CASH", label: "Cash" },
+            { value: "BANK_TRANSFER", label: "Bank Transfer" },
+            { value: "CHEQUE", label: "Cheque" },
+            { value: "OTHER", label: "Other" },
+          ]}
+        />
+        <Select
           value={filters.status}
           onChange={(e) => { setFilters(p => ({ ...p, status: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All Statuses</option>
-          <option value="active">Active</option>
-          <option value="voided">Voided</option>
-        </select>
+          options={[
+            { value: "", label: "All Statuses" },
+            { value: "active", label: "Active" },
+            { value: "voided", label: "Voided" },
+          ]}
+        />
       </FilterBar>
 
       <DataTable 
@@ -168,17 +172,18 @@ export const ContractorPaymentsList = () => {
         isLoading={voidMutation.isPending}
       >
         <div className="mt-4">
-          <label className="block text-sm font-medium text-secondary mb-1">Reason for voiding (required)</label>
-          <input
-            type="text"
-            value={voidReason}
-            onChange={(e) => setVoidReason(e.target.value)}
-            className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-danger focus:outline-none focus:ring-1 focus:ring-danger"
-            placeholder="e.g. Bounced cheque, entry error"
-            required
-          />
+          <FormField label="Reason for voiding (required)">
+            <Input
+              type="text"
+              value={voidReason}
+              onChange={(e) => setVoidReason(e.target.value)}
+              placeholder="e.g. Bounced cheque, entry error"
+              required
+            />
+          </FormField>
         </div>
       </ConfirmDialog>
     </div>
   );
 };
+

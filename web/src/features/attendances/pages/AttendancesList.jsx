@@ -13,6 +13,10 @@ import { Modal } from "../../../components/ui/Modal";
 import { DataTable } from "../../../components/ui/DataTable";
 import { FilterBar } from "../../../components/ui/FilterBar";
 import { FormField } from "../../../components/ui/FormField";
+import { Input } from "../../../components/ui/Input";
+import { Select } from "../../../components/ui/Select";
+import { Textarea } from "../../../components/ui/Textarea";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -53,34 +57,40 @@ const AttendanceForm = ({ initialData, onSubmit, onClose }) => {
   return (
     <form className="space-y-4 p-6" onSubmit={handleSubmit(onSubmit)}>
       <FormField label="Employee" required error={errors.employee?.message}>
-        <select {...register("employee")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent">
-          <option value="">Select an employee</option>
-          {employees.map(e => <option key={e._id} value={e._id}>{e.name}</option>)}
-        </select>
+        <Select
+          {...register("employee")}
+          placeholder="Select an employee"
+          options={employees.map(e => ({ value: e._id, label: e.name }))}
+          error={errors.employee?.message}
+        />
       </FormField>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Date" required error={errors.date?.message}>
-          <input type="date" {...register("date")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+          <Input type="date" {...register("date")} error={errors.date?.message} />
         </FormField>
 
         <FormField label="Status" error={errors.status?.message}>
-          <select {...register("status")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent">
-            <option value="present">Present</option>
-            <option value="half_day">Half Day</option>
-            <option value="absent">Absent</option>
-            <option value="leave">On Leave</option>
-          </select>
+          <Select
+            {...register("status")}
+            options={[
+              { value: "present", label: "Present" },
+              { value: "half_day", label: "Half Day" },
+              { value: "absent", label: "Absent" },
+              { value: "leave", label: "On Leave" },
+            ]}
+            error={errors.status?.message}
+          />
         </FormField>
       </div>
 
       <FormField label="Notes" error={errors.notes?.message}>
-        <textarea {...register("notes")} rows={2} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+        <Textarea {...register("notes")} rows={2} error={errors.notes?.message} />
       </FormField>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
         <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
-        <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Processing..." : "Save Record"}</Button>
+        <Button type="submit" isLoading={isSubmitting}>Save Record</Button>
       </div>
     </form>
   );
@@ -111,6 +121,7 @@ export const AttendancesList = () => {
     queryKey: ["attendances", params],
     queryFn: () => getAttendances(params),
     placeholderData: keepPreviousData,
+    enabled: can("attendances.read"),
   });
   const { items: attendances, pagination } = unwrapListResponse(data);
 
@@ -147,14 +158,7 @@ export const AttendancesList = () => {
     { header: "Employee", accessor: (row) => row.employee?.name || "Unknown", className: "font-medium" },
     { 
       header: "Status", 
-      accessor: (row) => (
-        <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium 
-          ${row.status === 'present' ? 'bg-success/10 text-success' : 
-            row.status === 'absent' ? 'bg-danger/10 text-danger' : 
-            row.status === 'half_day' ? 'bg-warning/10 text-warning' : 'bg-secondary/10 text-secondary'}`}>
-          {row.status?.replace('_', ' ') || "—"}
-        </span>
-      )
+      accessor: (row) => <StatusBadge status={row.status} />
     },
     { header: "Notes", accessor: "notes", className: "text-secondary hidden md:table-cell" },
     { 
@@ -171,7 +175,6 @@ export const AttendancesList = () => {
       ) 
     }
   ];
-
 
   if (isError) return <ErrorState description={getApiErrorMessage(error, "Failed to load attendance records.")} />;
 
@@ -193,36 +196,34 @@ export const AttendancesList = () => {
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}
         onClear={Object.values(filters).some(Boolean) ? () => { setFilters({ search: "", employee: "", status: "", from: "", to: "" }); setPage(1); } : undefined}
       >
-        <select
+        <Select
           value={filters.employee}
           onChange={(e) => { setFilters(p => ({ ...p, employee: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All Employees</option>
-          {employees.map(e => <option key={e._id} value={e._id}>{e.name}</option>)}
-        </select>
-        <select
+          options={[
+            { value: "", label: "All Employees" },
+            ...employees.map(e => ({ value: e._id, label: e.name }))
+          ]}
+        />
+        <Select
           value={filters.status}
           onChange={(e) => { setFilters(p => ({ ...p, status: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All Statuses</option>
-          <option value="present">Present</option>
-          <option value="half_day">Half Day</option>
-          <option value="absent">Absent</option>
-          <option value="leave">On Leave</option>
-        </select>
-        <input
+          options={[
+            { value: "", label: "All Statuses" },
+            { value: "present", label: "Present" },
+            { value: "half_day", label: "Half Day" },
+            { value: "absent", label: "Absent" },
+            { value: "leave", label: "On Leave" },
+          ]}
+        />
+        <Input
           type="date"
           value={filters.from}
           onChange={(e) => { setFilters(p => ({ ...p, from: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         />
-        <input
+        <Input
           type="date"
           value={filters.to}
           onChange={(e) => { setFilters(p => ({ ...p, to: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         />
       </FilterBar>
 
@@ -254,3 +255,4 @@ export const AttendancesList = () => {
     </div>
   );
 };
+

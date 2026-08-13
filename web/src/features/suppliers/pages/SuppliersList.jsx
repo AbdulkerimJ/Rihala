@@ -14,6 +14,9 @@ import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { DataTable } from "../../../components/ui/DataTable";
 import { FilterBar } from "../../../components/ui/FilterBar";
 import { FormField } from "../../../components/ui/FormField";
+import { Input } from "../../../components/ui/Input";
+import { Select } from "../../../components/ui/Select";
+import { Textarea } from "../../../components/ui/Textarea";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -50,47 +53,51 @@ const SupplierForm = ({ initialData, onSubmit, onClose }) => {
   return (
     <form className="space-y-4 p-6" onSubmit={handleSubmit(onSubmit)}>
       <FormField label="Company Name" required error={errors.name?.message}>
-        <input {...register("name")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+        <Input {...register("name")} error={errors.name?.message} />
       </FormField>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Contact Person" error={errors.contactPerson?.message}>
-          <input {...register("contactPerson")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+          <Input {...register("contactPerson")} error={errors.contactPerson?.message} />
         </FormField>
         
         <FormField label="Phone" required error={errors.phone?.message}>
-          <input {...register("phone")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+          <Input {...register("phone")} error={errors.phone?.message} />
         </FormField>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Email" error={errors.email?.message}>
-          <input {...register("email")} type="email" className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+          <Input {...register("email")} type="email" error={errors.email?.message} />
         </FormField>
         
         <FormField label="Tax ID / TIN" error={errors.taxId?.message}>
-          <input {...register("taxId")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+          <Input {...register("taxId")} error={errors.taxId?.message} />
         </FormField>
       </div>
 
       <FormField label="Address" error={errors.address?.message}>
-        <input {...register("address")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+        <Input {...register("address")} error={errors.address?.message} />
       </FormField>
 
       <FormField label="Notes" error={errors.notes?.message}>
-        <textarea {...register("notes")} rows={2} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+        <Textarea {...register("notes")} rows={2} error={errors.notes?.message} />
       </FormField>
 
       <FormField label="Status" error={errors.status?.message}>
-        <select {...register("status")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent">
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
+        <Select
+          {...register("status")}
+          options={[
+            { value: "active", label: "Active" },
+            { value: "inactive", label: "Inactive" },
+          ]}
+          error={errors.status?.message}
+        />
       </FormField>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
         <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
-        <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save Supplier"}</Button>
+        <Button type="submit" isLoading={isSubmitting}>Save Supplier</Button>
       </div>
     </form>
   );
@@ -115,6 +122,7 @@ export const SuppliersList = () => {
     queryKey: ["suppliers", params],
     queryFn: () => getSuppliers(params),
     placeholderData: keepPreviousData,
+    enabled: can("suppliers.read"),
   });
   const { items: suppliers, pagination } = unwrapListResponse(data);
 
@@ -170,7 +178,6 @@ export const SuppliersList = () => {
     }
   ];
 
-
   if (isError) return <ErrorState description={getApiErrorMessage(error, "Failed to load suppliers.")} />;
 
   return (
@@ -191,15 +198,15 @@ export const SuppliersList = () => {
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}
         onClear={filters.search || filters.status ? () => { setFilters({ search: "", status: "" }); setPage(1); } : undefined}
       >
-        <select
+        <Select
           value={filters.status}
           onChange={(e) => { setFilters(p => ({ ...p, status: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All Statuses</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
+          options={[
+            { value: "", label: "All Statuses" },
+            { value: "active", label: "Active" },
+            { value: "inactive", label: "Inactive" },
+          ]}
+        />
       </FilterBar>
 
       <DataTable 
@@ -231,3 +238,4 @@ export const SuppliersList = () => {
     </div>
   );
 };
+

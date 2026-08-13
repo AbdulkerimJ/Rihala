@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import { usePermission } from "../../../hooks/usePermission";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { createPurchase, getPurchases, updatePurchase } from "../api";
+import { createPurchase, getPurchases } from "../api";
 import { getSuppliers } from "../../suppliers/api";
 import { getMaterials } from "../../materials/api";
 import { PageHeader } from "../../../components/ui/PageHeader";
@@ -15,13 +15,16 @@ import { Modal } from "../../../components/ui/Modal";
 import { DataTable } from "../../../components/ui/DataTable";
 import { FilterBar } from "../../../components/ui/FilterBar";
 import { FormField } from "../../../components/ui/FormField";
+import { Input } from "../../../components/ui/Input";
+import { Select } from "../../../components/ui/Select";
+import { Textarea } from "../../../components/ui/Textarea";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
 import { getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
-import { formatDateTime, formatDate } from "../../../utils/formatters";
+import { formatDate } from "../../../utils/formatters";
 import { Plus, Trash2 } from "lucide-react";
 
 const purchaseItemSchema = z.object({
@@ -77,20 +80,22 @@ const PurchaseForm = ({ initialData, onSubmit, onClose }) => {
     <form className="space-y-4 p-6 overflow-y-auto max-h-[80vh]" onSubmit={handleSubmit(onSubmit)}>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Supplier" required error={errors.supplier?.message}>
-          <select {...register("supplier")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent">
-            <option value="">Select a supplier</option>
-            {suppliers.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
-          </select>
+          <Select
+            {...register("supplier")}
+            placeholder="Select a supplier"
+            options={suppliers.map(s => ({ value: s._id, label: s.name }))}
+            error={errors.supplier?.message}
+          />
         </FormField>
         
         <FormField label="Purchase Date" required error={errors.purchaseDate?.message}>
-          <input type="date" {...register("purchaseDate")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+          <Input type="date" {...register("purchaseDate")} error={errors.purchaseDate?.message} />
         </FormField>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Reference Number" error={errors.referenceNumber?.message}>
-          <input {...register("referenceNumber")} placeholder="e.g. INV-12345" className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+          <Input {...register("referenceNumber")} placeholder="e.g. INV-12345" error={errors.referenceNumber?.message} />
         </FormField>
       </div>
 
@@ -109,20 +114,22 @@ const PurchaseForm = ({ initialData, onSubmit, onClose }) => {
             <div key={item.id} className="grid grid-cols-12 gap-2 items-start bg-main/50 p-3 rounded-lg border border-border/50">
               <div className="col-span-12 sm:col-span-5">
                 <FormField error={errors.items?.[index]?.material?.message}>
-                  <select {...register(`items.${index}.material`)} className="w-full rounded-md border border-border bg-surface px-3 py-1.5 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent">
-                    <option value="">Select material</option>
-                    {materials.map(m => <option key={m._id} value={m._id}>{m.name} ({m.unit})</option>)}
-                  </select>
+                  <Select
+                    {...register(`items.${index}.material`)}
+                    placeholder="Select material"
+                    options={materials.map(m => ({ value: m._id, label: `${m.name} (${m.unit})` }))}
+                    error={errors.items?.[index]?.material?.message}
+                  />
                 </FormField>
               </div>
               <div className="col-span-5 sm:col-span-2">
                 <FormField error={errors.items?.[index]?.quantity?.message}>
-                  <input type="number" step="0.01" placeholder="Qty" {...register(`items.${index}.quantity`)} className="w-full rounded-md border border-border bg-surface px-3 py-1.5 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+                  <Input type="number" step="0.01" placeholder="Qty" {...register(`items.${index}.quantity`)} error={errors.items?.[index]?.quantity?.message} />
                 </FormField>
               </div>
               <div className="col-span-5 sm:col-span-3">
                 <FormField error={errors.items?.[index]?.unitPrice?.message}>
-                  <input type="number" step="0.01" placeholder="Price" {...register(`items.${index}.unitPrice`)} className="w-full rounded-md border border-border bg-surface px-3 py-1.5 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+                  <Input type="number" step="0.01" placeholder="Price" {...register(`items.${index}.unitPrice`)} error={errors.items?.[index]?.unitPrice?.message} />
                 </FormField>
               </div>
               <div className="col-span-2 sm:col-span-2 flex justify-end">
@@ -139,12 +146,12 @@ const PurchaseForm = ({ initialData, onSubmit, onClose }) => {
       </div>
 
       <FormField label="Notes" error={errors.notes?.message}>
-        <textarea {...register("notes")} rows={2} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+        <Textarea {...register("notes")} rows={2} error={errors.notes?.message} />
       </FormField>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
         <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
-        <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save Purchase"}</Button>
+        <Button type="submit" isLoading={isSubmitting}>Save Purchase</Button>
       </div>
     </form>
   );
@@ -175,6 +182,7 @@ export const PurchasesList = () => {
     queryKey: ["purchases", params],
     queryFn: () => getPurchases(params),
     placeholderData: keepPreviousData,
+    enabled: can("purchases.read"),
   });
   const { items: purchases, pagination } = unwrapListResponse(data);
 
@@ -214,7 +222,6 @@ export const PurchasesList = () => {
     }
   ];
 
-
   if (isError) return <ErrorState description={getApiErrorMessage(error, "Failed to load purchases.")} />;
 
   return (
@@ -235,25 +242,23 @@ export const PurchasesList = () => {
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}
         onClear={filters.search || filters.supplier || filters.from || filters.to ? () => { setFilters({ search: "", supplier: "", from: "", to: "" }); setPage(1); } : undefined}
       >
-        <select
+        <Select
           value={filters.supplier}
           onChange={(e) => { setFilters(p => ({ ...p, supplier: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All Suppliers</option>
-          {suppliers.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
-        </select>
-        <input
+          options={[
+            { value: "", label: "All Suppliers" },
+            ...suppliers.map(s => ({ value: s._id, label: s.name }))
+          ]}
+        />
+        <Input
           type="date"
           value={filters.from}
           onChange={(e) => { setFilters(p => ({ ...p, from: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         />
-        <input
+        <Input
           type="date"
           value={filters.to}
           onChange={(e) => { setFilters(p => ({ ...p, to: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         />
       </FilterBar>
 
@@ -285,3 +290,4 @@ export const PurchasesList = () => {
     </div>
   );
 };
+

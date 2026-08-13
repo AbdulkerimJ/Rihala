@@ -14,6 +14,10 @@ import { Modal } from "../../../components/ui/Modal";
 import { DataTable } from "../../../components/ui/DataTable";
 import { FilterBar } from "../../../components/ui/FilterBar";
 import { FormField } from "../../../components/ui/FormField";
+import { Input } from "../../../components/ui/Input";
+import { Select } from "../../../components/ui/Select";
+import { Textarea } from "../../../components/ui/Textarea";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { useForm } from "react-hook-form";
@@ -67,52 +71,61 @@ const PaymentForm = ({ onSubmit, onClose }) => {
   return (
     <form className="space-y-4 p-6" onSubmit={handleSubmit(onSubmit)}>
       <FormField label="Supplier" required error={errors.supplier?.message}>
-        <select {...register("supplier")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent">
-          <option value="">Select a supplier</option>
-          {suppliers.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
-        </select>
+        <Select
+          {...register("supplier")}
+          placeholder="Select a supplier"
+          options={suppliers.map(s => ({ value: s._id, label: s.name }))}
+          error={errors.supplier?.message}
+        />
       </FormField>
 
       <FormField label="Purchase (Optional)" error={errors.purchase?.message}>
-        <select {...register("purchase")} disabled={!selectedSupplier} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50">
-          <option value="">Apply to general balance</option>
-          {purchases.map(p => <option key={p._id} value={p._id}>{p.purchaseNumber} - {p.totalAmount} ETB</option>)}
-        </select>
+        <Select
+          {...register("purchase")}
+          disabled={!selectedSupplier}
+          placeholder="Apply to general balance"
+          options={purchases.map(p => ({ value: p._id, label: `${p.purchaseNumber} - ${p.totalAmount} ETB` }))}
+          error={errors.purchase?.message}
+        />
         {!selectedSupplier && <p className="text-xs text-secondary mt-1">Select a supplier first</p>}
       </FormField>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Amount (ETB)" required error={errors.amount?.message}>
-          <input type="number" step="0.01" {...register("amount")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+          <Input type="number" step="0.01" {...register("amount")} error={errors.amount?.message} />
         </FormField>
         
         <FormField label="Payment Date" required error={errors.paymentDate?.message}>
-          <input type="date" {...register("paymentDate")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+          <Input type="date" {...register("paymentDate")} error={errors.paymentDate?.message} />
         </FormField>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Payment Method" error={errors.paymentMethod?.message}>
-          <select {...register("paymentMethod")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent">
-            <option value="cash">Cash</option>
-            <option value="bank_transfer">Bank Transfer</option>
-            <option value="check">Check</option>
-            <option value="other">Other</option>
-          </select>
+          <Select
+            {...register("paymentMethod")}
+            options={[
+              { value: "cash", label: "Cash" },
+              { value: "bank_transfer", label: "Bank Transfer" },
+              { value: "check", label: "Check" },
+              { value: "other", label: "Other" },
+            ]}
+            error={errors.paymentMethod?.message}
+          />
         </FormField>
 
         <FormField label="Reference Number" error={errors.referenceNumber?.message}>
-          <input {...register("referenceNumber")} placeholder="e.g. Check # or TXN ID" className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+          <Input {...register("referenceNumber")} placeholder="e.g. Check # or TXN ID" error={errors.referenceNumber?.message} />
         </FormField>
       </div>
 
       <FormField label="Notes" error={errors.notes?.message}>
-        <textarea {...register("notes")} rows={2} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+        <Textarea {...register("notes")} rows={2} error={errors.notes?.message} />
       </FormField>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
         <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
-        <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Processing..." : "Record Payment"}</Button>
+        <Button type="submit" isLoading={isSubmitting}>Record Payment</Button>
       </div>
     </form>
   );
@@ -144,6 +157,7 @@ export const SupplierPaymentsList = () => {
     queryKey: ["supplier-payments", params],
     queryFn: () => getSupplierPayments(params),
     placeholderData: keepPreviousData,
+    enabled: can("supplierPayments.read"),
   });
   const { items: payments, pagination } = unwrapListResponse(data);
 
@@ -186,11 +200,7 @@ export const SupplierPaymentsList = () => {
     { header: "Method", accessor: (row) => <span className="capitalize">{row.paymentMethod?.replace('_', ' ') || "—"}</span>, className: "text-secondary hidden md:table-cell" },
     { 
       header: "Status", 
-      accessor: (row) => (
-        <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${row.status === 'voided' ? 'bg-danger/10 text-danger' : 'bg-success/10 text-success'}`}>
-          {row.status === 'voided' ? 'Voided' : 'Valid'}
-        </span>
-      )
+      accessor: (row) => <StatusBadge status={row.status} />
     },
     { 
       header: "Actions", 
@@ -208,7 +218,6 @@ export const SupplierPaymentsList = () => {
       ) 
     }
   ];
-
 
   if (isError) return <ErrorState description={getApiErrorMessage(error, "Failed to load payments.")} />;
 
@@ -230,23 +239,23 @@ export const SupplierPaymentsList = () => {
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}
         onClear={Object.values(filters).some(Boolean) ? () => { setFilters({ search: "", supplier: "", status: "", from: "", to: "" }); setPage(1); } : undefined}
       >
-        <select
+        <Select
           value={filters.supplier}
           onChange={(e) => { setFilters(p => ({ ...p, supplier: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All Suppliers</option>
-          {suppliers.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
-        </select>
-        <select
+          options={[
+            { value: "", label: "All Suppliers" },
+            ...suppliers.map(s => ({ value: s._id, label: s.name }))
+          ]}
+        />
+        <Select
           value={filters.status}
           onChange={(e) => { setFilters(p => ({ ...p, status: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All Statuses</option>
-          <option value="valid">Valid</option>
-          <option value="voided">Voided</option>
-        </select>
+          options={[
+            { value: "", label: "All Statuses" },
+            { value: "valid", label: "Valid" },
+            { value: "voided", label: "Voided" },
+          ]}
+        />
       </FilterBar>
 
       <DataTable 
@@ -286,17 +295,18 @@ export const SupplierPaymentsList = () => {
         isLoading={voidMutation.isPending}
       >
         <div className="mt-4">
-          <label className="block text-sm font-medium text-secondary mb-1">Reason for voiding (required)</label>
-          <input
-            type="text"
-            value={voidReason}
-            onChange={(e) => setVoidReason(e.target.value)}
-            className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-danger focus:outline-none focus:ring-1 focus:ring-danger"
-            placeholder="Entered by mistake, bounced check, etc."
-            required
-          />
+          <FormField label="Reason for voiding (required)">
+            <Input
+              type="text"
+              value={voidReason}
+              onChange={(e) => setVoidReason(e.target.value)}
+              placeholder="Entered by mistake, bounced check, etc."
+              required
+            />
+          </FormField>
         </div>
       </ConfirmDialog>
     </div>
   );
 };
+

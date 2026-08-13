@@ -14,6 +14,9 @@ import { Modal } from "../../../components/ui/Modal";
 import { DataTable } from "../../../components/ui/DataTable";
 import { FilterBar } from "../../../components/ui/FilterBar";
 import { FormField } from "../../../components/ui/FormField";
+import { Input } from "../../../components/ui/Input";
+import { Select } from "../../../components/ui/Select";
+import { Textarea } from "../../../components/ui/Textarea";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { useForm } from "react-hook-form";
@@ -76,59 +79,63 @@ const ContractForm = ({ onSubmit, onClose }) => {
   return (
     <form className="space-y-4 p-6" onSubmit={handleSubmit(onSubmit)}>
       <FormField label="Contractor" required error={errors.contractor?.message}>
-        <select {...register("contractor")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent">
-          <option value="">Select a contractor</option>
-          {contractors.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
-        </select>
+        <Select
+          {...register("contractor")}
+          placeholder="Select a contractor"
+          options={contractors.map(c => ({ value: c._id, label: c.name }))}
+          error={errors.contractor?.message}
+        />
       </FormField>
 
       <FormField label="Task" required error={errors.task?.message}>
-        <select {...register("task")} className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent">
-          <option value="">Select a task</option>
-          {tasks.map(t => <option key={t._id} value={t._id}>{t.name} (Default: {t.defaultUnitPrice} ETB)</option>)}
-        </select>
+        <Select
+          {...register("task")}
+          placeholder="Select a task"
+          options={tasks.map(t => ({ value: t._id, label: `${t.name} (Default: ${t.defaultUnitPrice} ETB)` }))}
+          error={errors.task?.message}
+        />
       </FormField>
 
       <div className="grid grid-cols-2 gap-4">
         <FormField label="Quantity" required error={errors.quantity?.message}>
-          <input
+          <Input
             type="number"
             {...register("quantity")}
-            className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            error={errors.quantity?.message}
           />
         </FormField>
         <FormField label="Unit Price (ETB)" required error={errors.unitPrice?.message}>
-          <input
+          <Input
             type="number"
             step="0.01"
             {...register("unitPrice")}
-            className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            error={errors.unitPrice?.message}
           />
         </FormField>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <FormField label="Contract Date" required error={errors.contractDate?.message}>
-          <input
+          <Input
             type="date"
             {...register("contractDate")}
-            className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            error={errors.contractDate?.message}
           />
         </FormField>
         <FormField label="Expected Completion" error={errors.expectedCompletionDate?.message}>
-          <input
+          <Input
             type="date"
             {...register("expectedCompletionDate")}
-            className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            error={errors.expectedCompletionDate?.message}
           />
         </FormField>
       </div>
 
       <FormField label="Note (Optional)" error={errors.note?.message}>
-        <textarea
+        <Textarea
           {...register("note")}
           rows={2}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          error={errors.note?.message}
         />
       </FormField>
 
@@ -136,8 +143,8 @@ const ContractForm = ({ onSubmit, onClose }) => {
         <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>
           Cancel
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Creating..." : "Create Contract"}
+        <Button type="submit" isLoading={isSubmitting}>
+          Create Contract
         </Button>
       </div>
     </form>
@@ -176,6 +183,7 @@ export const ContractsList = () => {
     queryKey: ["contracts", params],
     queryFn: () => getContracts(params),
     placeholderData: keepPreviousData,
+    enabled: can("contracts.read"),
   });
 
   const { items: contracts, pagination } = unwrapListResponse(data);
@@ -231,32 +239,32 @@ export const ContractsList = () => {
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}
         onClear={Object.values(filters).some(v => v !== "") ? () => { setFilters({ search: "", status: "", contractor: "", task: "" }); setPage(1); } : undefined}
       >
-        <select
+        <Select
           value={filters.contractor}
           onChange={(e) => { setFilters(p => ({ ...p, contractor: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All Contractors</option>
-          {contractors.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
-        </select>
-        <select
+          options={[
+            { value: "", label: "All Contractors" },
+            ...contractors.map(c => ({ value: c._id, label: c.name }))
+          ]}
+        />
+        <Select
           value={filters.task}
           onChange={(e) => { setFilters(p => ({ ...p, task: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All Tasks</option>
-          {tasks.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
-        </select>
-        <select
+          options={[
+            { value: "", label: "All Tasks" },
+            ...tasks.map(t => ({ value: t._id, label: t.name }))
+          ]}
+        />
+        <Select
           value={filters.status}
           onChange={(e) => { setFilters(p => ({ ...p, status: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All Statuses</option>
-          <option value="ACTIVE">Active</option>
-          <option value="COMPLETED">Completed</option>
-          <option value="CANCELLED">Cancelled</option>
-        </select>
+          options={[
+            { value: "", label: "All Statuses" },
+            { value: "ACTIVE", label: "Active" },
+            { value: "COMPLETED", label: "Completed" },
+            { value: "CANCELLED", label: "Cancelled" },
+          ]}
+        />
       </FilterBar>
 
       <DataTable 
@@ -291,3 +299,4 @@ export const ContractsList = () => {
     </div>
   );
 };
+

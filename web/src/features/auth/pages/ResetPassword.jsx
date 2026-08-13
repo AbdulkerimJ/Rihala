@@ -8,6 +8,9 @@ import { Lock, Eye, EyeOff, ArrowLeft, ShieldCheck } from "lucide-react";
 import { resetPassword } from "../api";
 import { useAuth } from "../../../hooks/useAuth";
 import { applyServerErrors } from "../../../utils/apiResponse";
+import { FormField } from "../../../components/ui/FormField";
+import { Input } from "../../../components/ui/Input";
+import { Button } from "../../../components/ui/Button";
 
 const schema = z
   .object({
@@ -19,35 +22,11 @@ const schema = z
     path: ["confirmPassword"],
   });
 
-const inputBase =
-  "block w-full rounded-xl border bg-main px-4 py-2.5 text-sm text-primary placeholder:text-muted transition-all duration-150 focus:outline-none focus:ring-2 disabled:opacity-50";
-const inputNormal = "border-border focus:border-accent focus:ring-accent/20";
-const inputError  = "border-danger focus:border-danger focus:ring-danger/20";
-
-const PasswordInput = ({ placeholder, hasError, showState, onToggle, registration }) => (
-  <div className="relative">
-    <input
-      type={showState ? "text" : "password"}
-      placeholder={placeholder}
-      className={`${inputBase} pr-11 ${hasError ? inputError : inputNormal}`}
-      {...registration}
-    />
-    <button
-      type="button"
-      tabIndex={-1}
-      onClick={onToggle}
-      className="absolute inset-y-0 right-3.5 flex items-center text-muted hover:text-primary transition-colors"
-    >
-      {showState ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-    </button>
-  </div>
-);
-
 export const ResetPassword = () => {
   const { token } = useParams();
   const navigate = useNavigate();
   const { loginWithToken } = useAuth();
-  const [showNew, setShowNew]         = useState(false);
+  const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
   const {
@@ -89,40 +68,46 @@ export const ResetPassword = () => {
 
       <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
         {/* New password */}
-        <div className="space-y-1.5">
-          <label className="block text-sm font-medium text-primary">New password</label>
-          <PasswordInput
-            placeholder="At least 6 characters"
-            hasError={!!errors.newPassword}
-            showState={showNew}
-            onToggle={() => setShowNew((p) => !p)}
-            registration={register("newPassword")}
-          />
-          {errors.newPassword && (
-            <p className="flex items-center gap-1 text-xs text-danger">
-              <span className="inline-block h-1 w-1 shrink-0 rounded-full bg-danger" />
-              {errors.newPassword.message}
-            </p>
-          )}
-        </div>
+        <FormField label="New password" error={errors.newPassword?.message}>
+          <div className="relative">
+            <Input
+              type={showNew ? "text" : "password"}
+              size="lg"
+              placeholder="At least 6 characters"
+              error={errors.newPassword?.message}
+              {...register("newPassword")}
+            />
+            <button
+              type="button"
+              tabIndex={-1}
+              onClick={() => setShowNew((p) => !p)}
+              className="absolute inset-y-0 right-3.5 flex items-center text-muted hover:text-primary transition-colors"
+            >
+              {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+        </FormField>
 
         {/* Confirm password */}
-        <div className="space-y-1.5">
-          <label className="block text-sm font-medium text-primary">Confirm password</label>
-          <PasswordInput
-            placeholder="Repeat your password"
-            hasError={!!errors.confirmPassword}
-            showState={showConfirm}
-            onToggle={() => setShowConfirm((p) => !p)}
-            registration={register("confirmPassword")}
-          />
-          {errors.confirmPassword && (
-            <p className="flex items-center gap-1 text-xs text-danger">
-              <span className="inline-block h-1 w-1 shrink-0 rounded-full bg-danger" />
-              {errors.confirmPassword.message}
-            </p>
-          )}
-        </div>
+        <FormField label="Confirm password" error={errors.confirmPassword?.message}>
+          <div className="relative">
+            <Input
+              type={showConfirm ? "text" : "password"}
+              size="lg"
+              placeholder="Repeat your password"
+              error={errors.confirmPassword?.message}
+              {...register("confirmPassword")}
+            />
+            <button
+              type="button"
+              tabIndex={-1}
+              onClick={() => setShowConfirm((p) => !p)}
+              className="absolute inset-y-0 right-3.5 flex items-center text-muted hover:text-primary transition-colors"
+            >
+              {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+        </FormField>
 
         {/* Server error */}
         {errors.root && (
@@ -131,24 +116,17 @@ export const ResetPassword = () => {
           </div>
         )}
 
-        <button
+        <Button
           id="reset-password-submit"
           type="submit"
-          disabled={isSubmitting}
-          className="group flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent/40 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          size="lg"
+          fullWidth
+          isLoading={isSubmitting}
+          leftIcon={isSubmitting ? undefined : ShieldCheck}
+          className="rounded-xl"
         >
-          {isSubmitting ? (
-            <>
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-              Saving…
-            </>
-          ) : (
-            <>
-              <ShieldCheck className="h-4 w-4" />
-              Reset password
-            </>
-          )}
-        </button>
+          {isSubmitting ? "Saving…" : "Reset password"}
+        </Button>
       </form>
 
       <Link

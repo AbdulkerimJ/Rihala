@@ -10,6 +10,9 @@ import { EmptyState } from "../../../components/ui/EmptyState";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { DataTable } from "../../../components/ui/DataTable";
 import { FilterBar } from "../../../components/ui/FilterBar";
+import { FormField } from "../../../components/ui/FormField";
+import { Input } from "../../../components/ui/Input";
+import { Select } from "../../../components/ui/Select";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import toast from "react-hot-toast";
@@ -41,6 +44,7 @@ export const ContractCompletionsList = () => {
     queryKey: ["contract-completions", params],
     queryFn: () => getCompletions(params),
     placeholderData: keepPreviousData,
+    enabled: can("contractCompletions.read"),
   });
 
   const { items: completions, pagination } = unwrapListResponse(data);
@@ -108,23 +112,23 @@ export const ContractCompletionsList = () => {
       <FilterBar 
         onClear={Object.values(filters).some(v => v !== "") ? () => { setFilters({ contract: "", status: "" }); setPage(1); } : undefined}
       >
-        <select
+        <Select
           value={filters.contract}
           onChange={(e) => { setFilters(p => ({ ...p, contract: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All Contracts</option>
-          {contracts.map(c => <option key={c._id} value={c._id}>{c.contractNumber} ({c.contractor?.name})</option>)}
-        </select>
-        <select
+          options={[
+            { value: "", label: "All Contracts" },
+            ...contracts.map(c => ({ value: c._id, label: `${c.contractNumber} (${c.contractor?.name})` }))
+          ]}
+        />
+        <Select
           value={filters.status}
           onChange={(e) => { setFilters(p => ({ ...p, status: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All Statuses</option>
-          <option value="active">Active</option>
-          <option value="voided">Voided</option>
-        </select>
+          options={[
+            { value: "", label: "All Statuses" },
+            { value: "active", label: "Active" },
+            { value: "voided", label: "Voided" },
+          ]}
+        />
       </FilterBar>
 
       <DataTable 
@@ -155,17 +159,18 @@ export const ContractCompletionsList = () => {
         isLoading={voidMutation.isPending}
       >
         <div className="mt-4">
-          <label className="block text-sm font-medium text-secondary mb-1">Reason for voiding (required)</label>
-          <input
-            type="text"
-            value={voidReason}
-            onChange={(e) => setVoidReason(e.target.value)}
-            className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-danger focus:outline-none focus:ring-1 focus:ring-danger"
-            placeholder="e.g. Error in counting"
-            required
-          />
+          <FormField label="Reason for voiding (required)">
+            <Input
+              type="text"
+              value={voidReason}
+              onChange={(e) => setVoidReason(e.target.value)}
+              placeholder="e.g. Error in counting"
+              required
+            />
+          </FormField>
         </div>
       </ConfirmDialog>
     </div>
   );
 };
+

@@ -5,7 +5,6 @@ import { createCustomer, getCustomers, updateCustomer } from "../api";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
 import { Can } from "../../../components/Can";
-
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { Modal } from "../../../components/ui/Modal";
@@ -13,6 +12,9 @@ import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { DataTable } from "../../../components/ui/DataTable";
 import { FilterBar } from "../../../components/ui/FilterBar";
 import { FormField } from "../../../components/ui/FormField";
+import { Input } from "../../../components/ui/Input";
+import { Textarea } from "../../../components/ui/Textarea";
+import { Select } from "../../../components/ui/Select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -52,63 +54,64 @@ const CustomerForm = ({ initialData, onSubmit, onClose }) => {
   return (
     <form className="space-y-4 p-6" onSubmit={handleSubmit(onSubmit)}>
       <FormField label="Name" required error={errors.name?.message}>
-        <input
+        <Input
           {...register("name")}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          error={errors.name?.message}
           placeholder="e.g. Ahmed Ali"
         />
       </FormField>
       
       <FormField label="Phone" required error={errors.phone?.message}>
-        <input
+        <Input
           {...register("phone")}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          error={errors.phone?.message}
           placeholder="e.g. +251 911 234 567"
         />
       </FormField>
 
       <FormField label="Email" error={errors.email?.message}>
-        <input
+        <Input
           {...register("email")}
           type="email"
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          error={errors.email?.message}
           placeholder="Optional"
         />
       </FormField>
 
       <FormField label="Address" error={errors.address?.message}>
-        <input
+        <Input
           {...register("address")}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          error={errors.address?.message}
           placeholder="Optional"
         />
       </FormField>
 
       <FormField label="Notes" error={errors.notes?.message}>
-        <textarea
+        <Textarea
           {...register("notes")}
           rows={3}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          error={errors.notes?.message}
           placeholder="Optional notes"
         />
       </FormField>
 
       <FormField label="Status" error={errors.status?.message}>
-        <select
+        <Select
           {...register("status")}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
+          error={errors.status?.message}
+          options={[
+            { value: "active", label: "Active" },
+            { value: "inactive", label: "Inactive" },
+          ]}
+        />
       </FormField>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
         <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>
           Cancel
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Saving..." : "Save Customer"}
+        <Button type="submit" isLoading={isSubmitting}>
+          Save Customer
         </Button>
       </div>
     </form>
@@ -196,7 +199,6 @@ export const CustomersList = () => {
     setPage(1);
   };
 
-
   if (isError)
     return (
       <ErrorState
@@ -229,15 +231,15 @@ export const CustomersList = () => {
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}
         onClear={filters.search || filters.status ? handleClearFilters : undefined}
       >
-        <select
+        <Select
           value={filters.status}
           onChange={(e) => { setFilters(p => ({ ...p, status: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All Statuses</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
+          placeholder="All Statuses"
+          options={[
+            { value: "active", label: "Active" },
+            { value: "inactive", label: "Inactive" },
+          ]}
+        />
       </FilterBar>
 
       <DataTable 

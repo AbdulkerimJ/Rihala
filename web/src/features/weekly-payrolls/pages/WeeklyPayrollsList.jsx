@@ -14,11 +14,13 @@ import { Modal } from "../../../components/ui/Modal";
 import { DataTable } from "../../../components/ui/DataTable";
 import { FilterBar } from "../../../components/ui/FilterBar";
 import { FormField } from "../../../components/ui/FormField";
+import { Input } from "../../../components/ui/Input";
+import { Select } from "../../../components/ui/Select";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import toast from "react-hot-toast";
 import { getApiErrorMessage, unwrapListResponse, unwrapEntityResponse } from "../../../utils/apiResponse";
 import { formatDate } from "../../../utils/formatters";
-import { Calendar, CheckCircle } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import { Skeleton } from "../../../components/ui/skeletons";
 
 const PayrollClosureModal = ({ isOpen, onClose }) => {
@@ -61,14 +63,12 @@ const PayrollClosureModal = ({ isOpen, onClose }) => {
         </p>
 
         <FormField label="Employee">
-          <select 
+          <Select 
             value={selectedEmployee} 
             onChange={(e) => setSelectedEmployee(e.target.value)}
-            className="w-full rounded-md border border-border bg-main px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-          >
-            <option value="">Select an employee</option>
-            {employees.map(e => <option key={e._id} value={e._id}>{e.name}</option>)}
-          </select>
+            placeholder="Select an employee"
+            options={employees.map(e => ({ value: e._id, label: e.name }))}
+          />
         </FormField>
 
         {selectedEmployee && isCalculating && (
@@ -116,9 +116,8 @@ const PayrollClosureModal = ({ isOpen, onClose }) => {
 
             <div className="flex justify-end gap-3 pt-4">
               <Button variant="secondary" onClick={onClose} disabled={closeMutation.isPending}>Cancel</Button>
-              <Button onClick={() => closeMutation.mutate()} disabled={closeMutation.isPending}>
-                <CheckCircle className="w-4 h-4 mr-2" />
-                {closeMutation.isPending ? "Closing..." : "Close & Generate Payroll"}
+              <Button onClick={() => closeMutation.mutate()} isLoading={closeMutation.isPending} leftIcon={CheckCircle}>
+                Close & Generate Payroll
               </Button>
             </div>
           </div>
@@ -131,6 +130,7 @@ const PayrollClosureModal = ({ isOpen, onClose }) => {
 export const WeeklyPayrollsList = () => {
   const { can } = usePermission();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({ search: "", employee: "", from: "", to: "" });
   const [isOpen, setIsOpen] = useState(false);
@@ -152,6 +152,7 @@ export const WeeklyPayrollsList = () => {
     queryKey: ["weekly-payrolls", params],
     queryFn: () => getWeeklyPayrolls(params),
     placeholderData: keepPreviousData,
+    enabled: can("weeklyPayrolls.read"),
   });
   const { items: payrolls, pagination } = unwrapListResponse(data);
 
@@ -183,7 +184,6 @@ export const WeeklyPayrollsList = () => {
     }
   ];
 
-
   if (isError) return <ErrorState description={getApiErrorMessage(error, "Failed to load payroll records.")} />;
 
   return (
@@ -204,25 +204,23 @@ export const WeeklyPayrollsList = () => {
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}
         onClear={Object.values(filters).some(Boolean) ? () => { setFilters({ search: "", employee: "", from: "", to: "" }); setPage(1); } : undefined}
       >
-        <select
+        <Select
           value={filters.employee}
           onChange={(e) => { setFilters(p => ({ ...p, employee: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All Employees</option>
-          {employees.map(e => <option key={e._id} value={e._id}>{e.name}</option>)}
-        </select>
-        <input
+          options={[
+            { value: "", label: "All Employees" },
+            ...employees.map(e => ({ value: e._id, label: e.name }))
+          ]}
+        />
+        <Input
           type="date"
           value={filters.from}
           onChange={(e) => { setFilters(p => ({ ...p, from: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         />
-        <input
+        <Input
           type="date"
           value={filters.to}
           onChange={(e) => { setFilters(p => ({ ...p, to: e.target.value })); setPage(1); }}
-          className="w-full rounded-md border border-border bg-main px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         />
       </FilterBar>
 
@@ -249,3 +247,4 @@ export const WeeklyPayrollsList = () => {
     </div>
   );
 };
+

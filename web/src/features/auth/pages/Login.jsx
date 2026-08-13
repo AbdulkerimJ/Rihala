@@ -7,31 +7,14 @@ import toast from "react-hot-toast";
 import { Eye, EyeOff, LogIn } from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth";
 import { applyServerErrors } from "../../../utils/apiResponse";
+import { FormField } from "../../../components/ui/FormField";
+import { Input } from "../../../components/ui/Input";
+import { Button } from "../../../components/ui/Button";
 
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email format"),
   password: z.string().min(1, "Password is required"),
 });
-
-/* ─── Reusable styled field ─────────────────────────────────────────────── */
-const Field = ({ label, error, children }) => (
-  <div className="space-y-1.5">
-    <label className="block text-sm font-medium text-primary">{label}</label>
-    {children}
-    {error && (
-      <p className="flex items-center gap-1 text-xs text-danger">
-        <span className="inline-block h-1 w-1 shrink-0 rounded-full bg-danger" />
-        {error}
-      </p>
-    )}
-  </div>
-);
-
-/* ─── Input base styles ──────────────────────────────────────────────────── */
-const inputBase =
-  "block w-full rounded-xl border bg-main px-4 py-2.5 text-sm text-primary placeholder:text-muted transition-all duration-150 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed";
-const inputNormal = "border-border focus:border-accent focus:ring-accent/20";
-const inputError  = "border-danger focus:border-danger focus:ring-danger/20";
 
 export const Login = () => {
   const { login } = useAuth();
@@ -71,27 +54,29 @@ export const Login = () => {
 
       {/* Form */}
       <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
-        <Field label="Email address" error={errors.email?.message}>
-          <input
+        <FormField label="Email address" error={errors.email?.message}>
+          <Input
             id="email"
             type="email"
+            size="lg"
             autoComplete="email"
             placeholder="you@example.com"
             disabled={isSubmitting}
-            className={`${inputBase} ${errors.email ? inputError : inputNormal}`}
+            error={errors.email?.message}
             {...register("email")}
           />
-        </Field>
+        </FormField>
 
-        <Field label="Password" error={errors.password?.message}>
+        <FormField label="Password" error={errors.password?.message}>
           <div className="relative">
-            <input
+            <Input
               id="password"
               type={showPassword ? "text" : "password"}
+              size="lg"
               autoComplete="current-password"
               placeholder="••••••••"
               disabled={isSubmitting}
-              className={`${inputBase} pr-11 ${errors.password ? inputError : inputNormal}`}
+              error={errors.password?.message}
               {...register("password")}
             />
             <button
@@ -107,7 +92,7 @@ export const Login = () => {
               )}
             </button>
           </div>
-        </Field>
+        </FormField>
 
         <div className="flex justify-end">
           <Link
@@ -126,24 +111,17 @@ export const Login = () => {
         )}
 
         {/* Submit */}
-        <button
+        <Button
           id="login-submit"
           type="submit"
-          disabled={isSubmitting}
-          className="group relative mt-2 flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent/40 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          size="lg"
+          fullWidth
+          isLoading={isSubmitting}
+          leftIcon={isSubmitting ? undefined : LogIn}
+          className="rounded-xl"
         >
-          {isSubmitting ? (
-            <>
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-              Signing in…
-            </>
-          ) : (
-            <>
-              <LogIn className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-              Sign in
-            </>
-          )}
-        </button>
+          {isSubmitting ? "Signing in…" : "Sign in"}
+        </Button>
       </form>
     </div>
   );
