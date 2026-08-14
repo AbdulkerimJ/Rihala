@@ -63,7 +63,8 @@ const createEmployeeService = async (data) => {
     });
 
     if (existingPhoneEmployee) {
-      throw new ConflictError("A employee with this phone already exists.");
+      const msg = "An employee with this phone already exists.";
+      throw new ConflictError(msg, [{ field: "phone", message: msg }]);
     }
   }
 
@@ -99,7 +100,8 @@ const updateEmployeeService = async (employeeId, updateData) => {
     });
 
     if (existingPhoneEmployee) {
-      throw new ConflictError("A employee with this phone already exists.");
+      const msg = "An employee with this phone already exists.";
+      throw new ConflictError(msg, [{ field: "phone", message: msg }]);
     }
   }
 

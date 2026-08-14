@@ -58,7 +58,6 @@ test("Supplier Cross-Module Integrity Tests", async (t) => {
       supplier: supplierAId,
       amount: 800, // Partial payment so it's not "PAID" which locks items
       purchaseId: purchaseA._id,
-      paymentMethod: "CASH",
       date: new Date(),
     });
 

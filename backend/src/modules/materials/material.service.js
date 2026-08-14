@@ -21,9 +21,11 @@ const handleDuplicateMaterialError = (error) => {
   if (error?.code === 11000) {
     const fieldName = Object.keys(error.keyPattern || {})[0] || "field";
     if (fieldName === "name") {
-      throw new ConflictError("A material with this name already exists.");
+      const msg = "A material with this name already exists.";
+      throw new ConflictError(msg, [{ field: "name", message: msg }]);
     }
-    throw new ConflictError(`A material with this ${fieldName} already exists.`);
+    const msg = `A material with this ${fieldName} already exists.`;
+    throw new ConflictError(msg, [{ field: fieldName, message: msg }]);
   }
   throw error;
 };
@@ -38,7 +40,8 @@ const createMaterialService = async (data) => {
     });
 
     if (existingNameMaterial) {
-      throw new ConflictError("A material with this name already exists.");
+      const msg = "A material with this name already exists.";
+      throw new ConflictError(msg, [{ field: "name", message: msg }]);
     }
   }
 
@@ -80,7 +83,8 @@ const updateMaterialService = async (materialId, updateData) => {
     });
 
     if (existingNameMaterial) {
-      throw new ConflictError("A material with this name already exists.");
+      const msg = "A material with this name already exists.";
+      throw new ConflictError(msg, [{ field: "name", message: msg }]);
     }
   }
 

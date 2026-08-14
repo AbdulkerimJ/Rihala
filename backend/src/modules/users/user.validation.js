@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { emptyToUndefined } from "../../core/utils/zod.js";
 
 const createUserSchema = z.object({
   name: z
@@ -18,11 +19,13 @@ const createUserSchema = z.object({
     .optional(),
 });
 
+
+
 const updateUserSchema = z
   .object({
-    name: z.string().min(2, "Name must be at least 2 characters.").optional(),
+    name: emptyToUndefined(z.string().min(2, "Name must be at least 2 characters.").optional()),
 
-    email: z.string().email("Please enter a valid email address.").optional(),
+    email: emptyToUndefined(z.string().email("Please enter a valid email address.").optional()),
     roles: z.array(z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid role id.")).optional(),
   })
   .strict({

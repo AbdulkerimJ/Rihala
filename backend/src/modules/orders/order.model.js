@@ -1,28 +1,5 @@
 import mongoose from "mongoose";
 
-const orderItemSchema = new mongoose.Schema({
-  description: {
-    type: String,
-    required: [true, "Item description is required"],
-    trim: true,
-  },
-  quantity: {
-    type: Number,
-    required: [true, "Item quantity is required"],
-    min: [0.01, "Quantity must be greater than 0"],
-  },
-  unit: {
-    type: String,
-    required: [true, "Item unit is required"],
-    trim: true,
-  },
-  specifications: {
-    type: String,
-    trim: true,
-    default: null,
-  },
-});
-
 const statusHistorySchema = new mongoose.Schema(
   {
     status: { type: String, required: true },
@@ -67,20 +44,16 @@ const orderSchema = new mongoose.Schema(
       required: [true, "Order date is required"],
     },
 
-    items: {
-      type: [orderItemSchema],
-      validate: [
-        {
-          validator: (arr) => arr.length > 0,
-          message: "At least one item is required",
-        },
-      ],
+    description: {
+      type: String,
+      required: [true, "Order description is required"],
+      trim: true,
     },
 
     agreedAmount: {
       type: Number,
       required: [true, "Agreed amount is required"],
-      min: [0, "Agreed amount must be greater than or equal to 0"],
+      min: [1, "Agreed amount must be at least 1"],
     },
 
     expectedCompletionDate: {

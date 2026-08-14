@@ -9,37 +9,30 @@ const orderStatusSchema = z.enum(
   },
 );
 
-const orderItemSchema = z.object({
-  description: z.string().trim().min(1, "Item description is required."),
-  quantity: z.number().positive("Quantity must be greater than 0."),
-  unit: z.string().trim().min(1, "Item unit is required."),
-  specifications: z.string().trim().optional().nullable(),
-});
-
 const createOrderSchema = z
   .object({
     customer: z.string().regex(mongoIdRegex, "Invalid customer id."),
     date: z.string().datetime({ message: "Invalid ISO datetime string" }).optional(),
-    items: z.array(orderItemSchema).min(1, "At least one item is required."),
+    description: z.string().trim().min(1, "Order description is required."),
     agreedAmount: z
       .number()
-      .min(0, "Agreed amount must be greater than or equal to 0."),
+      .min(1, "Agreed amount must be at least 1."),
     expectedCompletionDate: z.string().datetime({ message: "Invalid ISO datetime string" }),
     notes: z.string().trim().optional().nullable(),
   })
   .strict({
     error:
-      "Only customer, date, items, agreedAmount, expectedCompletionDate, and notes can be submitted.",
+      "Only customer, date, description, agreedAmount, expectedCompletionDate, and notes can be submitted.",
   });
 
 const updateOrderSchema = z
   .object({
     customer: z.string().regex(mongoIdRegex, "Invalid customer id.").optional(),
     date: z.string().datetime({ message: "Invalid ISO datetime string" }).optional(),
-    items: z.array(orderItemSchema).min(1, "At least one item is required.").optional(),
+    description: z.string().trim().min(1, "Order description is required.").optional(),
     agreedAmount: z
       .number()
-      .min(0, "Agreed amount must be greater than or equal to 0.")
+      .min(1, "Agreed amount must be at least 1.")
       .optional(),
     expectedCompletionDate: z.string().datetime({ message: "Invalid ISO datetime string" }).optional(),
     status: orderStatusSchema.optional(),
@@ -47,7 +40,7 @@ const updateOrderSchema = z
   })
   .strict({
     error:
-      "Only customer, date, items, agreedAmount, expectedCompletionDate, status, and notes can be updated.",
+      "Only customer, date, description, agreedAmount, expectedCompletionDate, status, and notes can be updated.",
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "At least one field is required for update.",

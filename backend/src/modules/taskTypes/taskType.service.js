@@ -10,7 +10,8 @@ const createTaskTypeService = async (data) => {
   const existingType = await TaskType.findOne({ name: data.name });
   
   if (existingType) {
-    throw new ConflictError("A task type with this name already exists.");
+    const msg = "A task type with this name already exists.";
+    throw new ConflictError(msg, [{ field: "name", message: msg }]);
   }
 
   const taskType = await TaskType.create(data);
@@ -41,7 +42,8 @@ const updateTaskTypeService = async (id, updateData) => {
   if (updateData.name && updateData.name !== taskType.name) {
     const existingType = await TaskType.findOne({ name: updateData.name });
     if (existingType) {
-      throw new ConflictError("A task type with this name already exists.");
+      const msg = "A task type with this name already exists.";
+      throw new ConflictError(msg, [{ field: "name", message: msg }]);
     }
   }
 

@@ -4,12 +4,13 @@ import { getRoles, createRole, updateRole, deleteRole } from "../api";
 import { Can } from "../../../components/Can";
 import { Edit2, Trash2, Key } from "lucide-react";
 import toast from "react-hot-toast";
-import { RoleModal } from "../components/RoleModal";
-import { AssignPermissionsModal } from "../components/AssignPermissionsModal";
+import { RoleForm } from "../components/RoleModal";
+import { AssignPermissionsForm } from "../components/AssignPermissionsModal";
 import { TableSkeleton } from "../../../components/ui/skeletons";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
+import { Modal } from "../../../components/ui/Modal";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { getApiErrorMessage } from "../../../utils/apiResponse";
@@ -211,19 +212,31 @@ export const RolesList = () => {
         </div>
       </div>
       )}
-      <RoleModal
+      <Modal
         isOpen={isModalOpen}
+        title={editingRole ? "Edit Role" : "Create New Role"}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={handleSubmit}
-        initialData={editingRole}
-      />
-      <AssignPermissionsModal
+        maxWidth="max-w-md"
+      >
+        <RoleForm
+          initialData={editingRole}
+          onClose={() => setIsModalOpen(false)}
+          onSubmit={handleSubmit}
+        />
+      </Modal>
+      <Modal
         isOpen={isPermissionsModalOpen}
+        title="Manage Permissions"
         onClose={() => setIsPermissionsModalOpen(false)}
-        onSubmit={handlePermissionsSubmit}
-        role={permissionsRole}
-        isSubmitting={updateMutation.isPending}
-      />
+        maxWidth="max-w-4xl"
+      >
+        <AssignPermissionsForm
+          role={permissionsRole}
+          onClose={() => setIsPermissionsModalOpen(false)}
+          onSubmit={handlePermissionsSubmit}
+          isSubmitting={updateMutation.isPending}
+        />
+      </Modal>
       <ConfirmDialog
         isOpen={!!roleToDelete}
         title="Delete Role"

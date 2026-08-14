@@ -1,13 +1,24 @@
 import { z } from "zod";
+import { emptyToUndefined } from "../../core/utils/zod.js";
+import { isValidEthiopianPhone } from "../../core/utils/phone.js";
+
+
 
 const createSupplierSchema = z.object({
   name: z
     .string()
     .min(2, "Name must be at least 2 characters")
     .max(100, "Name cannot exceed 100 characters"),
-  phone: z.string().min(9, "Please enter a valid phone number"),
-  address: z.string().max(255).optional(),
-  note: z.string().max(1000).optional(),
+  phone: z
+    .string({ error: "Phone number is required." })
+    .trim()
+    .min(1, "Phone number is required.")
+    .refine((value) => isValidEthiopianPhone(value), {
+      message: "Please enter a valid Ethiopian phone number.",
+    }),
+  address: emptyToUndefined(z.string().max(255).optional().nullable()),
+  note: emptyToUndefined(z.string().max(1000).optional().nullable()),
+  notes: emptyToUndefined(z.string().max(1000).optional().nullable()),
   status: z.enum(["active", "inactive"]).default("active").optional(),
 });
 
@@ -17,9 +28,19 @@ const updateSupplierSchema = z.object({
     .min(2, "Name must be at least 2 characters")
     .max(100, "Name cannot exceed 100 characters")
     .optional(),
-  phone: z.string().min(9, "Please enter a valid phone number").optional(),
-  address: z.string().max(255).optional().nullable(),
-  note: z.string().max(1000).optional().nullable(),
+  phone: emptyToUndefined(
+    z
+      .string()
+      .trim()
+      .min(1, "Phone number is required.")
+      .refine((value) => isValidEthiopianPhone(value), {
+        message: "Please enter a valid Ethiopian phone number.",
+      })
+      .optional(),
+  ),
+  address: emptyToUndefined(z.string().max(255).optional().nullable()),
+  note: emptyToUndefined(z.string().max(1000).optional().nullable()),
+  notes: emptyToUndefined(z.string().max(1000).optional().nullable()),
   status: z.enum(["active", "inactive"]).optional(),
 });
 

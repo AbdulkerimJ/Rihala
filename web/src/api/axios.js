@@ -13,7 +13,7 @@ export const getApiBaseUrl = () => {
 const api = axios.create({
   baseURL: getApiBaseUrl(),
   withCredentials: true,
-  timeout: 10000, // 10 seconds
+  timeout: 30000, // 30 seconds
 });
 
 // We don't store accessToken in localStorage, we will inject it from AuthContext or a closure.

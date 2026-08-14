@@ -6,10 +6,10 @@ import { DetailSkeleton } from "../../../components/ui/skeletons";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { SummaryCard } from "../../../components/ui/SummaryCard";
-import { DetailSection, DetailItem } from "../../../components/ui/DetailSection";
+import { SystemInfoSection } from "../../../components/ui/SystemInfoSection";
 import { getApiErrorMessage, unwrapEntityResponse } from "../../../utils/apiResponse";
 import { formatDateTime } from "../../../utils/formatters";
-import { Briefcase, Phone, Mail, FileText } from "lucide-react";
+import { Briefcase, Phone, Mail, FileText, ArrowLeft } from "lucide-react";
 
 export const SupplierDetail = () => {
   const { id } = useParams();
@@ -31,19 +31,23 @@ export const SupplierDetail = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-4">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl font-bold text-primary font-display tracking-tight">{supplier.name}</h1>
-            <StatusBadge status={supplier.status} />
+        <div className="flex items-center gap-3">
+          <Link
+            to="/suppliers"
+            className="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-border bg-surface text-secondary hover:text-primary hover:bg-main transition-colors shrink-0"
+            title="Back to suppliers"
+            aria-label="Back to suppliers"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-2xl font-bold text-primary font-display tracking-tight">{supplier.name}</h1>
+              <StatusBadge status={supplier.status} />
+            </div>
+            <p className="text-sm text-secondary">Supplier details and contact information.</p>
           </div>
-          <p className="text-sm text-secondary">Supplier details and contact information.</p>
         </div>
-        <Link
-          to="/suppliers"
-          className="rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-primary hover:bg-main transition-colors"
-        >
-          Back to suppliers
-        </Link>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -89,13 +93,12 @@ export const SupplierDetail = () => {
         </div>
 
         <div className="space-y-6">
-          <DetailSection title="System Information">
-            <div className="space-y-1">
-              <DetailItem label="Supplier ID" value={<span className="font-mono text-xs">{supplier._id}</span>} />
-              <DetailItem label="Created On" value={formatDateTime(supplier.createdAt)} />
-              <DetailItem label="Last Updated" value={formatDateTime(supplier.updatedAt)} />
-            </div>
-          </DetailSection>
+          <SystemInfoSection
+            id={supplier._id}
+            idLabel="Supplier ID"
+            createdAt={supplier.createdAt}
+            updatedAt={supplier.updatedAt}
+          />
         </div>
       </div>
     </div>

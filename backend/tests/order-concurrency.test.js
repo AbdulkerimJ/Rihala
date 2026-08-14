@@ -107,7 +107,7 @@ test("Order Concurrency Test Suite", async (t) => {
           customer: customerA,
           agreedAmount: 5000,
           expectedCompletionDate: new Date(),
-          items: [{ description: `Item ${i}`, quantity: 1, unit: "piece" }]
+          description: `Item ${i}`,
         }, userId)
       );
     }
@@ -148,7 +148,7 @@ test("Order Concurrency Test Suite", async (t) => {
       customer: customerA,
       agreedAmount: 10000,
       expectedCompletionDate: new Date(),
-      items: [{ description: "Test Item", quantity: 1, unit: "piece" }]
+      description: "Test Item",
     }, userId);
 
     // Concurrently try to reassign to Customer B and create a payment
@@ -206,7 +206,7 @@ test("Order Concurrency Test Suite", async (t) => {
       customer: customerA,
       agreedAmount: 10000,
       expectedCompletionDate: new Date(),
-      items: [{ description: "Test Item", quantity: 1, unit: "piece" }]
+      description: "Test Item",
     }, userId);
 
     const payment = await createCustomerPaymentService({

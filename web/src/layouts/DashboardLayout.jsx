@@ -200,7 +200,7 @@ export const DashboardLayout = () => {
         />
 
         {/* Main section */}
-        <main className="flex-1 overflow-y-auto bg-main rounded-tl-2xl sm:rounded-tl-3xl p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto bg-main rounded-tl-2xl sm:rounded-tl-3xl p-4 sm:p-6 lg:p-8 border-t border-l border-border/70 shadow-xs relative">
           <ErrorBoundary>
             <Outlet />
           </ErrorBoundary>

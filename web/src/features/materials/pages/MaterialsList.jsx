@@ -1,5 +1,6 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import { usePermission } from "../../../hooks/usePermission";
+import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { createMaterial, getMaterials, updateMaterial } from "../api";
 import { PageHeader } from "../../../components/ui/PageHeader";
@@ -16,71 +17,98 @@ import { FormField } from "../../../components/ui/FormField";
 import { Input } from "../../../components/ui/Input";
 import { Textarea } from "../../../components/ui/Textarea";
 import { Select } from "../../../components/ui/Select";
+import { FormRootError } from "../../../components/ui/FormRootError";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
-import { getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
+import { applyServerErrors, cleanFilterParams, getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
+import { ACTIVE_INACTIVE_OPTIONS, STATUS_FILTER_OPTIONS } from "../../../constants/options";
+
+const CATEGORIES = [
+  "MDF",
+  "Wood",
+  "Fabric",
+  "Nails",
+  "Paint",
+  "Adhesives",
+  "Hardware",
+  "Chemicals",
+  "Other",
+];
+
+const UNITS = [
+  { value: "piece", label: "Piece" },
+  { value: "kg", label: "Kilogram (kg)" },
+  { value: "meter", label: "Meter (m)" },
+  { value: "liter", label: "Liter (l)" },
+  { value: "roll", label: "Roll" },
+];
 
 const materialSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  category: z.string().optional(),
-  unit: z.string().min(1, "Unit of measurement is required"),
-  description: z.string().optional(),
+  name: z
+    .string({ error: "Material name is required" })
+    .trim()
+    .min(2, "Name must be at least 2 characters")
+    .max(100, "Name cannot exceed 100 characters"),
+  category: z.enum(CATEGORIES, {
+    errorMap: () => ({ message: "Category is required" }),
+  }),
+  unit: z.enum(["piece", "kg", "meter", "liter", "roll"], {
+    errorMap: () => ({ message: "Unit of measurement is required" }),
+  }),
   status: z.enum(["active", "inactive"]).default("active"),
 });
 
 const MaterialForm = ({ initialData, onSubmit, onClose }) => {
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(materialSchema),
     defaultValues: initialData || {
       name: "",
-      category: "",
-      unit: "pcs",
-      description: "",
+      category: "Wood",
+      unit: "piece",
       status: "active",
     },
   });
 
+  const handleFormSubmit = async (data) => {
+    try {
+      await onSubmit(data);
+    } catch (error) {
+      applyServerErrors(setError, error);
+    }
+  };
+
   return (
-    <form className="space-y-4 p-6" onSubmit={handleSubmit(onSubmit)}>
+    <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
+      <FormRootError error={errors.root} />
       <FormField label="Material Name" required error={errors.name?.message}>
-        <Input {...register("name")} error={errors.name?.message} />
+        <Input {...register("name")} error={errors.name?.message} placeholder="e.g. Oak Timber" />
       </FormField>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormField label="Category" error={errors.category?.message}>
-          <Input {...register("category")} placeholder="e.g. Wood, Fabric, Hardware" error={errors.category?.message} />
+        <FormField label="Category" required error={errors.category?.message}>
+          <Select
+            {...register("category")}
+            options={CATEGORIES.map((c) => ({ value: c, label: c }))}
+            error={errors.category?.message}
+          />
         </FormField>
         
         <FormField label="Unit of Measurement" required error={errors.unit?.message}>
           <Select
             {...register("unit")}
+            options={UNITS}
             error={errors.unit?.message}
-            options={[
-              { value: "pcs", label: "Pieces (pcs)" },
-              { value: "m", label: "Meters (m)" },
-              { value: "kg", label: "Kilograms (kg)" },
-              { value: "liters", label: "Liters (l)" },
-              { value: "rolls", label: "Rolls" },
-              { value: "sets", label: "Sets" },
-            ]}
           />
         </FormField>
       </div>
-
-      <FormField label="Description" error={errors.description?.message}>
-        <Textarea {...register("description")} rows={2} error={errors.description?.message} />
-      </FormField>
 
       <FormField label="Status" error={errors.status?.message}>
         <Select
           {...register("status")}
           error={errors.status?.message}
-          options={[
-            { value: "active", label: "Active" },
-            { value: "inactive", label: "Inactive" },
-          ]}
+          options={ACTIVE_INACTIVE_OPTIONS}
         />
       </FormField>
 
@@ -100,11 +128,7 @@ export const MaterialsList = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState(null);
 
-  const params = useMemo(() => ({
-    ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v)),
-    page,
-    limit: 20
-  }), [filters, page]);
+  const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["materials", params],
@@ -113,15 +137,13 @@ export const MaterialsList = () => {
   });
   const { items: materials, pagination } = unwrapListResponse(data);
 
-  useEffect(() => {
-    if (pagination && pagination.page < pagination.totalPages) {
-      const nextParams = { ...params, page: page + 1 };
-      queryClient.prefetchQuery({
-        queryKey: ["materials", nextParams],
-        queryFn: () => getMaterials(nextParams),
-      });
-    }
-  }, [pagination, page, params, queryClient]);
+  usePrefetchNextPage({
+    queryKey: ["materials"],
+    queryFn: getMaterials,
+    pagination,
+    params,
+    page,
+  });
 
   // Extract unique categories for filter
   const categoriesQuery = useQuery({

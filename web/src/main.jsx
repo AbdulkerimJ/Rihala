@@ -19,7 +19,14 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <ErrorBoundary>
             <RouterProvider router={router} />
           </ErrorBoundary>
-          <Toaster position="top-right" />
+          <Toaster 
+            position="top-right" 
+            toastOptions={{
+              style: {
+                whiteSpace: 'pre-line'
+              }
+            }}
+          />
         </AuthProvider>
       </ThemeProvider>
       <ReactQueryDevtools initialIsOpen={false} />

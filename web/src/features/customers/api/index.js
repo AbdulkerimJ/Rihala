@@ -1,21 +1,10 @@
-import api from "../../../api/axios";
+import { createCrudApi } from "../../../api/crud";
 
-export const getCustomers = async (params = {}) => {
-  const response = await api.get("/customers", { params });
-  return response.data;
-};
+const customersApi = createCrudApi("/customers");
 
-export const getCustomerById = async (id) => {
-  const response = await api.get(`/customers/${id}`);
-  return response.data;
-};
+export const getCustomers = customersApi.getAll;
+export const getCustomerById = customersApi.getById;
+export const createCustomer = customersApi.create;
+export const updateCustomer = customersApi.update;
+export const deleteCustomer = customersApi.delete;
 
-export const createCustomer = async (data) => {
-  const response = await api.post("/customers", data);
-  return response.data;
-};
-
-export const updateCustomer = async ({ id, data }) => {
-  const response = await api.patch(`/customers/${id}`, data);
-  return response.data;
-};

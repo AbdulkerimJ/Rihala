@@ -2,12 +2,17 @@ import React from 'react';
 import { Button } from "../components/ui/Button";
 import { X } from "lucide-react";
 import { Link } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 
 export const SidebarBrand = ({ setSidebarOpen }) => {
+  const { theme } = useTheme();
+  // the file name can be changed if we have two variants
+  const logoSrc = theme === 'dark' ? '/logo.png' : '/logo.png';
+
   return (
     <div className="flex items-center justify-center py-5 bg-surface relative overflow-hidden">
       <Link to="/" onClick={() => setSidebarOpen(false)}>
-        <img src="/logo.png" alt="Rihala Logo" className="h-24 w-auto object-contain scale-110" />
+        <img src={logoSrc} alt="Rihala Logo" className="h-24 w-auto object-contain scale-110" />
       </Link>
       <Button
         variant="ghost"
@@ -20,3 +25,4 @@ export const SidebarBrand = ({ setSidebarOpen }) => {
     </div>
   );
 };
+

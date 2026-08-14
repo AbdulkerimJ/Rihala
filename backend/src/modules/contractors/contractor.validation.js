@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { emptyToUndefined } from "../../core/utils/zod.js";
+
+
 
 const createContractorSchema = z.object({
   name: z
@@ -6,8 +9,8 @@ const createContractorSchema = z.object({
     .trim()
     .min(2, "Name must be at least 2 characters")
     .max(100, "Name cannot exceed 100 characters"),
-  phone: z.string().trim().min(5, "Phone must be at least 5 characters").optional().nullable(),
-  notes: z.string().trim().max(1000, "Notes cannot exceed 1000 characters").optional().nullable(),
+  phone: emptyToUndefined(z.string().trim().min(5, "Phone must be at least 5 characters").optional().nullable()),
+  notes: emptyToUndefined(z.string().trim().max(1000, "Notes cannot exceed 1000 characters").optional().nullable()),
   status: z.enum(["active", "inactive"]).optional().default("active"),
 }).strict();
 
@@ -18,8 +21,8 @@ const updateContractorSchema = z.object({
     .min(2, "Name must be at least 2 characters")
     .max(100, "Name cannot exceed 100 characters")
     .optional(),
-  phone: z.string().trim().min(5, "Phone must be at least 5 characters").optional().nullable(),
-  notes: z.string().trim().max(1000, "Notes cannot exceed 1000 characters").optional().nullable(),
+  phone: emptyToUndefined(z.string().trim().min(5, "Phone must be at least 5 characters").optional().nullable()),
+  notes: emptyToUndefined(z.string().trim().max(1000, "Notes cannot exceed 1000 characters").optional().nullable()),
   status: z.enum(["active", "inactive"]).optional(),
 }).strict().refine((data) => Object.keys(data).length > 0, {
   message: "At least one field must be provided to update",

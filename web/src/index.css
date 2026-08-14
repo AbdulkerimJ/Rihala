@@ -4,21 +4,21 @@
 
 @layer base {
   :root {
-    /* Light Theme (Blue & Grey) */
-    --bg-main: 243 244 246; /* Slightly softer grey-blue */
-    --bg-surface: 255 255 255; /* #FFFFFF - White */
+    /* Modern SaaS High-Contrast Light Theme */
+    --bg-main: 238 242 246; /* #EEF2F6 Defined cool slate-100 canvas */
+    --bg-surface: 255 255 255; /* #FFFFFF Pure white elevated cards */
 
-    --color-primary: 15 23 42; /* Deeper slate for text */
+    --color-primary: 15 23 42; /* #0F172A Deep slate for razor-sharp typography */
     --color-primary-hover: 51 65 85; 
 
-    --color-accent: 37 99 235; /* Crisp, modern blue */
-    --color-accent-hover: 59 130 246; 
+    --color-accent: 37 99 235; /* #2563EB Vibrant royal blue */
+    --color-accent-hover: 29 78 216; /* #1D4ED8 */
 
-    --text-primary: 15 23 42; 
-    --text-secondary: 71 85 105; 
-    --text-muted: 148 163 184; 
+    --text-primary: 15 23 42; /* #0F172A */
+    --text-secondary: 71 85 105; /* #475569 */
+    --text-muted: 148 163 184; /* #94A3B8 */
 
-    --border-color: 226 232 240; 
+    --border-color: 219 226 235; /* #DBE2EB Crisp visible card border */
 
     /* Semantic Colors */
     --color-success: 16 185 129; /* Emerald */
@@ -26,26 +26,26 @@
     --color-danger: 239 68 68; /* Red */
     --color-danger-hover: 220 38 38;
 
-    /* Premium Ambient Glow Colors */
-    --glow-center: 62 213 225; /* #3ED5E1 */
+    /* Ambient Glow Colors */
+    --glow-center: 37 99 235; /* #2563EB */
   }
 
   .dark {
-    /* Dark Theme (Blue & Grey) */
-    --bg-main: 15 23 42; 
-    --bg-surface: 30 41 59; 
+    /* Modern High-Contrast Dark Theme */
+    --bg-main: 10 14 23; /* #0A0E17 Deep obsidian navy canvas */
+    --bg-surface: 21 29 45; /* #151D2D Distinct elevated slate cards */
 
-    --color-primary: 248 250 252; 
+    --color-primary: 248 250 252; /* #F8FAFC */
     --color-primary-hover: 226 232 240; 
 
-    --color-accent: 59 130 246; 
+    --color-accent: 59 130 246; /* #3B82F6 */
     --color-accent-hover: 96 165 250; 
 
     --text-primary: 248 250 252; 
     --text-secondary: 148 163 184; 
     --text-muted: 100 116 139; 
 
-    --border-color: 51 65 85; 
+    --border-color: 39 52 75; /* #27344B High-contrast dark border */
 
     /* Semantic Colors */
     --color-success: 16 185 129;
@@ -53,8 +53,8 @@
     --color-danger: 239 68 68;
     --color-danger-hover: 220 38 38;
 
-    /* Premium Ambient Glow Colors */
-    --glow-center: 62 213 225; /* #3ED5E1 */
+    /* Ambient Glow Colors */
+    --glow-center: 59 130 246; /* #3B82F6 */
   }
 
   html {

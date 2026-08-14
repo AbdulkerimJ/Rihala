@@ -1,6 +1,7 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { usePermission } from "../../../hooks/usePermission";
+import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { getCompletions, voidCompletion } from "../api";
 import { getContracts } from "../../contracts/api";
 import { PageHeader } from "../../../components/ui/PageHeader";
@@ -10,13 +11,11 @@ import { EmptyState } from "../../../components/ui/EmptyState";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { DataTable } from "../../../components/ui/DataTable";
 import { FilterBar } from "../../../components/ui/FilterBar";
-import { FormField } from "../../../components/ui/FormField";
-import { Input } from "../../../components/ui/Input";
 import { Select } from "../../../components/ui/Select";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
-import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
+import { VoidReasonDialog } from "../../../components/ui/VoidReasonDialog";
 import toast from "react-hot-toast";
-import { getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
+import { cleanFilterParams, getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
 import { formatDateTime } from "../../../utils/formatters";
 
 export const ContractCompletionsList = () => {
@@ -25,7 +24,6 @@ export const ContractCompletionsList = () => {
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({ contract: "", status: "" });
   const [voidingCompletion, setVoidingCompletion] = useState(null);
-  const [voidReason, setVoidReason] = useState("");
 
   const { data: contractsData } = useQuery({ 
     queryKey: ["contracts-list"], 
@@ -34,11 +32,7 @@ export const ContractCompletionsList = () => {
   });
   const contracts = unwrapListResponse(contractsData).items || [];
 
-  const params = useMemo(() => ({
-    ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v !== "")),
-    page,
-    limit: 20
-  }), [filters, page]);
+  const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["contract-completions", params],
@@ -49,15 +43,13 @@ export const ContractCompletionsList = () => {
 
   const { items: completions, pagination } = unwrapListResponse(data);
 
-  useEffect(() => {
-    if (pagination && pagination.page < pagination.totalPages) {
-      const nextParams = { ...params, page: page + 1 };
-      queryClient.prefetchQuery({
-        queryKey: ["contract-completions", nextParams],
-        queryFn: () => getCompletions(nextParams),
-      });
-    }
-  }, [pagination, page, params, queryClient]);
+  usePrefetchNextPage({
+    queryKey: ["contract-completions"],
+    queryFn: getCompletions,
+    pagination,
+    params,
+    page,
+  });
 
   const voidMutation = useMutation({
     mutationFn: voidCompletion,
@@ -66,7 +58,6 @@ export const ContractCompletionsList = () => {
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
       toast.success("Completion voided successfully");
       setVoidingCompletion(null);
-      setVoidReason("");
     },
   });
 
@@ -147,30 +138,17 @@ export const ContractCompletionsList = () => {
         }
       />
 
-      <ConfirmDialog
+      <VoidReasonDialog
         isOpen={!!voidingCompletion}
         title="Void Completion"
         message={`Are you sure you want to void this completion of ${voidingCompletion?.quantity} units? This action cannot be undone.`}
         confirmLabel="Void Completion"
-        cancelLabel="Cancel"
-        onConfirm={() => voidMutation.mutateAsync({ id: voidingCompletion._id, voidReason })}
-        onCancel={() => { setVoidingCompletion(null); setVoidReason(""); }}
-        isDestructive
         isLoading={voidMutation.isPending}
-      >
-        <div className="mt-4">
-          <FormField label="Reason for voiding (required)">
-            <Input
-              type="text"
-              value={voidReason}
-              onChange={(e) => setVoidReason(e.target.value)}
-              placeholder="e.g. Error in counting"
-              required
-            />
-          </FormField>
-        </div>
-      </ConfirmDialog>
+        onConfirm={(reason) => voidMutation.mutateAsync({ id: voidingCompletion._id, voidReason: reason })}
+        onCancel={() => setVoidingCompletion(null)}
+      />
     </div>
   );
 };
+
 

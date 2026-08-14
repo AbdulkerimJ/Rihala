@@ -2,6 +2,7 @@ import React from "react";
 import { Button } from "./Button";
 import { TableSkeleton } from "./skeletons";
 import { Loader2 } from "lucide-react";
+import { LoadingBar } from "./LoadingBar";
 
 export const DataTable = ({
   columns,
@@ -34,11 +35,7 @@ export const DataTable = ({
 
   return (
     <div className="w-full relative">
-      {isFetching && !isLoading && (
-        <div className="absolute top-0 left-0 w-full h-1 bg-brand/20 overflow-hidden z-10 rounded-t-xl">
-          <div className="h-full bg-brand animate-pulse w-full"></div>
-        </div>
-      )}
+      <LoadingBar isLoading={isFetching && !isLoading} />
 
       {/* Desktop Table View (hidden on small screens) */}
       <div className="hidden lg:block overflow-hidden rounded-xl border border-border bg-surface shadow-sm">

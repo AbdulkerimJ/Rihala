@@ -35,7 +35,7 @@ const ensureCustomerCanBeUsed = async (customerId) => {
 
   if (customer.status === "inactive") {
     throw new ValidationError(
-      "Customer is inactive and cannot be used for an order.",
+      "Customer is inactive and cannot be used for an order."
     );
   }
 
@@ -74,7 +74,7 @@ const createOrderService = async (data, userId) => {
   };
 
   const order = await Order.create(normalizedData);
-  return order.populate(["customer", "createdBy"]);
+  return order.populate(["customer", "createdBy", "statusHistory.changedBy"]);
 };
 
 const getOrdersService = async (filters = {}) => {
@@ -87,6 +87,7 @@ const getOrderByIdService = async (orderId) => {
   const order = await Order.findById(orderId).populate([
     "customer",
     "createdBy",
+    "statusHistory.changedBy",
   ]);
 
   if (!order) {
@@ -118,7 +119,9 @@ const updateOrderService = async (orderId, updateData, userId) => {
       if (updateData.customer !== undefined && updateData.customer.toString() !== order.customer.toString()) {
         const paymentExists = await CustomerPayment.exists({ order: order._id, status: "active" }).session(session);
         if (paymentExists) {
-          throw new ValidationError("Cannot change the customer after customer payment history exists.");
+          throw new ValidationError(
+            "Cannot change the customer after customer payment history exists."
+          );
         }
         const customer = await ensureCustomerCanBeUsed(updateData.customer);
         order.customerName = customer.name;
@@ -149,7 +152,7 @@ const updateOrderService = async (orderId, updateData, userId) => {
       }
 
       if (updateData.date) order.date = updateData.date;
-      if (updateData.items) order.items = updateData.items;
+      if (updateData.description !== undefined) order.description = updateData.description;
 
       if (updateData.agreedAmount !== undefined && updateData.agreedAmount !== order.agreedAmount) {
         const activePayments = await CustomerPayment.find({
@@ -168,7 +171,7 @@ const updateOrderService = async (orderId, updateData, userId) => {
 
       await order.save({ session });
 
-      return order.populate(["customer", "createdBy"]);
+      return order.populate(["customer", "createdBy", "statusHistory.changedBy"]);
     });
   } finally {
     session.endSession();

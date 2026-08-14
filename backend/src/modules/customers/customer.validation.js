@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { emptyToUndefined } from "../../core/utils/zod.js";
 import { isValidEthiopianPhone } from "../../core/utils/phone.js";
 
 const mongoIdRegex = /^[0-9a-fA-F]{24}$/;
@@ -6,6 +7,8 @@ const mongoIdRegex = /^[0-9a-fA-F]{24}$/;
 const customerStatusSchema = z.enum(["active", "inactive"], {
   error: "Status must be active or inactive.",
 });
+
+
 
 const createCustomerSchema = z.object({
   name: z
@@ -21,14 +24,16 @@ const createCustomerSchema = z.object({
       message: "Please enter a valid Ethiopian phone number.",
     }),
 
-  email: z
-    .string({ error: "Please enter a valid email address." })
-    .trim()
-    .email("Please enter a valid email address.")
-    .optional(),
+  email: emptyToUndefined(
+    z
+      .string({ error: "Please enter a valid email address." })
+      .trim()
+      .email("Please enter a valid email address.")
+      .optional(),
+  ),
 
-  address: z.string().trim().optional(),
-  notes: z.string().trim().optional(),
+  address: emptyToUndefined(z.string().trim().optional()),
+  notes: emptyToUndefined(z.string().trim().optional()),
   status: customerStatusSchema.optional().default("active"),
 });
 
@@ -47,13 +52,15 @@ const updateCustomerSchema = z
         message: "Please enter a valid Ethiopian phone number.",
       })
       .optional(),
-    email: z
-      .string({ error: "Please enter a valid email address." })
-      .trim()
-      .email("Please enter a valid email address.")
-      .optional(),
-    address: z.string().trim().optional(),
-    notes: z.string().trim().optional(),
+    email: emptyToUndefined(
+      z
+        .string({ error: "Please enter a valid email address." })
+        .trim()
+        .email("Please enter a valid email address.")
+        .optional(),
+    ),
+    address: emptyToUndefined(z.string().trim().optional()),
+    notes: emptyToUndefined(z.string().trim().optional()),
     status: customerStatusSchema.optional(),
   })
   .strict({

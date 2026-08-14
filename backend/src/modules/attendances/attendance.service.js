@@ -80,18 +80,16 @@ const createAttendanceService = async (data) => {
   });
 
   if (existingAttendance) {
-    throw new ConflictError(
-      "Attendance already exists for this employee and work date.",
-    );
+    const msg = "Attendance already exists for this employee and work date.";
+    throw new ConflictError(msg, [{ field: "workDate", message: msg }]);
   }
 
   try {
     return await Attendance.create(normalizedData);
   } catch (error) {
     if (error?.code === 11000) {
-      throw new ConflictError(
-        "Attendance already exists for this employee and work date.",
-      );
+      const msg = "Attendance already exists for this employee and work date.";
+      throw new ConflictError(msg, [{ field: "workDate", message: msg }]);
     }
 
     throw error;
@@ -132,9 +130,8 @@ const updateAttendanceService = async (attendanceId, updateData) => {
     return attendance.populate("employee");
   } catch (error) {
     if (error?.code === 11000) {
-      throw new ConflictError(
-        "Attendance already exists for this employee and work date.",
-      );
+      const msg = "Attendance already exists for this employee and work date.";
+      throw new ConflictError(msg, [{ field: "workDate", message: msg }]);
     }
 
     throw error;

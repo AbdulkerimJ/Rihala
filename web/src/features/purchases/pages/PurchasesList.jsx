@@ -1,5 +1,6 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import { usePermission } from "../../../hooks/usePermission";
+import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createPurchase, getPurchases } from "../api";
@@ -19,11 +20,12 @@ import { Input } from "../../../components/ui/Input";
 import { Select } from "../../../components/ui/Select";
 import { Textarea } from "../../../components/ui/Textarea";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
+import { FormRootError } from "../../../components/ui/FormRootError";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
-import { getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
+import { applyServerErrors, cleanFilterParams, getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
 import { formatDate } from "../../../utils/formatters";
 import { Plus, Trash2 } from "lucide-react";
 
@@ -57,7 +59,7 @@ const PurchaseForm = ({ initialData, onSubmit, onClose }) => {
   const suppliers = unwrapListResponse(suppliersData).items || [];
   const materials = unwrapListResponse(materialsData).items || [];
 
-  const { register, control, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm({
+  const { register, control, handleSubmit, watch, setError, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(purchaseSchema),
     defaultValues: initialData || {
       supplier: "",
@@ -76,8 +78,27 @@ const PurchaseForm = ({ initialData, onSubmit, onClose }) => {
   const watchItems = watch("items");
   const totalAmount = watchItems.reduce((sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0), 0);
 
+  const handleFormSubmit = async (data) => {
+    try {
+      const payload = {
+        ...data,
+        date: new Date(data.purchaseDate).toISOString(),
+        note: data.notes,
+        purchaseNumber: data.referenceNumber,
+      };
+      delete payload.purchaseDate;
+      delete payload.notes;
+      delete payload.referenceNumber;
+
+      await onSubmit(payload);
+    } catch (error) {
+      applyServerErrors(setError, error);
+    }
+  };
+
   return (
-    <form className="space-y-4 p-6 overflow-y-auto max-h-[80vh]" onSubmit={handleSubmit(onSubmit)}>
+    <form className="space-y-4 p-6 overflow-y-auto max-h-[80vh]" onSubmit={handleSubmit(handleFormSubmit)}>
+      <FormRootError error={errors.root} />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Supplier" required error={errors.supplier?.message}>
           <Select
@@ -122,31 +143,51 @@ const PurchaseForm = ({ initialData, onSubmit, onClose }) => {
                   />
                 </FormField>
               </div>
-              <div className="col-span-5 sm:col-span-2">
+              <div className="col-span-6 sm:col-span-3">
                 <FormField error={errors.items?.[index]?.quantity?.message}>
-                  <Input type="number" step="0.01" placeholder="Qty" {...register(`items.${index}.quantity`)} error={errors.items?.[index]?.quantity?.message} />
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="Qty"
+                    {...register(`items.${index}.quantity`)}
+                    error={errors.items?.[index]?.quantity?.message}
+                  />
                 </FormField>
               </div>
               <div className="col-span-5 sm:col-span-3">
                 <FormField error={errors.items?.[index]?.unitPrice?.message}>
-                  <Input type="number" step="0.01" placeholder="Price" {...register(`items.${index}.unitPrice`)} error={errors.items?.[index]?.unitPrice?.message} />
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="Unit Price"
+                    {...register(`items.${index}.unitPrice`)}
+                    error={errors.items?.[index]?.unitPrice?.message}
+                  />
                 </FormField>
               </div>
-              <div className="col-span-2 sm:col-span-2 flex justify-end">
-                <Button type="button" variant="ghostDanger" size="icon" onClick={() => remove(index)} disabled={fields.length === 1} className="h-[34px] w-[34px]">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+              <div className="col-span-1 flex justify-end pt-2">
+                {fields.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => remove(index)}
+                    className="text-secondary hover:text-danger p-1"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
               </div>
             </div>
           ))}
         </div>
-        <div className="flex justify-end mt-4 px-2">
-          <div className="text-sm text-secondary">Total Amount: <span className="text-lg font-bold text-primary ml-2"><MoneyDisplay amount={totalAmount} /></span></div>
+
+        <div className="flex justify-end items-center gap-2 mt-4 pt-3 border-t border-border/50">
+          <span className="text-sm font-medium text-secondary">Total:</span>
+          <span className="text-lg font-bold text-accent"><MoneyDisplay amount={totalAmount} /></span>
         </div>
       </div>
 
       <FormField label="Notes" error={errors.notes?.message}>
-        <Textarea {...register("notes")} rows={2} error={errors.notes?.message} />
+        <Textarea {...register("notes")} rows={2} error={errors.notes?.message} placeholder="Optional purchase notes" />
       </FormField>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
@@ -172,11 +213,7 @@ export const PurchasesList = () => {
   });
   const suppliers = unwrapListResponse(suppliersData).items || [];
 
-  const params = useMemo(() => ({
-    ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v)),
-    page,
-    limit: 20
-  }), [filters, page]);
+  const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["purchases", params],
@@ -186,15 +223,13 @@ export const PurchasesList = () => {
   });
   const { items: purchases, pagination } = unwrapListResponse(data);
 
-  useEffect(() => {
-    if (pagination && pagination.page < pagination.totalPages) {
-      const nextParams = { ...params, page: page + 1 };
-      queryClient.prefetchQuery({
-        queryKey: ["purchases", nextParams],
-        queryFn: () => getPurchases(nextParams),
-      });
-    }
-  }, [pagination, page, params, queryClient]);
+  usePrefetchNextPage({
+    queryKey: ["purchases"],
+    queryFn: getPurchases,
+    pagination,
+    params,
+    page,
+  });
 
   const createMutation = useMutation({
     mutationFn: createPurchase,

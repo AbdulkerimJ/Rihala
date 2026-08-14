@@ -24,7 +24,6 @@ const customerSchema = new mongoose.Schema(
       lowercase: true,
       unique: true,
       sparse: true,
-      default: null,
     },
 
     address: {

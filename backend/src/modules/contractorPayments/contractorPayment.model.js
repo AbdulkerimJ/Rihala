@@ -26,15 +26,6 @@ const contractorPaymentSchema = new mongoose.Schema(
       immutable: true,
       index: true,
     },
-    paymentMethod: {
-      type: String,
-      required: [true, "Payment method is required"],
-      enum: {
-        values: ["CASH", "BANK_TRANSFER", "CHEQUE", "OTHER"],
-        message: "Payment method must be CASH, BANK_TRANSFER, CHEQUE, or OTHER",
-      },
-      immutable: true,
-    },
     note: {
       type: String,
       trim: true,

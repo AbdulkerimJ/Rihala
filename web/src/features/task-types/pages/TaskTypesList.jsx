@@ -1,6 +1,7 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { usePermission } from "../../../hooks/usePermission";
+import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { getTaskTypes, createTaskType, updateTaskType, deleteTaskType } from "../api";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
@@ -16,20 +17,25 @@ import { Select } from "../../../components/ui/Select";
 import { Checkbox } from "../../../components/ui/Checkbox";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
+import { FormRootError } from "../../../components/ui/FormRootError";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
-import { getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
+import { applyServerErrors, cleanFilterParams, getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
 import { formatDateTime } from "../../../utils/formatters";
 
 const taskTypeSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters").max(100),
+  name: z
+    .string({ error: "Task type name is required" })
+    .trim()
+    .min(2, "Name must be at least 2 characters")
+    .max(100, "Name cannot exceed 100 characters"),
   isActive: z.boolean().default(true),
 });
 
 const TaskTypeForm = ({ initialData, onSubmit, onClose }) => {
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(taskTypeSchema),
     defaultValues: initialData || {
       name: "",
@@ -37,8 +43,17 @@ const TaskTypeForm = ({ initialData, onSubmit, onClose }) => {
     },
   });
 
+  const handleFormSubmit = async (data) => {
+    try {
+      await onSubmit(data);
+    } catch (error) {
+      applyServerErrors(setError, error);
+    }
+  };
+
   return (
-    <form className="space-y-4 p-6" onSubmit={handleSubmit(onSubmit)}>
+    <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
+      <FormRootError error={errors.root} />
       <FormField label="Name" required error={errors.name?.message}>
         <Input
           {...register("name")}
@@ -76,11 +91,7 @@ export const TaskTypesList = () => {
   const [editingTaskType, setEditingTaskType] = useState(null);
   const [deletingTaskType, setDeletingTaskType] = useState(null);
 
-  const params = useMemo(() => ({
-    ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v !== "")),
-    page,
-    limit: 20
-  }), [filters, page]);
+  const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["task-types", params],
@@ -91,15 +102,13 @@ export const TaskTypesList = () => {
 
   const { items: taskTypes, pagination } = unwrapListResponse(data);
 
-  useEffect(() => {
-    if (pagination && pagination.page < pagination.totalPages) {
-      const nextParams = { ...params, page: page + 1 };
-      queryClient.prefetchQuery({
-        queryKey: ["task-types", nextParams],
-        queryFn: () => getTaskTypes(nextParams),
-      });
-    }
-  }, [pagination, page, params, queryClient]);
+  usePrefetchNextPage({
+    queryKey: ["task-types"],
+    queryFn: getTaskTypes,
+    pagination,
+    params,
+    page,
+  });
 
   const createMutation = useMutation({
     mutationFn: createTaskType,

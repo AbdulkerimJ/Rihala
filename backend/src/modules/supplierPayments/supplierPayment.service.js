@@ -35,7 +35,8 @@ const createSupplierPaymentService = async (data) => {
 
       const existing = await SupplierPayment.findOne({ paymentReference }).session(session);
       if (existing) {
-        throw new ConflictError("Payment reference already exists");
+        const msg = "Payment reference already exists";
+        throw new ConflictError(msg, [{ field: "paymentReference", message: msg }]);
       }
 
       const payment = new SupplierPayment({

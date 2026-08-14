@@ -1,5 +1,6 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import { usePermission } from "../../../hooks/usePermission";
+import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createEmployee, getEmployees, updateEmployee } from "../api";
@@ -16,47 +17,74 @@ import { FilterBar } from "../../../components/ui/FilterBar";
 import { FormField } from "../../../components/ui/FormField";
 import { Input } from "../../../components/ui/Input";
 import { Select } from "../../../components/ui/Select";
-import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
+import { FormRootError } from "../../../components/ui/FormRootError";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
-import { getApiErrorMessage, unwrapListResponse, applyServerErrors } from "../../../utils/apiResponse";
+import { getApiErrorMessage, unwrapListResponse, applyServerErrors, cleanFilterParams } from "../../../utils/apiResponse";
+import { formatDate } from "../../../utils/formatters";
+import { ethiopianPhone } from "../../../utils/validation";
+import { ACTIVE_INACTIVE_OPTIONS, STATUS_FILTER_OPTIONS } from "../../../constants/options";
 
-const employeeSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  phone: z.string().optional(),
-  position: z.string().min(1, "Position is required"),
-  baseSalary: z.coerce.number().nonnegative().optional(),
-  dailyRate: z.coerce.number().nonnegative().optional(),
-  employmentType: z.enum(["permanent", "contract", "daily"]),
-  hireDate: z.string().min(1, "Hire date is required"),
-  status: z.enum(["active", "inactive", "on_leave"]).default("active"),
-});
+const employeeSchema = z
+  .object({
+    name: z
+      .string({ error: "Employee name is required" })
+      .trim()
+      .min(2, "Name must be at least 2 characters"),
+    phone: ethiopianPhone,
+    employmentStartDate: z.string().min(1, "Employment start date is required"),
+    employmentEndDate: z.string().optional().or(z.literal("")),
+    status: z.enum(["active", "inactive"]).default("active"),
+  })
+  .refine(
+    (data) => {
+      if (!data.employmentEndDate || !data.employmentStartDate) return true;
+      return new Date(data.employmentEndDate) >= new Date(data.employmentStartDate);
+    },
+    {
+      message: "Employment end date cannot be before start date",
+      path: ["employmentEndDate"],
+    }
+  );
 
 const EmployeeForm = ({ initialData, onSubmit, onClose }) => {
-  const { register, handleSubmit, watch, setError, formState: { errors, isSubmitting } } = useForm({
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm({
     resolver: zodResolver(employeeSchema),
-    defaultValues: initialData ? {
-      ...initialData,
-      hireDate: initialData.hireDate ? new Date(initialData.hireDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
-    } : {
-      name: "",
-      phone: "",
-      position: "",
-      baseSalary: 0,
-      dailyRate: 0,
-      employmentType: "permanent",
-      hireDate: new Date().toISOString().split("T")[0],
-      status: "active",
-    },
+    defaultValues: initialData
+      ? {
+          name: initialData.name || "",
+          phone: initialData.phone || "",
+          employmentStartDate: initialData.employmentStartDate
+            ? new Date(initialData.employmentStartDate).toISOString().split("T")[0]
+            : new Date().toISOString().split("T")[0],
+          employmentEndDate: initialData.employmentEndDate
+            ? new Date(initialData.employmentEndDate).toISOString().split("T")[0]
+            : "",
+          status: initialData.status || "active",
+        }
+      : {
+          name: "",
+          phone: "",
+          employmentStartDate: new Date().toISOString().split("T")[0],
+          employmentEndDate: "",
+          status: "active",
+        },
   });
-
-  const empType = watch("employmentType");
 
   const handleFormSubmit = async (data) => {
     try {
-      await onSubmit(data);
+      const payload = {
+        ...data,
+        employmentEndDate: data.employmentEndDate ? data.employmentEndDate : undefined,
+      };
+      await onSubmit(payload);
     } catch (error) {
       applyServerErrors(setError, error);
     }
@@ -64,45 +92,23 @@ const EmployeeForm = ({ initialData, onSubmit, onClose }) => {
 
   return (
     <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
+      <FormRootError error={errors.root} />
+
       <FormField label="Full Name" required error={errors.name?.message}>
-        <Input {...register("name")} error={errors.name?.message} />
+        <Input {...register("name")} error={errors.name?.message} placeholder="e.g. Abebe Bikila" />
+      </FormField>
+
+      <FormField label="Phone Number" required error={errors.phone?.message}>
+        <Input {...register("phone")} error={errors.phone?.message} placeholder="e.g. 0911234567 or +251911234567" />
       </FormField>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormField label="Position" required error={errors.position?.message}>
-          <Input {...register("position")} placeholder="e.g. Carpenter, Painter" error={errors.position?.message} />
-        </FormField>
-        
-        <FormField label="Phone" error={errors.phone?.message}>
-          <Input {...register("phone")} error={errors.phone?.message} />
-        </FormField>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormField label="Employment Type" required error={errors.employmentType?.message}>
-          <Select
-            {...register("employmentType")}
-            error={errors.employmentType?.message}
-            options={[
-              { value: "permanent", label: "Permanent" },
-              { value: "contract", label: "Contract" },
-              { value: "daily", label: "Daily Wage" },
-            ]}
-          />
-        </FormField>
-        
-        <FormField label="Hire Date" required error={errors.hireDate?.message}>
-          <Input type="date" {...register("hireDate")} error={errors.hireDate?.message} />
-        </FormField>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormField label="Monthly Base Salary" error={errors.baseSalary?.message}>
-          <Input type="number" step="0.01" {...register("baseSalary")} disabled={empType === "daily"} error={errors.baseSalary?.message} />
+        <FormField label="Employment Start Date" required error={errors.employmentStartDate?.message}>
+          <Input type="date" {...register("employmentStartDate")} error={errors.employmentStartDate?.message} />
         </FormField>
 
-        <FormField label="Daily Rate (if applicable)" error={errors.dailyRate?.message}>
-          <Input type="number" step="0.01" {...register("dailyRate")} disabled={empType !== "daily"} error={errors.dailyRate?.message} />
+        <FormField label="Employment End Date (Optional)" error={errors.employmentEndDate?.message}>
+          <Input type="date" {...register("employmentEndDate")} error={errors.employmentEndDate?.message} />
         </FormField>
       </div>
 
@@ -110,23 +116,17 @@ const EmployeeForm = ({ initialData, onSubmit, onClose }) => {
         <Select
           {...register("status")}
           error={errors.status?.message}
-          options={[
-            { value: "active", label: "Active" },
-            { value: "on_leave", label: "On Leave" },
-            { value: "inactive", label: "Inactive" },
-          ]}
+          options={ACTIVE_INACTIVE_OPTIONS}
         />
       </FormField>
 
-      {errors.root && (
-        <div className="rounded-xl bg-danger/8 border border-danger/20 px-4 py-3 text-sm text-danger">
-          {errors.root.message}
-        </div>
-      )}
-
       <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
-        <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
-        <Button type="submit" isLoading={isSubmitting}>Save Employee</Button>
+        <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>
+          Cancel
+        </Button>
+        <Button type="submit" isLoading={isSubmitting}>
+          Save Employee
+        </Button>
       </div>
     </form>
   );
@@ -137,15 +137,11 @@ export const EmployeesList = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState({ search: "", status: "", employmentType: "" });
+  const [filters, setFilters] = useState({ search: "", status: "" });
   const [isOpen, setIsOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
 
-  const params = useMemo(() => ({
-    ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v)),
-    page,
-    limit: 20
-  }), [filters, page]);
+  const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["employees", params],
@@ -154,15 +150,13 @@ export const EmployeesList = () => {
   });
   const { items: employees, pagination } = unwrapListResponse(data);
 
-  useEffect(() => {
-    if (pagination && pagination.page < pagination.totalPages) {
-      const nextParams = { ...params, page: page + 1 };
-      queryClient.prefetchQuery({
-        queryKey: ["employees", nextParams],
-        queryFn: () => getEmployees(nextParams),
-      });
-    }
-  }, [pagination, page, params, queryClient]);
+  usePrefetchNextPage({
+    queryKey: ["employees"],
+    queryFn: getEmployees,
+    pagination,
+    params,
+    page,
+  });
 
   const createMutation = useMutation({
     mutationFn: createEmployee,
@@ -186,74 +180,78 @@ export const EmployeesList = () => {
 
   const columns = [
     { header: "Name", accessor: "name", className: "font-medium" },
-    { header: "Position", accessor: "position", className: "text-secondary" },
-    { header: "Type", accessor: (row) => <span className="capitalize">{row.employmentType}</span>, className: "text-secondary hidden sm:table-cell", hiddenOnMobile: true },
-    { 
-      header: "Salary/Rate", 
-      accessor: (row) => row.employmentType === 'daily' 
-        ? <><MoneyDisplay amount={row.dailyRate} /> / day</> 
-        : <><MoneyDisplay amount={row.baseSalary} /> / mo</>, 
-      className: "hidden md:table-cell", 
-      hiddenOnMobile: true 
+    { header: "Phone", accessor: "phone", className: "text-secondary" },
+    {
+      header: "Start Date",
+      accessor: (row) => formatDate(row.employmentStartDate),
+      className: "text-secondary hidden sm:table-cell",
+    },
+    {
+      header: "End Date",
+      accessor: (row) => (row.employmentEndDate ? formatDate(row.employmentEndDate) : "-"),
+      className: "text-secondary hidden md:table-cell",
     },
     { header: "Status", accessor: (row) => <StatusBadge status={row.status} /> },
-    { 
-      header: "Actions", 
+    {
+      header: "Actions",
       isActions: true,
       accessor: (row) => (
         <div className="flex gap-2 justify-end">
-          <Button variant="secondary" size="sm" onClick={(e) => { e.stopPropagation(); navigate(`/employees/${row._id}`); }}>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/employees/${row._id}`);
+            }}
+          >
             View
           </Button>
           <Can permission="employees.update">
-            <Button variant="secondary" size="sm" onClick={(e) => { e.stopPropagation(); setEditingEmployee(row); setIsOpen(true); }}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditingEmployee(row);
+                setIsOpen(true);
+              }}
+            >
               Edit
             </Button>
           </Can>
         </div>
-      ) 
-    }
+      ),
+    },
   ];
 
-  if (isError) return <ErrorState description={getApiErrorMessage(error, "Failed to load employees.")} />;
+  if (isError)
+    return <ErrorState description={getApiErrorMessage(error, "Failed to load employees.")} />;
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Employees"
-        description="Manage workshop staff, positions, and base salaries."
+        description="Manage workshop staff, contact info, and employment periods."
         actions={
           <Can permission="employees.create">
-            <Button onClick={() => { setEditingEmployee(null); setIsOpen(true); }}>Add Employee</Button>
+            <Button onClick={() => { setEditingEmployee(null); setIsOpen(true); }}>
+              Add Employee
+            </Button>
           </Can>
         }
       />
 
-      <FilterBar 
+      <FilterBar
         searchPlaceholder="Search employees..."
         searchValue={filters.search}
-        onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}
-        onClear={filters.search || filters.status || filters.employmentType ? () => { setFilters({ search: "", status: "", employmentType: "" }); setPage(1); } : undefined}
+        onSearchChange={(val) => { setFilters((p) => ({ ...p, search: val })); setPage(1); }}
+        onClear={filters.search || filters.status ? () => { setFilters({ search: "", status: "" }); setPage(1); } : undefined}
       >
         <Select
-          value={filters.employmentType}
-          onChange={(e) => { setFilters(p => ({ ...p, employmentType: e.target.value })); setPage(1); }}
-          placeholder="All Types"
-          options={[
-            { value: "permanent", label: "Permanent" },
-            { value: "contract", label: "Contract" },
-            { value: "daily", label: "Daily Wage" },
-          ]}
-        />
-        <Select
           value={filters.status}
-          onChange={(e) => { setFilters(p => ({ ...p, status: e.target.value })); setPage(1); }}
-          placeholder="All Statuses"
-          options={[
-            { value: "active", label: "Active" },
-            { value: "on_leave", label: "On Leave" },
-            { value: "inactive", label: "Inactive" },
-          ]}
+          onChange={(e) => { setFilters((p) => ({ ...p, status: e.target.value })); setPage(1); }}
+          options={STATUS_FILTER_OPTIONS}
         />
       </FilterBar>
 

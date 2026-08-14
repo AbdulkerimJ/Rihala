@@ -10,7 +10,8 @@ const createContractorService = async (data) => {
   if (data.phone) {
     const existing = await Contractor.findOne({ phone: data.phone });
     if (existing) {
-      throw new ConflictError("A contractor with this phone number already exists.");
+      const msg = "A contractor with this phone number already exists.";
+      throw new ConflictError(msg, [{ field: "phone", message: msg }]);
     }
   }
 
@@ -42,7 +43,8 @@ const updateContractorService = async (id, updateData) => {
   if (updateData.phone && updateData.phone !== contractor.phone) {
     const existing = await Contractor.findOne({ phone: updateData.phone });
     if (existing) {
-      throw new ConflictError("A contractor with this phone number already exists.");
+      const msg = "A contractor with this phone number already exists.";
+      throw new ConflictError(msg, [{ field: "phone", message: msg }]);
     }
   }
 

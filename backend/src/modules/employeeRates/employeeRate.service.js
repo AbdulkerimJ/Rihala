@@ -43,9 +43,8 @@ const createEmployeeRateService = async (data) => {
   });
 
   if (existingRate) {
-    throw new ConflictError(
-      "An employee rate already exists for this employee and effective date.",
-    );
+    const msg = "An employee rate already exists for this employee and effective date.";
+    throw new ConflictError(msg, [{ field: "effectiveDate", message: msg }]);
   }
 
   return EmployeeRate.create(normalizedData);

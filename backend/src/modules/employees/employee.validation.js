@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { emptyToUndefined } from "../../core/utils/zod.js";
 import { isValidEthiopianPhone } from "../../core/utils/phone.js";
 
 const mongoIdRegex = /^[0-9a-fA-F]{24}$/;
@@ -12,6 +13,8 @@ const normalizeDate = (value) => {
   parsedDate.setHours(0, 0, 0, 0);
   return parsedDate;
 };
+
+
 
 const createEmployeeSchema = z
   .object({
@@ -32,9 +35,11 @@ const createEmployeeSchema = z
       error: "Employment start date must be a valid date.",
     }),
 
-    employmentEndDate: z.coerce
-      .date({ error: "Employment end date must be a valid date." })
-      .optional(),
+    employmentEndDate: emptyToUndefined(
+      z.coerce
+        .date({ error: "Employment end date must be a valid date." })
+        .optional(),
+    ),
 
     status: employeeStatusSchema.optional().default("active"),
   })
@@ -73,13 +78,17 @@ const updateEmployeeSchema = z
       })
       .optional(),
 
-    employmentStartDate: z.coerce
-      .date({ error: "Employment start date must be a valid date." })
-      .optional(),
+    employmentStartDate: emptyToUndefined(
+      z.coerce
+        .date({ error: "Employment start date must be a valid date." })
+        .optional(),
+    ),
 
-    employmentEndDate: z.coerce
-      .date({ error: "Employment end date must be a valid date." })
-      .optional(),
+    employmentEndDate: emptyToUndefined(
+      z.coerce
+        .date({ error: "Employment end date must be a valid date." })
+        .optional(),
+    ),
 
     status: employeeStatusSchema.optional(),
   })

@@ -1,5 +1,6 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import { usePermission } from "../../../hooks/usePermission";
+import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { createEmployeePayment, getEmployeePayments, voidEmployeePayment } from "../api";
 import { getEmployees } from "../../employees/api";
@@ -18,48 +19,62 @@ import { Select } from "../../../components/ui/Select";
 import { Textarea } from "../../../components/ui/Textarea";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
-import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
+import { VoidReasonDialog } from "../../../components/ui/VoidReasonDialog";
+import { FormRootError } from "../../../components/ui/FormRootError";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
-import { getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
+import { applyServerErrors, cleanFilterParams, getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
 import { formatDate } from "../../../utils/formatters";
 
 const paymentSchema = z.object({
   employee: z.string().min(1, "Employee is required"),
-  amount: z.coerce.number().positive("Amount must be greater than 0"),
-  paymentType: z.enum(["salary", "advance", "bonus", "other"]).default("advance"),
-  paymentMethod: z.enum(["cash", "bank_transfer", "check", "other"]).default("cash"),
-  referenceNumber: z.string().optional(),
-  notes: z.string().optional(),
+  amount: z.coerce.number({ error: "Amount is required" }).positive("Amount must be greater than 0"),
+  type: z.enum(["regular", "overtime", "bonus", "advance", "other"]).default("advance"),
   paymentDate: z.string().min(1, "Payment date is required"),
+  note: z.string().trim().optional().or(z.literal("")),
 });
 
 const PaymentForm = ({ onSubmit, onClose }) => {
   const { can } = usePermission();
   const { data: employeesData } = useQuery({ 
     queryKey: ["employees-list"], 
-    queryFn: () => getEmployees({ limit: 1000 }),
+    queryFn: () => getEmployees({ limit: 1000, status: "active" }),
     enabled: can("employees.read")
   });
   const employees = unwrapListResponse(employeesData).items || [];
   
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(paymentSchema),
     defaultValues: {
       employee: "",
       amount: "",
-      paymentType: "advance",
-      paymentMethod: "cash",
-      referenceNumber: "",
-      notes: "",
+      type: "advance",
       paymentDate: new Date().toISOString().split("T")[0],
+      note: "",
     },
   });
 
+  const handleFormSubmit = async (data) => {
+    try {
+      const payload = {
+        employee: data.employee,
+        amount: data.amount,
+        type: data.type,
+        paymentDate: new Date(data.paymentDate).toISOString(),
+        note: data.note || undefined,
+      };
+
+      await onSubmit(payload);
+    } catch (error) {
+      applyServerErrors(setError, error);
+    }
+  };
+
   return (
-    <form className="space-y-4 p-6" onSubmit={handleSubmit(onSubmit)}>
+    <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
+      <FormRootError error={errors.root} />
       <FormField label="Employee" required error={errors.employee?.message}>
         <Select
           {...register("employee")}
@@ -70,16 +85,17 @@ const PaymentForm = ({ onSubmit, onClose }) => {
       </FormField>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormField label="Payment Type" error={errors.paymentType?.message}>
+        <FormField label="Payment Type" required error={errors.type?.message}>
           <Select
-            {...register("paymentType")}
+            {...register("type")}
             options={[
               { value: "advance", label: "Salary Advance" },
-              { value: "salary", label: "Regular Salary" },
+              { value: "regular", label: "Regular Salary" },
+              { value: "overtime", label: "Overtime Payment" },
               { value: "bonus", label: "Bonus" },
               { value: "other", label: "Other" },
             ]}
-            error={errors.paymentType?.message}
+            error={errors.type?.message}
           />
         </FormField>
 
@@ -88,31 +104,12 @@ const PaymentForm = ({ onSubmit, onClose }) => {
         </FormField>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormField label="Payment Date" required error={errors.paymentDate?.message}>
-          <Input type="date" {...register("paymentDate")} error={errors.paymentDate?.message} />
-        </FormField>
-        
-        <FormField label="Payment Method" error={errors.paymentMethod?.message}>
-          <Select
-            {...register("paymentMethod")}
-            options={[
-              { value: "cash", label: "Cash" },
-              { value: "bank_transfer", label: "Bank Transfer" },
-              { value: "check", label: "Check" },
-              { value: "other", label: "Other" },
-            ]}
-            error={errors.paymentMethod?.message}
-          />
-        </FormField>
-      </div>
-
-      <FormField label="Reference Number" error={errors.referenceNumber?.message}>
-        <Input {...register("referenceNumber")} placeholder="e.g. TXN ID" error={errors.referenceNumber?.message} />
+      <FormField label="Payment Date" required error={errors.paymentDate?.message}>
+        <Input type="date" {...register("paymentDate")} error={errors.paymentDate?.message} />
       </FormField>
 
-      <FormField label="Notes" error={errors.notes?.message}>
-        <Textarea {...register("notes")} rows={2} error={errors.notes?.message} />
+      <FormField label="Notes (Optional)" error={errors.note?.message}>
+        <Textarea {...register("note")} rows={2} error={errors.note?.message} placeholder="Optional notes" />
       </FormField>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
@@ -130,7 +127,6 @@ export const EmployeePaymentsList = () => {
   const [filters, setFilters] = useState({ search: "", employee: "", status: "", paymentType: "" });
   const [isOpen, setIsOpen] = useState(false);
   const [voidingPayment, setVoidingPayment] = useState(null);
-  const [voidReason, setVoidReason] = useState("");
 
   const { data: employeesData } = useQuery({ 
     queryKey: ["employees-list"], 
@@ -139,11 +135,7 @@ export const EmployeePaymentsList = () => {
   });
   const employees = unwrapListResponse(employeesData).items || [];
 
-  const params = useMemo(() => ({
-    ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v)),
-    page,
-    limit: 20
-  }), [filters, page]);
+  const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["employee-payments", params],
@@ -153,15 +145,13 @@ export const EmployeePaymentsList = () => {
   });
   const { items: payments, pagination } = unwrapListResponse(data);
 
-  useEffect(() => {
-    if (pagination && pagination.page < pagination.totalPages) {
-      const nextParams = { ...params, page: page + 1 };
-      queryClient.prefetchQuery({
-        queryKey: ["employee-payments", nextParams],
-        queryFn: () => getEmployeePayments(nextParams),
-      });
-    }
-  }, [pagination, page, params, queryClient]);
+  usePrefetchNextPage({
+    queryKey: ["employee-payments"],
+    queryFn: getEmployeePayments,
+    pagination,
+    params,
+    page,
+  });
 
   const createMutation = useMutation({
     mutationFn: createEmployeePayment,
@@ -180,7 +170,6 @@ export const EmployeePaymentsList = () => {
       queryClient.invalidateQueries({ queryKey: ["employees"] }); // Balance changed
       toast.success("Payment voided successfully");
       setVoidingPayment(null);
-      setVoidReason("");
     },
   });
 
@@ -286,30 +275,17 @@ export const EmployeePaymentsList = () => {
         />
       </Modal>
 
-      <ConfirmDialog
+      <VoidReasonDialog
         isOpen={!!voidingPayment}
         title="Void Payment"
         message={`Are you sure you want to void this payment of ${voidingPayment?.amount} ETB? This action cannot be undone and will reverse the employee's balance.`}
         confirmLabel="Void Payment"
-        cancelLabel="Cancel"
-        onConfirm={() => voidMutation.mutateAsync({ id: voidingPayment._id, voidReason })}
-        onCancel={() => { setVoidingPayment(null); setVoidReason(""); }}
-        isDestructive
         isLoading={voidMutation.isPending}
-      >
-        <div className="mt-4">
-          <FormField label="Reason for voiding (required)">
-            <Input
-              type="text"
-              value={voidReason}
-              onChange={(e) => setVoidReason(e.target.value)}
-              placeholder="Entered by mistake, wrong amount, etc."
-              required
-            />
-          </FormField>
-        </div>
-      </ConfirmDialog>
+        onConfirm={(reason) => voidMutation.mutateAsync({ id: voidingPayment._id, voidReason: reason })}
+        onCancel={() => setVoidingPayment(null)}
+      />
     </div>
   );
 };
+
 

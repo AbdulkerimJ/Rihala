@@ -1,5 +1,5 @@
 const orderQueryConfig = {
-  searchableFields: ["orderNumber", "customerName", "customerPhone", "items.description"],
+  searchableFields: ["orderNumber", "customerName", "customerPhone", "description"],
   sortableFields: ["createdAt", "date", "expectedCompletionDate", "agreedAmount", "orderNumber"],
   filterableFields: ["status", "customer", "createdBy"],
   defaultSort: "-date",

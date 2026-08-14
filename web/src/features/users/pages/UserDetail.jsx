@@ -8,8 +8,10 @@ import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
 import { Can } from "../../../components/Can";
-import { ShieldCheck } from "lucide-react";
-import { AssignRolesModal } from "../components/AssignRolesModal";
+import { ShieldCheck, Mail, Key, Calendar, Activity } from "lucide-react";
+import { Modal } from "../../../components/ui/Modal";
+import { SummaryCard } from "../../../components/ui/SummaryCard";
+import { AssignRolesForm } from "../components/AssignRolesModal";
 import toast from "react-hot-toast";
 import { formatDateTime } from "../../../utils/formatters";
 import {
@@ -63,6 +65,8 @@ export const UserDetail = () => {
       <PageHeader
         title={user.name}
         description="User details and account status."
+        backTo="/users"
+        backLabel="Back to users"
         actions={
           <Can permission="users.assign-role">
             <Button onClick={() => setIsRolesModalOpen(true)}>
@@ -72,40 +76,46 @@ export const UserDetail = () => {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="rounded-2xl border border-border bg-surface p-6">
-          <div className="text-sm text-secondary">Email</div>
-          <div className="mt-2 text-base text-primary">{user.email}</div>
-        </div>
-        <div className="rounded-2xl border border-border bg-surface p-6">
-          <div className="text-sm text-secondary">Status</div>
-          <div className="mt-2">
-            <StatusBadge status={user.status} />
-          </div>
-        </div>
-        <div className="rounded-2xl border border-border bg-surface p-6">
-          <div className="text-sm text-secondary">Roles</div>
-          <div className="mt-2 text-base font-medium text-primary">
-            {user.roles?.length
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <SummaryCard
+          title="Email"
+          value={user.email}
+          icon={Mail}
+        />
+        <SummaryCard
+          title="Status"
+          value={<StatusBadge status={user.status} />}
+          icon={Activity}
+        />
+        <SummaryCard
+          title="Roles"
+          value={
+            user.roles?.length
               ? user.roles.map((role) => role.name || role).join(", ")
-              : "-"}
-          </div>
-        </div>
-        <div className="rounded-2xl border border-border bg-surface p-6">
-          <div className="text-sm text-secondary">Created</div>
-          <div className="mt-2 text-base text-primary">
-            {formatDateTime(user.createdAt)}
-          </div>
-        </div>
+              : "None"
+          }
+          icon={Key}
+        />
+        <SummaryCard
+          title="Created"
+          value={formatDateTime(user.createdAt)}
+          icon={Calendar}
+        />
       </div>
 
-      <AssignRolesModal
+      <Modal
         isOpen={isRolesModalOpen}
+        title="Assign Roles"
         onClose={() => setIsRolesModalOpen(false)}
-        onSubmit={handleAssignRolesSubmit}
-        user={user}
-        isSubmitting={updateMutation.isPending}
-      />
+        maxWidth="max-w-lg"
+      >
+        <AssignRolesForm
+          onClose={() => setIsRolesModalOpen(false)}
+          onSubmit={handleAssignRolesSubmit}
+          user={user}
+          isSubmitting={updateMutation.isPending}
+        />
+      </Modal>
     </div>
   );
 };

@@ -50,14 +50,17 @@ const handleDuplicateCustomerError = (error) => {
     const fieldName = Object.keys(error.keyPattern || {})[0] || "field";
 
     if (fieldName === "phone") {
-      throw new ConflictError("A customer with this phone already exists.");
+      const msg = "A customer with this phone already exists.";
+      throw new ConflictError(msg, [{ field: "phone", message: msg }]);
     }
 
     if (fieldName === "email") {
-      throw new ConflictError("A customer with this email already exists.");
+      const msg = "A customer with this email already exists.";
+      throw new ConflictError(msg, [{ field: "email", message: msg }]);
     }
 
-    throw new ConflictError("A customer with this value already exists.");
+    const msg = "A customer with this value already exists.";
+    throw new ConflictError(msg, [{ field: fieldName, message: msg }]);
   }
 
   throw error;
@@ -72,7 +75,8 @@ const createCustomerService = async (data) => {
     });
 
     if (existingPhoneCustomer) {
-      throw new ConflictError("A customer with this phone already exists.");
+      const msg = "A customer with this phone already exists.";
+      throw new ConflictError(msg, [{ field: "phone", message: msg }]);
     }
   }
 
@@ -82,7 +86,8 @@ const createCustomerService = async (data) => {
     });
 
     if (existingEmailCustomer) {
-      throw new ConflictError("A customer with this email already exists.");
+      const msg = "A customer with this email already exists.";
+      throw new ConflictError(msg, [{ field: "email", message: msg }]);
     }
   }
 
@@ -124,7 +129,8 @@ const updateCustomerService = async (customerId, updateData) => {
     });
 
     if (existingPhoneCustomer) {
-      throw new ConflictError("A customer with this phone already exists.");
+      const msg = "A customer with this phone already exists.";
+      throw new ConflictError(msg, [{ field: "phone", message: msg }]);
     }
   }
 
@@ -135,7 +141,8 @@ const updateCustomerService = async (customerId, updateData) => {
     });
 
     if (existingEmailCustomer) {
-      throw new ConflictError("A customer with this email already exists.");
+      const msg = "A customer with this email already exists.";
+      throw new ConflictError(msg, [{ field: "email", message: msg }]);
     }
   }
 

@@ -9,7 +9,9 @@ import { useAuth } from "../../../hooks/useAuth";
 import { applyServerErrors } from "../../../utils/apiResponse";
 import { FormField } from "../../../components/ui/FormField";
 import { Input } from "../../../components/ui/Input";
+import { PasswordInput } from "../../../components/ui/PasswordInput";
 import { Button } from "../../../components/ui/Button";
+import { FormRootError } from "../../../components/ui/FormRootError";
 
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email format"),
@@ -19,7 +21,6 @@ const loginSchema = z.object({
 export const Login = () => {
   const { login } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -68,30 +69,15 @@ export const Login = () => {
         </FormField>
 
         <FormField label="Password" error={errors.password?.message}>
-          <div className="relative">
-            <Input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              size="lg"
-              autoComplete="current-password"
-              placeholder="••••••••"
-              disabled={isSubmitting}
-              error={errors.password?.message}
-              {...register("password")}
-            />
-            <button
-              type="button"
-              tabIndex={-1}
-              onClick={() => setShowPassword((p) => !p)}
-              className="absolute inset-y-0 right-3.5 flex items-center text-muted hover:text-primary transition-colors"
-            >
-              {showPassword ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
-            </button>
-          </div>
+          <PasswordInput
+            id="password"
+            size="lg"
+            autoComplete="current-password"
+            placeholder="••••••••"
+            disabled={isSubmitting}
+            error={errors.password?.message}
+            {...register("password")}
+          />
         </FormField>
 
         <div className="flex justify-end">
@@ -104,11 +90,7 @@ export const Login = () => {
         </div>
 
         {/* Server error */}
-        {errors.root && (
-          <div className="rounded-xl bg-danger/8 border border-danger/20 px-4 py-3 text-sm text-danger">
-            {errors.root.message}
-          </div>
-        )}
+        <FormRootError error={errors.root} />
 
         {/* Submit */}
         <Button

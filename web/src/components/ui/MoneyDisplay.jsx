@@ -20,9 +20,11 @@ export const MoneyDisplay = ({
   };
 
   return (
-    <span className={`inline-flex items-center gap-1 ${variants[variant]} ${className}`}>
+    <span
+      className={`inline-flex max-w-full items-baseline gap-0.5 whitespace-nowrap tabular-nums ${variants[variant]} ${className}`}
+    >
       {isNegative && <span>-</span>}
-      <span>{formatCurrency(absAmount, showSymbol)}</span>
+      <span className="truncate">{formatCurrency(absAmount, showSymbol)}</span>
     </span>
   );
 };

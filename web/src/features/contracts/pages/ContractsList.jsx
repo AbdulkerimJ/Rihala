@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { usePermission } from "../../../hooks/usePermission";
+import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { getContracts, createContract } from "../api";
 import { getContractors } from "../../contractors/api";
 import { getTasks } from "../../tasks/api";
@@ -19,22 +20,34 @@ import { Select } from "../../../components/ui/Select";
 import { Textarea } from "../../../components/ui/Textarea";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
+import { FormRootError } from "../../../components/ui/FormRootError";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
-import { getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
+import { applyServerErrors, cleanFilterParams, getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
 import { formatDate } from "../../../utils/formatters";
 
-const contractSchema = z.object({
-  contractor: z.string().min(1, "Contractor is required"),
-  task: z.string().min(1, "Task is required"),
-  quantity: z.coerce.number().positive("Quantity must be positive"),
-  unitPrice: z.coerce.number().positive("Unit price must be positive"),
-  contractDate: z.string().min(1, "Contract date is required"),
-  expectedCompletionDate: z.string().optional(),
-  note: z.string().optional(),
-});
+const contractSchema = z
+  .object({
+    contractor: z.string().min(1, "Contractor is required"),
+    task: z.string().min(1, "Task is required"),
+    quantity: z.coerce.number({ error: "Quantity is required" }).int("Quantity must be an integer").min(1, "Quantity must be at least 1"),
+    unitPrice: z.coerce.number({ error: "Unit price is required" }).positive("Unit price must be positive"),
+    contractDate: z.string().min(1, "Contract date is required"),
+    expectedCompletionDate: z.string().optional().or(z.literal("")),
+    note: z.string().trim().optional().or(z.literal("")),
+  })
+  .refine(
+    (data) => {
+      if (!data.expectedCompletionDate || !data.contractDate) return true;
+      return new Date(data.expectedCompletionDate) >= new Date(data.contractDate);
+    },
+    {
+      message: "Expected completion date cannot be before contract date",
+      path: ["expectedCompletionDate"],
+    }
+  );
 
 const ContractForm = ({ onSubmit, onClose }) => {
   const { can } = usePermission();
@@ -52,7 +65,7 @@ const ContractForm = ({ onSubmit, onClose }) => {
   });
   const tasks = unwrapListResponse(tasksData).items || [];
 
-  const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, watch, setValue, setError, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(contractSchema),
     defaultValues: {
       contractor: "",
@@ -76,8 +89,22 @@ const ContractForm = ({ onSubmit, onClose }) => {
     }
   }, [selectedTaskId, tasks, setValue]);
 
+  const handleFormSubmit = async (data) => {
+    try {
+      const payload = {
+        ...data,
+        expectedCompletionDate: data.expectedCompletionDate ? data.expectedCompletionDate : undefined,
+        note: data.note ? data.note : undefined,
+      };
+      await onSubmit(payload);
+    } catch (error) {
+      applyServerErrors(setError, error);
+    }
+  };
+
   return (
-    <form className="space-y-4 p-6" onSubmit={handleSubmit(onSubmit)}>
+    <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
+      <FormRootError error={errors.root} />
       <FormField label="Contractor" required error={errors.contractor?.message}>
         <Select
           {...register("contractor")}
@@ -173,11 +200,7 @@ export const ContractsList = () => {
   });
   const tasks = unwrapListResponse(tasksData).items || [];
 
-  const params = useMemo(() => ({
-    ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v !== "")),
-    page,
-    limit: 20
-  }), [filters, page]);
+  const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["contracts", params],
@@ -188,15 +211,13 @@ export const ContractsList = () => {
 
   const { items: contracts, pagination } = unwrapListResponse(data);
 
-  useEffect(() => {
-    if (pagination && pagination.page < pagination.totalPages) {
-      const nextParams = { ...params, page: page + 1 };
-      queryClient.prefetchQuery({
-        queryKey: ["contracts", nextParams],
-        queryFn: () => getContracts(nextParams),
-      });
-    }
-  }, [pagination, page, params, queryClient]);
+  usePrefetchNextPage({
+    queryKey: ["contracts"],
+    queryFn: getContracts,
+    pagination,
+    params,
+    page,
+  });
 
   const createMutation = useMutation({
     mutationFn: createContract,

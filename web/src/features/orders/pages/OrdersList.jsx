@@ -1,5 +1,6 @@
 import { usePermission } from "../../../hooks/usePermission";
-import React, { useMemo, useState, useEffect } from "react";
+import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
+import React, { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { Can } from "../../../components/Can";
@@ -20,134 +21,20 @@ import { Input } from "../../../components/ui/Input";
 import { Textarea } from "../../../components/ui/Textarea";
 import { Select } from "../../../components/ui/Select";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
+import { FormRootError } from "../../../components/ui/FormRootError";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
 import { formatDate } from "../../../utils/formatters";
 import {
+  applyServerErrors,
+  cleanFilterParams,
   getApiErrorMessage,
   unwrapListResponse,
 } from "../../../utils/apiResponse";
 
-const orderSchema = z.object({
-  customer: z.string().min(1, "Customer is required"),
-  description: z.string().min(1, "Description is required"),
-  agreedAmount: z.coerce.number().nonnegative("Amount cannot be negative"),
-  expectedCompletionDate: z.string().min(1, "Date is required"),
-  notes: z.string().optional(),
-  status: z
-    .enum(["pending", "in_progress", "ready", "completed", "cancelled"])
-    .optional(),
-});
-
-const OrderForm = ({ initialData, customers, onSubmit, onClose }) => {
-  const isEditing = !!initialData;
-  const allowedStatuses = isEditing
-    ? getAllowedOrderTransitions(initialData.status)
-    : [];
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm({
-    resolver: zodResolver(orderSchema),
-    defaultValues: initialData
-      ? {
-          customer: initialData.customer?._id || initialData.customer,
-          description: initialData.description || "",
-          agreedAmount: initialData.agreedAmount || "",
-          expectedCompletionDate: initialData.expectedCompletionDate
-            ? String(initialData.expectedCompletionDate).slice(0, 10)
-            : "",
-          notes: initialData.notes || "",
-          status: initialData.status || "pending",
-        }
-      : {
-          customer: "",
-          description: "",
-          agreedAmount: "",
-          expectedCompletionDate: "",
-          notes: "",
-        },
-  });
-
-  return (
-    <form className="space-y-4 p-6" onSubmit={handleSubmit(onSubmit)}>
-      <FormField label="Customer" required error={errors.customer?.message}>
-        <Select
-          {...register("customer")}
-          placeholder="Select customer"
-          error={errors.customer?.message}
-          options={customers.map((c) => ({ value: c._id, label: c.name }))}
-        />
-      </FormField>
-
-      <FormField label="Description" required error={errors.description?.message}>
-        <Textarea
-          placeholder="Describe the agreed furniture/design"
-          {...register("description")}
-          rows={3}
-          error={errors.description?.message}
-        />
-      </FormField>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormField label="Agreed Amount (ETB)" required error={errors.agreedAmount?.message}>
-          <Input
-            type="number"
-            step="0.01"
-            placeholder="0.00"
-            {...register("agreedAmount")}
-            error={errors.agreedAmount?.message}
-          />
-        </FormField>
-
-        <FormField label="Expected Completion Date" required error={errors.expectedCompletionDate?.message}>
-          <Input
-            type="date"
-            {...register("expectedCompletionDate")}
-            error={errors.expectedCompletionDate?.message}
-          />
-        </FormField>
-      </div>
-
-      <FormField label="Notes" error={errors.notes?.message}>
-        <Textarea
-          placeholder="Optional notes"
-          {...register("notes")}
-          rows={2}
-          error={errors.notes?.message}
-        />
-      </FormField>
-
-      {isEditing && (
-        <FormField label="Status" error={errors.status?.message}>
-          <Select
-            {...register("status")}
-            error={errors.status?.message}
-            options={[
-              { value: initialData.status, label: ORDER_STATUS_LABELS[initialData.status] },
-              ...allowedStatuses.map((status) => ({
-                value: status,
-                label: ORDER_STATUS_LABELS[status],
-              })),
-            ]}
-          />
-        </FormField>
-      )}
-
-      <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
-        <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>
-          Cancel
-        </Button>
-        <Button type="submit" isLoading={isSubmitting}>
-          Save Order
-        </Button>
-      </div>
-    </form>
-  );
-};
+import { OrderForm } from "../components/OrderForm";
 
 export const OrdersList = () => {
   const { can } = usePermission();
@@ -165,13 +52,7 @@ export const OrdersList = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
 
-  const params = useMemo(() => ({
-    ...Object.fromEntries(
-      Object.entries(filters).filter(([, value]) => value),
-    ),
-    page,
-    limit: 20,
-  }), [filters, page]);
+  const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
 
   const ordersQuery = useQuery({
     queryKey: ["orders", params],
@@ -188,15 +69,13 @@ export const OrdersList = () => {
   const { items: orders, pagination } = unwrapListResponse(ordersQuery.data);
   const customers = unwrapListResponse(customersQuery.data).items || [];
 
-  useEffect(() => {
-    if (pagination && pagination.page < pagination.totalPages) {
-      const nextParams = { ...params, page: page + 1 };
-      queryClient.prefetchQuery({
-        queryKey: ["orders", nextParams],
-        queryFn: () => getOrders(nextParams),
-      });
-    }
-  }, [pagination, page, params, queryClient]);
+  usePrefetchNextPage({
+    queryKey: ["orders"],
+    queryFn: getOrders,
+    pagination,
+    params,
+    page,
+  });
 
   const createMutation = useMutation({
     mutationFn: createOrder,
@@ -229,8 +108,17 @@ export const OrdersList = () => {
   };
 
   const columns = [
+    {
+      header: "Order #",
+      accessor: (row) => (
+        <span className="font-mono text-xs font-semibold text-primary">
+          {row.orderNumber || "-"}
+        </span>
+      ),
+      className: "w-28",
+    },
     { header: "Customer", accessor: (row) => row.customer?.name || "-", className: "font-medium" },
-    { header: "Description", accessor: (row) => <div className="max-w-[200px] truncate">{row.description}</div>, className: "text-secondary hidden sm:table-cell" },
+    { header: "Description", accessor: (row) => <div className="max-w-[200px] truncate">{row.description || row.items?.[0]?.description || "-"}</div>, className: "text-secondary hidden sm:table-cell" },
     { header: "Amount", accessor: (row) => <MoneyDisplay amount={row.agreedAmount} /> },
     { header: "Expected", accessor: (row) => formatDate(row.expectedCompletionDate), className: "text-secondary hidden md:table-cell" },
     { header: "Status", accessor: (row) => <StatusBadge status={row.status} /> },

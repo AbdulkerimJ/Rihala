@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft, HardHat, Hammer, ClipboardCheck, FileText, AlertCircle } from "lucide-react";
 import { getContractById, cancelContract } from "../api";
 import { recordCompletion, voidCompletion } from "../../contract-completions/api";
 import { createContractorPayment, voidContractorPayment } from "../../contractor-payments/api";
@@ -10,10 +11,12 @@ import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { Button } from "../../../components/ui/Button";
 import { SummaryCard } from "../../../components/ui/SummaryCard";
 import { DetailSection, DetailItem } from "../../../components/ui/DetailSection";
+import { SystemInfoSection } from "../../../components/ui/SystemInfoSection";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { DataTable } from "../../../components/ui/DataTable";
 import { Modal } from "../../../components/ui/Modal";
-import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
+import { VoidReasonDialog } from "../../../components/ui/VoidReasonDialog";
+import { FormRootError } from "../../../components/ui/FormRootError";
 import { FormField } from "../../../components/ui/FormField";
 import { Input } from "../../../components/ui/Input";
 import { Select } from "../../../components/ui/Select";
@@ -23,26 +26,33 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
 import { formatDate, formatDateTime } from "../../../utils/formatters";
-import { getApiErrorMessage, unwrapEntityResponse } from "../../../utils/apiResponse";
-import { Can } from "../../../components/Can";
-import { usePermission } from "../../../hooks/usePermission";
-import { HardHat, Hammer, ClipboardCheck, AlertCircle, FileText } from "lucide-react";
+import { applyServerErrors, getApiErrorMessage, unwrapEntityResponse } from "../../../utils/apiResponse";
 
 // --- Forms ---
 const completionSchema = z.object({
-  quantity: z.coerce.number().positive("Quantity must be greater than 0"),
+  quantity: z.coerce.number({ error: "Quantity is required" }).int("Quantity must be an integer").min(1, "Quantity must be at least 1"),
   recordedAt: z.string().min(1, "Date is required"),
+  note: z.string().trim().optional().or(z.literal("")),
 });
 
 const CompletionForm = ({ contract, onSubmit, onClose }) => {
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(completionSchema),
-    defaultValues: { quantity: 1, recordedAt: new Date().toISOString().split("T")[0] }
+    defaultValues: { quantity: 1, recordedAt: new Date().toISOString().split("T")[0], note: "" }
   });
   const maxQty = contract.quantity - contract.stats.completedQuantity;
 
+  const handleFormSubmit = async (data) => {
+    try {
+      await onSubmit(data);
+    } catch (error) {
+      applyServerErrors(setError, error);
+    }
+  };
+
   return (
-    <form className="space-y-4 p-6" onSubmit={handleSubmit(onSubmit)}>
+    <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
+      <FormRootError error={errors.root} />
       <div className="bg-blue-50/50 p-3 rounded-md mb-4 border border-blue-100">
         <p className="text-sm text-blue-800">Remaining to complete: <strong>{maxQty}</strong> units.</p>
       </div>
@@ -51,6 +61,9 @@ const CompletionForm = ({ contract, onSubmit, onClose }) => {
       </FormField>
       <FormField label="Completion Date" required error={errors.recordedAt?.message}>
         <Input type="date" {...register("recordedAt")} error={errors.recordedAt?.message} />
+      </FormField>
+      <FormField label="Note (Optional)" error={errors.note?.message}>
+        <Textarea {...register("note")} rows={2} error={errors.note?.message} />
       </FormField>
       <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
         <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
@@ -61,20 +74,28 @@ const CompletionForm = ({ contract, onSubmit, onClose }) => {
 };
 
 const paymentSchema = z.object({
-  amount: z.coerce.number().positive("Amount must be greater than 0"),
+  amount: z.coerce.number({ error: "Amount is required" }).positive("Amount must be greater than 0"),
   paymentDate: z.string().min(1, "Date is required"),
-  paymentMethod: z.enum(["CASH", "BANK_TRANSFER", "CHEQUE", "OTHER"]).default("CASH"),
-  note: z.string().optional()
+  note: z.string().trim().optional().or(z.literal(""))
 });
 
 const PaymentForm = ({ contract, onSubmit, onClose }) => {
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(paymentSchema),
-    defaultValues: { amount: contract.stats.payableAmount, paymentDate: new Date().toISOString().split("T")[0], paymentMethod: "CASH", note: "" }
+    defaultValues: { amount: contract.stats.payableAmount, paymentDate: new Date().toISOString().split("T")[0], note: "" }
   });
 
+  const handleFormSubmit = async (data) => {
+    try {
+      await onSubmit(data);
+    } catch (error) {
+      applyServerErrors(setError, error);
+    }
+  };
+
   return (
-    <form className="space-y-4 p-6" onSubmit={handleSubmit(onSubmit)}>
+    <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
+      <FormRootError error={errors.root} />
       <div className="bg-blue-50/50 p-3 rounded-md mb-4 border border-blue-100">
         <p className="text-sm text-blue-800">Max payable amount: <strong><MoneyDisplay amount={contract.stats.payableAmount} /></strong></p>
       </div>
@@ -83,18 +104,6 @@ const PaymentForm = ({ contract, onSubmit, onClose }) => {
       </FormField>
       <FormField label="Payment Date" required error={errors.paymentDate?.message}>
         <Input type="date" {...register("paymentDate")} error={errors.paymentDate?.message} />
-      </FormField>
-      <FormField label="Payment Method" required error={errors.paymentMethod?.message}>
-        <Select
-          {...register("paymentMethod")}
-          options={[
-            { value: "CASH", label: "Cash" },
-            { value: "BANK_TRANSFER", label: "Bank Transfer" },
-            { value: "CHEQUE", label: "Cheque" },
-            { value: "OTHER", label: "Other" },
-          ]}
-          error={errors.paymentMethod?.message}
-        />
       </FormField>
       <FormField label="Note (Optional)" error={errors.note?.message}>
         <Textarea {...register("note")} rows={2} error={errors.note?.message} />
@@ -118,8 +127,6 @@ export const ContractDetail = () => {
   const [isCancelModalOpen, setCancelModalOpen] = useState(false);
   const [voidingCompletion, setVoidingCompletion] = useState(null);
   const [voidingPayment, setVoidingPayment] = useState(null);
-  const [voidReason, setVoidReason] = useState("");
-  const [cancelReason, setCancelReason] = useState("");
 
   const contractQuery = useQuery({
     queryKey: ["contracts", id],
@@ -206,7 +213,6 @@ export const ContractDetail = () => {
     { header: "Ref", accessor: "paymentReference", className: "font-mono text-xs" },
     { header: "Date", accessor: (row) => formatDate(row.paymentDate), className: "text-secondary" },
     { header: "Amount", accessor: (row) => <MoneyDisplay amount={row.amount} className={row.status === 'voided' ? 'line-through opacity-50' : ''} /> },
-    { header: "Method", accessor: (row) => <span className="capitalize">{row.paymentMethod?.replace('_', ' ')}</span> },
     { header: "Status", accessor: (row) => <StatusBadge status={row.status} /> },
     { 
       header: "Actions", 
@@ -224,17 +230,24 @@ export const ContractDetail = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-4">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl font-bold text-primary font-display tracking-tight">Contract {contract.contractNumber}</h1>
-            <StatusBadge status={contract.status} />
-            {isOverdue && <StatusBadge label="Overdue" className="bg-danger/10 text-danger border border-danger/20" />}
+        <div className="flex items-center gap-3">
+          <Link
+            to="/contracts"
+            className="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-border bg-surface text-secondary hover:text-primary hover:bg-main transition-colors shrink-0"
+            title="Back to contracts"
+            aria-label="Back to contracts"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-2xl font-bold text-primary font-display tracking-tight">Contract {contract.contractNumber}</h1>
+              <StatusBadge status={contract.status} />
+              {isOverdue && <StatusBadge label="Overdue" className="bg-danger/10 text-danger border border-danger/20" />}
+            </div>
+            <p className="text-sm text-secondary">Manage contract progress and financial standing.</p>
           </div>
-          <p className="text-sm text-secondary">Manage contract progress and financial standing.</p>
         </div>
-        <Link to="/contracts" className="rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-primary hover:bg-main transition-colors">
-          Back to contracts
-        </Link>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -249,21 +262,21 @@ export const ContractDetail = () => {
         <div className="lg:col-span-2 space-y-6">
           <DetailSection title="Contract Stats & Financials">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-main/50 rounded-lg">
-              <div>
-                <p className="text-sm text-secondary mb-1">Completed Qty</p>
-                <p className="text-lg font-semibold text-primary">{stats.completedQuantity} <span className="text-xs font-normal text-secondary">/ {contract.quantity}</span></p>
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-secondary mb-1 truncate">Completed Qty</p>
+                <p className="text-base sm:text-lg font-semibold text-primary break-words">{stats.completedQuantity} <span className="text-xs font-normal text-secondary">/ {contract.quantity}</span></p>
               </div>
-              <div>
-                <p className="text-sm text-secondary mb-1">Work Value</p>
-                <p className="text-lg font-semibold text-primary"><MoneyDisplay amount={stats.completedWorkValue} /></p>
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-secondary mb-1 truncate">Work Value</p>
+                <p className="text-base sm:text-lg font-semibold text-primary break-words tabular-nums"><MoneyDisplay amount={stats.completedWorkValue} /></p>
               </div>
-              <div>
-                <p className="text-sm text-secondary mb-1">Total Paid</p>
-                <p className="text-lg font-semibold text-primary"><MoneyDisplay amount={stats.totalPaid} /></p>
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-secondary mb-1 truncate">Total Paid</p>
+                <p className="text-base sm:text-lg font-semibold text-primary break-words tabular-nums"><MoneyDisplay amount={stats.totalPaid} /></p>
               </div>
-              <div className="bg-accent/10 -m-2 p-2 rounded-md border border-accent/20">
-                <p className="text-sm text-accent mb-1 font-medium">Payable Amount</p>
-                <p className="text-lg font-bold text-accent"><MoneyDisplay amount={stats.payableAmount} /></p>
+              <div className="bg-accent/10 -m-2 p-2 rounded-md border border-accent/20 min-w-0">
+                <p className="text-xs sm:text-sm text-accent mb-1 font-medium truncate">Payable Amount</p>
+                <p className="text-base sm:text-lg font-bold text-accent break-words tabular-nums"><MoneyDisplay amount={stats.payableAmount} /></p>
               </div>
             </div>
             
@@ -326,14 +339,7 @@ export const ContractDetail = () => {
             </div>
           </DetailSection>
 
-          <DetailSection title="System Information">
-            <div className="space-y-1">
-              <DetailItem label="Internal ID" value={<span className="font-mono text-xs">{contract._id}</span>} />
-              <DetailItem label="Created By" value={contract.createdBy?.name || "-"} />
-              <DetailItem label="Created On" value={formatDateTime(contract.createdAt)} />
-              <DetailItem label="Last Updated" value={formatDateTime(contract.updatedAt)} />
-            </div>
-          </DetailSection>
+          <SystemInfoSection entity={contract} createdBy={contract.createdBy} />
         </div>
       </div>
 
@@ -346,59 +352,36 @@ export const ContractDetail = () => {
         <PaymentForm contract={contract} onClose={() => setPaymentModalOpen(false)} onSubmit={(data) => recordPaymentMutation.mutateAsync(data)} />
       </Modal>
 
-      <ConfirmDialog
+      <VoidReasonDialog
         isOpen={isCancelModalOpen}
         title="Cancel Contract"
         message="Are you sure you want to cancel this contract? You can only cancel if there are no unpaid completed tasks and the contractor hasn't been overpaid. This action cannot be undone."
         confirmLabel="Cancel Contract"
-        cancelLabel="Keep Active"
-        onConfirm={() => cancelMutation.mutateAsync(cancelReason)}
-        onCancel={() => { setCancelModalOpen(false); setCancelReason(""); }}
-        isDestructive
+        placeholder="Reason for contract cancellation..."
         isLoading={cancelMutation.isPending}
-      >
-        <div className="mt-4">
-          <FormField label="Reason for cancellation (required)">
-            <Input type="text" value={cancelReason} onChange={(e) => setCancelReason(e.target.value)} required />
-          </FormField>
-        </div>
-      </ConfirmDialog>
+        onConfirm={(reason) => cancelMutation.mutateAsync(reason)}
+        onCancel={() => setCancelModalOpen(false)}
+      />
 
-      <ConfirmDialog
+      <VoidReasonDialog
         isOpen={!!voidingCompletion}
         title="Void Completion"
         message="Are you sure you want to void this completion? This will decrease the total completed work value."
         confirmLabel="Void Completion"
-        cancelLabel="Cancel"
-        onConfirm={() => voidCompletionMutation.mutateAsync({ id: voidingCompletion._id, voidReason })}
-        onCancel={() => { setVoidingCompletion(null); setVoidReason(""); }}
-        isDestructive
         isLoading={voidCompletionMutation.isPending}
-      >
-        <div className="mt-4">
-          <FormField label="Reason (required)">
-            <Input type="text" value={voidReason} onChange={(e) => setVoidReason(e.target.value)} required />
-          </FormField>
-        </div>
-      </ConfirmDialog>
+        onConfirm={(reason) => voidCompletionMutation.mutateAsync({ id: voidingCompletion._id, voidReason: reason })}
+        onCancel={() => setVoidingCompletion(null)}
+      />
 
-      <ConfirmDialog
+      <VoidReasonDialog
         isOpen={!!voidingPayment}
         title="Void Payment"
         message="Are you sure you want to void this payment? This will increase the payable amount."
         confirmLabel="Void Payment"
-        cancelLabel="Cancel"
-        onConfirm={() => voidPaymentMutation.mutateAsync({ id: voidingPayment._id, voidReason })}
-        onCancel={() => { setVoidingPayment(null); setVoidReason(""); }}
-        isDestructive
         isLoading={voidPaymentMutation.isPending}
-      >
-        <div className="mt-4">
-          <FormField label="Reason (required)">
-            <Input type="text" value={voidReason} onChange={(e) => setVoidReason(e.target.value)} required />
-          </FormField>
-        </div>
-      </ConfirmDialog>
+        onConfirm={(reason) => voidPaymentMutation.mutateAsync({ id: voidingPayment._id, voidReason: reason })}
+        onCancel={() => setVoidingPayment(null)}
+      />
     </div>
   );
 };

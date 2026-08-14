@@ -13,9 +13,10 @@ import { ErrorState } from "../../../components/ui/ErrorState";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
+import { Modal } from "../../../components/ui/Modal";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
-import { UserModal } from "../components/UserModal";
-import { AssignRolesModal } from "../components/AssignRolesModal";
+import { UserForm } from "../components/UserModal";
+import { AssignRolesForm } from "../components/AssignRolesModal";
 import {
   getUsers,
   createUser,
@@ -366,19 +367,31 @@ export const UsersList = () => {
         </div>
       )}
 
-      <UserModal
+      <Modal
         isOpen={isModalOpen}
+        title={editingUser ? "Edit User" : "Invite New User"}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={handleSubmit}
-        initialData={editingUser}
-      />
-      <AssignRolesModal
+        maxWidth="max-w-md"
+      >
+        <UserForm
+          onClose={() => setIsModalOpen(false)}
+          onSubmit={handleSubmit}
+          initialData={editingUser}
+        />
+      </Modal>
+      <Modal
         isOpen={isRolesModalOpen}
+        title="Assign Roles"
         onClose={() => setIsRolesModalOpen(false)}
-        onSubmit={handleAssignRolesSubmit}
-        user={rolesUser}
-        isSubmitting={updateMutation.isPending}
-      />
+        maxWidth="max-w-lg"
+      >
+        <AssignRolesForm
+          onClose={() => setIsRolesModalOpen(false)}
+          onSubmit={handleAssignRolesSubmit}
+          user={rolesUser}
+          isSubmitting={updateMutation.isPending}
+        />
+      </Modal>
       <ConfirmDialog
         isOpen={!!userToDelete}
         title="Delete User"

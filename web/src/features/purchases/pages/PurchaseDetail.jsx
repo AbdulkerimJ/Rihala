@@ -5,11 +5,12 @@ import { getPurchaseById } from "../api";
 import { DetailSkeleton } from "../../../components/ui/skeletons";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { SummaryCard } from "../../../components/ui/SummaryCard";
-import { DetailSection, DetailItem } from "../../../components/ui/DetailSection";
+import { DetailSection } from "../../../components/ui/DetailSection";
+import { SystemInfoSection } from "../../../components/ui/SystemInfoSection";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { getApiErrorMessage, unwrapEntityResponse } from "../../../utils/apiResponse";
-import { formatDateTime, formatDate } from "../../../utils/formatters";
-import { ShoppingBag, Wallet, Calendar, Building2 } from "lucide-react";
+import { formatDate } from "../../../utils/formatters";
+import { ShoppingBag, Wallet, Calendar, Building2, ArrowLeft } from "lucide-react";
 
 export const PurchaseDetail = () => {
   const { id } = useParams();
@@ -31,18 +32,22 @@ export const PurchaseDetail = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-4">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl font-bold text-primary font-display tracking-tight">Purchase #{purchase.purchaseNumber}</h1>
+        <div className="flex items-center gap-3">
+          <Link
+            to="/purchases"
+            className="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-border bg-surface text-secondary hover:text-primary hover:bg-main transition-colors shrink-0"
+            title="Back to purchases"
+            aria-label="Back to purchases"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-2xl font-bold text-primary font-display tracking-tight">Purchase #{purchase.purchaseNumber}</h1>
+            </div>
+            <p className="text-sm text-secondary">Purchase details and itemization.</p>
           </div>
-          <p className="text-sm text-secondary">Purchase details and itemization.</p>
         </div>
-        <Link
-          to="/purchases"
-          className="rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-primary hover:bg-main transition-colors"
-        >
-          Back to purchases
-        </Link>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -116,14 +121,15 @@ export const PurchaseDetail = () => {
         </div>
 
         <div className="space-y-6">
-          <DetailSection title="Reference Information">
-            <div className="space-y-1">
-              <DetailItem label="Purchase ID" value={<span className="font-mono text-xs">{purchase._id}</span>} />
-              <DetailItem label="Reference No" value={purchase.referenceNumber || "-"} />
-              <DetailItem label="Created By" value={purchase.createdBy?.name || "Unknown User"} />
-              <DetailItem label="Created On" value={formatDateTime(purchase.createdAt)} />
-            </div>
-          </DetailSection>
+          <SystemInfoSection
+            id={purchase._id}
+            idLabel="Purchase ID"
+            createdAt={purchase.createdAt}
+            extraItems={[
+              { label: "Reference No", value: purchase.purchaseNumber || purchase.referenceNumber || "-" },
+              { label: "Created By", value: purchase.createdBy?.name || "Unknown User" },
+            ]}
+          />
         </div>
       </div>
     </div>

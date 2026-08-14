@@ -1,5 +1,6 @@
 import { usePermission } from "../../../hooks/usePermission";
-import React, { useMemo, useState, useEffect } from "react";
+import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
+import React, { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { createCustomer, getCustomers, updateCustomer } from "../api";
 import { PageHeader } from "../../../components/ui/PageHeader";
@@ -15,22 +16,27 @@ import { FormField } from "../../../components/ui/FormField";
 import { Input } from "../../../components/ui/Input";
 import { Textarea } from "../../../components/ui/Textarea";
 import { Select } from "../../../components/ui/Select";
+import { FormRootError } from "../../../components/ui/FormRootError";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
 import {
+  applyServerErrors,
+  cleanFilterParams,
   getApiErrorMessage,
   unwrapListResponse,
 } from "../../../utils/apiResponse";
 import { formatDateTime } from "../../../utils/formatters";
+import { ethiopianPhone, optionalEmail } from "../../../utils/validation";
+import { ACTIVE_INACTIVE_OPTIONS, STATUS_FILTER_OPTIONS } from "../../../constants/options";
 
 const customerSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  phone: z.string().min(1, "Phone is required"),
-  email: z.string().email("Invalid email").optional().or(z.literal("")),
-  address: z.string().optional(),
-  notes: z.string().optional(),
+  name: z.string().trim().min(2, "Name must be at least 2 characters"),
+  phone: ethiopianPhone,
+  email: optionalEmail,
+  address: z.string().trim().optional(),
+  notes: z.string().trim().optional(),
   status: z.enum(["active", "inactive"]).default("active"),
 });
 
@@ -38,6 +44,7 @@ const CustomerForm = ({ initialData, onSubmit, onClose }) => {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(customerSchema),
@@ -51,8 +58,17 @@ const CustomerForm = ({ initialData, onSubmit, onClose }) => {
     },
   });
 
+  const handleFormSubmit = async (data) => {
+    try {
+      await onSubmit(data);
+    } catch (error) {
+      applyServerErrors(setError, error);
+    }
+  };
+
   return (
-    <form className="space-y-4 p-6" onSubmit={handleSubmit(onSubmit)}>
+    <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
+      <FormRootError error={errors.root} />
       <FormField label="Name" required error={errors.name?.message}>
         <Input
           {...register("name")}
@@ -65,7 +81,7 @@ const CustomerForm = ({ initialData, onSubmit, onClose }) => {
         <Input
           {...register("phone")}
           error={errors.phone?.message}
-          placeholder="e.g. +251 911 234 567"
+          placeholder="e.g. 0911234567 or +251911234567"
         />
       </FormField>
 
@@ -99,10 +115,7 @@ const CustomerForm = ({ initialData, onSubmit, onClose }) => {
         <Select
           {...register("status")}
           error={errors.status?.message}
-          options={[
-            { value: "active", label: "Active" },
-            { value: "inactive", label: "Inactive" },
-          ]}
+          options={ACTIVE_INACTIVE_OPTIONS}
         />
       </FormField>
 
@@ -126,11 +139,7 @@ export const CustomersList = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
 
-  const params = useMemo(() => ({
-    ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v)),
-    page,
-    limit: 20
-  }), [filters, page]);
+  const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["customers", params],
@@ -139,15 +148,13 @@ export const CustomersList = () => {
   });
   const { items: customers, pagination } = unwrapListResponse(data);
 
-  useEffect(() => {
-    if (pagination && pagination.page < pagination.totalPages) {
-      const nextParams = { ...params, page: page + 1 };
-      queryClient.prefetchQuery({
-        queryKey: ["customers", nextParams],
-        queryFn: () => getCustomers(nextParams),
-      });
-    }
-  }, [pagination, page, params, queryClient]);
+  usePrefetchNextPage({
+    queryKey: ["customers"],
+    queryFn: getCustomers,
+    pagination,
+    params,
+    page,
+  });
 
   const createMutation = useMutation({
     mutationFn: createCustomer,
@@ -234,11 +241,7 @@ export const CustomersList = () => {
         <Select
           value={filters.status}
           onChange={(e) => { setFilters(p => ({ ...p, status: e.target.value })); setPage(1); }}
-          placeholder="All Statuses"
-          options={[
-            { value: "active", label: "Active" },
-            { value: "inactive", label: "Inactive" },
-          ]}
+          options={STATUS_FILTER_OPTIONS}
         />
       </FilterBar>
 

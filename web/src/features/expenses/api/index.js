@@ -1,26 +1,10 @@
-import api from "../../../api/axios";
+import { createCrudApi } from "../../../api/crud";
 
-export const getExpenses = async (params = {}) => {
-  const response = await api.get("/expenses", { params });
-  return response.data;
-};
+const expensesApi = createCrudApi("/expenses");
 
-export const getExpenseById = async (id) => {
-  const response = await api.get(`/expenses/${id}`);
-  return response.data;
-};
+export const getExpenses = expensesApi.getAll;
+export const getExpenseById = expensesApi.getById;
+export const createExpense = expensesApi.create;
+export const updateExpense = expensesApi.update;
+export const deleteExpense = expensesApi.delete;
 
-export const createExpense = async (data) => {
-  const response = await api.post("/expenses", data);
-  return response.data;
-};
-
-export const updateExpense = async ({ id, data }) => {
-  const response = await api.patch(`/expenses/${id}`, data);
-  return response.data;
-};
-
-export const deleteExpense = async (id) => {
-  const response = await api.delete(`/expenses/${id}`);
-  return response.data;
-};

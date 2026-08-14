@@ -72,7 +72,8 @@ const createUserService = async ({ name, email, roles }) => {
   const existingUser = await User.findOne({ email });
 
   if (existingUser) {
-    throw new ConflictError("Email already exists.");
+    const msg = "Email already exists.";
+    throw new ConflictError(msg, [{ field: "email", message: msg }]);
   }
 
   // Create user in invited state (no password)
@@ -177,7 +178,8 @@ const updateUserService = async (userId, updateData) => {
     });
 
     if (existingUser) {
-      throw new ConflictError("Email already exists.");
+      const msg = "Email already exists.";
+      throw new ConflictError(msg, [{ field: "email", message: msg }]);
     }
 
     // If the user is invited and admin corrects the email, regenerate invitation token

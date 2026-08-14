@@ -243,7 +243,8 @@ const closeEmployeeWeeklyPayrollService = async (employeeId) => {
       }).session(session);
 
       if (existingClosedPayroll) {
-        throw new ConflictError("This weekly payroll has already been closed.");
+        const msg = "This weekly payroll has already been closed.";
+        throw new ConflictError(msg, [{ field: "startDate", message: msg }]);
       }
 
       // Calculate payroll data inside the transaction so attendance/overtime reads
@@ -291,7 +292,8 @@ const closeEmployeeWeeklyPayrollService = async (employeeId) => {
         return createdPayroll[0].populate("employee");
       } catch (error) {
         if (error.code === 11000) {
-          throw new ConflictError("This weekly payroll has already been closed.");
+          const msg = "This weekly payroll has already been closed.";
+          throw new ConflictError(msg, [{ field: "startDate", message: msg }]);
         }
         throw error;
       }

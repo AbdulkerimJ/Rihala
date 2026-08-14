@@ -63,9 +63,8 @@ const createOvertimeService = async (data) => {
   });
 
   if (existingOvertime) {
-    throw new ConflictError(
-      "Overtime already exists for this employee and work date.",
-    );
+    const msg = "Overtime already exists for this employee and work date.";
+    throw new ConflictError(msg, [{ field: "workDate", message: msg }]);
   }
 
   const applicableRate = await getApplicableRateService(
@@ -86,9 +85,8 @@ const createOvertimeService = async (data) => {
     });
   } catch (error) {
     if (error?.code === 11000) {
-      throw new ConflictError(
-        "Overtime already exists for this employee and work date.",
-      );
+      const msg = "Overtime already exists for this employee and work date.";
+      throw new ConflictError(msg, [{ field: "workDate", message: msg }]);
     }
 
     throw error;
@@ -135,9 +133,8 @@ const updateOvertimeService = async (overtimeId, updateData) => {
     return overtime.populate("employee");
   } catch (error) {
     if (error?.code === 11000) {
-      throw new ConflictError(
-        "Overtime already exists for this employee and work date.",
-      );
+      const msg = "Overtime already exists for this employee and work date.";
+      throw new ConflictError(msg, [{ field: "workDate", message: msg }]);
     }
 
     throw error;

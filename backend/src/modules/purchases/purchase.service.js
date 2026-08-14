@@ -27,7 +27,7 @@ const validateAndPrepareItems = async (items, session = null) => {
   for (const item of items) {
     const material = await Material.findById(item.material).session(session);
     if (!material) {
-      throw new ValidationError(`Material with ID ${item.material} not found`);
+      throw new NotFoundError(`Material with ID ${item.material} not found`);
     }
     
     if (material.status !== "active") {
@@ -71,7 +71,8 @@ const createPurchaseService = async (data) => {
       // Ensure purchaseNumber uniqueness
       const existing = await Purchase.findOne({ purchaseNumber }).session(session);
       if (existing) {
-        throw new ConflictError("Purchase number already exists");
+        const msg = "Purchase number already exists";
+        throw new ConflictError(msg, [{ field: "purchaseNumber", message: msg }]);
       }
 
       const purchaseData = {

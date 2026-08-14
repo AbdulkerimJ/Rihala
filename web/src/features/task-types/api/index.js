@@ -1,21 +1,10 @@
-import api from "../../../api/axios";
+import { createCrudApi } from "../../../api/crud";
 
-export const getTaskTypes = async (params = {}) => {
-  const response = await api.get("/task-types", { params });
-  return response.data;
-};
+const taskTypesApi = createCrudApi("/task-types");
 
-export const createTaskType = async (data) => {
-  const response = await api.post("/task-types", data);
-  return response.data;
-};
+export const getTaskTypes = taskTypesApi.getAll;
+export const getTaskTypeById = taskTypesApi.getById;
+export const createTaskType = taskTypesApi.create;
+export const updateTaskType = taskTypesApi.update;
+export const deleteTaskType = taskTypesApi.delete;
 
-export const updateTaskType = async ({ id, data }) => {
-  const response = await api.patch(`/task-types/${id}`, data);
-  return response.data;
-};
-
-export const deleteTaskType = async (id) => {
-  const response = await api.delete(`/task-types/${id}`);
-  return response.data;
-};

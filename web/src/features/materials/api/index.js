@@ -1,21 +1,10 @@
-import api from "../../../api/axios";
+import { createCrudApi } from "../../../api/crud";
 
-export const getMaterials = async (params = {}) => {
-  const response = await api.get("/materials", { params });
-  return response.data;
-};
+const materialsApi = createCrudApi("/materials");
 
-export const getMaterialById = async (id) => {
-  const response = await api.get(`/materials/${id}`);
-  return response.data;
-};
+export const getMaterials = materialsApi.getAll;
+export const getMaterialById = materialsApi.getById;
+export const createMaterial = materialsApi.create;
+export const updateMaterial = materialsApi.update;
+export const deleteMaterial = materialsApi.delete;
 
-export const createMaterial = async (data) => {
-  const response = await api.post("/materials", data);
-  return response.data;
-};
-
-export const updateMaterial = async ({ id, data }) => {
-  const response = await api.patch(`/materials/${id}`, data);
-  return response.data;
-};

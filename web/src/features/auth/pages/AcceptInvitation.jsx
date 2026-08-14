@@ -18,7 +18,9 @@ import {
 import { applyServerErrors, getApiErrorMessage } from "../../../utils/apiResponse";
 import { FormField } from "../../../components/ui/FormField";
 import { Input } from "../../../components/ui/Input";
+import { PasswordInput } from "../../../components/ui/PasswordInput";
 import { Button } from "../../../components/ui/Button";
+import { FormRootError } from "../../../components/ui/FormRootError";
 
 const schema = z
   .object({
@@ -183,52 +185,26 @@ export const AcceptInvitation = () => {
 
         {/* Password */}
         <FormField label="Password" error={errors.password?.message}>
-          <div className="relative">
-            <Input
-              type={showPassword ? "text" : "password"}
-              size="lg"
-              placeholder="At least 6 characters"
-              error={errors.password?.message}
-              {...register("password")}
-            />
-            <button
-              type="button"
-              tabIndex={-1}
-              onClick={() => setShowPassword((p) => !p)}
-              className="absolute inset-y-0 right-3.5 flex items-center text-muted hover:text-primary transition-colors"
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
+          <PasswordInput
+            size="lg"
+            placeholder="At least 6 characters"
+            error={errors.password?.message}
+            {...register("password")}
+          />
         </FormField>
 
         {/* Confirm password */}
         <FormField label="Confirm password" error={errors.confirmPassword?.message}>
-          <div className="relative">
-            <Input
-              type={showConfirm ? "text" : "password"}
-              size="lg"
-              placeholder="Repeat your password"
-              error={errors.confirmPassword?.message}
-              {...register("confirmPassword")}
-            />
-            <button
-              type="button"
-              tabIndex={-1}
-              onClick={() => setShowConfirm((p) => !p)}
-              className="absolute inset-y-0 right-3.5 flex items-center text-muted hover:text-primary transition-colors"
-            >
-              {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
+          <PasswordInput
+            size="lg"
+            placeholder="Repeat your password"
+            error={errors.confirmPassword?.message}
+            {...register("confirmPassword")}
+          />
         </FormField>
 
         {/* Server error */}
-        {errors.root && (
-          <div className="rounded-xl bg-danger/8 border border-danger/20 px-4 py-3 text-sm text-danger">
-            {errors.root.message}
-          </div>
-        )}
+        <FormRootError error={errors.root} />
 
         <Button
           id="accept-invitation-submit"

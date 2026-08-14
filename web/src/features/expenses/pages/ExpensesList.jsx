@@ -1,5 +1,6 @@
 import { usePermission } from "../../../hooks/usePermission";
-import React, { useMemo, useState, useEffect } from "react";
+import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
+import React, { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import {
   createExpense,
@@ -21,21 +22,25 @@ import { FormField } from "../../../components/ui/FormField";
 import { Input } from "../../../components/ui/Input";
 import { Select } from "../../../components/ui/Select";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
+import { FormRootError } from "../../../components/ui/FormRootError";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
-import { formatDate } from "../../../utils/formatters";
 import {
+  applyServerErrors,
+  cleanFilterParams,
   getApiErrorMessage,
   unwrapListResponse,
 } from "../../../utils/apiResponse";
 
 const expenseSchema = z.object({
-  category: z.enum(EXPENSE_CATEGORIES),
-  amount: z.coerce.number().positive(),
-  description: z.string().optional(),
-  date: z.string().min(1),
+  category: z.enum(EXPENSE_CATEGORIES, {
+    errorMap: () => ({ message: "Category is required" }),
+  }),
+  amount: z.coerce.number({ error: "Amount is required" }).positive("Amount must be greater than 0"),
+  description: z.string().trim().optional().or(z.literal("")),
+  date: z.string().min(1, "Date is required"),
 });
 
 const initialFilters = {
@@ -50,6 +55,7 @@ const ExpenseForm = ({ initialData, onSubmit, onClose }) => {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(expenseSchema),
@@ -68,8 +74,17 @@ const ExpenseForm = ({ initialData, onSubmit, onClose }) => {
         },
   });
 
+  const handleFormSubmit = async (data) => {
+    try {
+      await onSubmit(data);
+    } catch (error) {
+      applyServerErrors(setError, error);
+    }
+  };
+
   return (
-    <form className="space-y-4 p-6" onSubmit={handleSubmit(onSubmit)}>
+    <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
+      <FormRootError error={errors.root} />
       <FormField label="Category" required error={errors.category?.message}>
         <Select
           {...register("category")}
@@ -109,7 +124,7 @@ const ExpenseForm = ({ initialData, onSubmit, onClose }) => {
           Cancel
         </Button>
         <Button type="submit" isLoading={isSubmitting}>
-          Save
+          Save Expense
         </Button>
       </div>
     </form>
@@ -125,13 +140,7 @@ export const ExpensesList = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const params = useMemo(
-    () => ({
-      ...Object.fromEntries(
-        Object.entries(filters).filter(([, value]) => value),
-      ),
-      page,
-      limit: 20,
-    }),
+    () => cleanFilterParams(filters, { page, limit: 20 }),
     [filters, page],
   );
 
@@ -142,15 +151,13 @@ export const ExpensesList = () => {
   });
   const { items: expenses, pagination } = unwrapListResponse(data);
 
-  useEffect(() => {
-    if (pagination && pagination.page < pagination.totalPages) {
-      const nextParams = { ...params, page: page + 1 };
-      queryClient.prefetchQuery({
-        queryKey: ["expenses", nextParams],
-        queryFn: () => getExpenses(nextParams),
-      });
-    }
-  }, [pagination, page, params, queryClient]);
+  usePrefetchNextPage({
+    queryKey: ["expenses"],
+    queryFn: getExpenses,
+    pagination,
+    params,
+    page,
+  });
 
   const createMutation = useMutation({
     mutationFn: createExpense,

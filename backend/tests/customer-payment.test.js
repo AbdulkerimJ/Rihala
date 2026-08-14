@@ -82,7 +82,7 @@ test("Customer Payments module test suite", async (t) => {
       customerPhone: customer.phone,
       createdBy: userId,
       date: new Date(),
-      items: [{ description: "Table", quantity: 1, unit: "pc" }],
+      description: "Table",
       agreedAmount: agreedAmount,
       expectedCompletionDate: new Date(),
       status: status

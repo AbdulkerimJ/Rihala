@@ -1,5 +1,6 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import { usePermission } from "../../../hooks/usePermission";
+import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { createSupplierPayment, getSupplierPayments, voidSupplierPayment } from "../api";
 import { getSuppliers } from "../../suppliers/api";
@@ -19,19 +20,19 @@ import { Select } from "../../../components/ui/Select";
 import { Textarea } from "../../../components/ui/Textarea";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
-import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
+import { VoidReasonDialog } from "../../../components/ui/VoidReasonDialog";
+import { FormRootError } from "../../../components/ui/FormRootError";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
-import { getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
+import { applyServerErrors, cleanFilterParams, getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
 import { formatDate } from "../../../utils/formatters";
 
 const paymentSchema = z.object({
   supplier: z.string().min(1, "Supplier is required"),
   purchase: z.string().optional(),
   amount: z.coerce.number().positive("Amount must be greater than 0"),
-  paymentMethod: z.enum(["cash", "bank_transfer", "check", "other"]).default("cash"),
   referenceNumber: z.string().optional(),
   notes: z.string().optional(),
   paymentDate: z.string().min(1, "Payment date is required"),
@@ -46,13 +47,12 @@ const PaymentForm = ({ onSubmit, onClose }) => {
   });
   const suppliers = unwrapListResponse(suppliersData).items || [];
   
-  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, watch, setError, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(paymentSchema),
     defaultValues: {
       supplier: "",
       purchase: "",
       amount: "",
-      paymentMethod: "bank_transfer",
       referenceNumber: "",
       notes: "",
       paymentDate: new Date().toISOString().split("T")[0],
@@ -68,8 +68,29 @@ const PaymentForm = ({ onSubmit, onClose }) => {
   });
   const purchases = unwrapListResponse(purchasesData).items || [];
 
+  const handleFormSubmit = async (data) => {
+    try {
+      const payload = {
+        type: data.purchase ? "SPECIFIC" : "GENERAL",
+        supplier: data.supplier,
+        amount: data.amount,
+        date: new Date(data.paymentDate).toISOString(),
+        paymentReference: data.referenceNumber,
+        note: data.notes,
+      };
+      if (data.purchase) {
+        payload.purchaseId = data.purchase;
+      }
+
+      await onSubmit(payload);
+    } catch (error) {
+      applyServerErrors(setError, error);
+    }
+  };
+
   return (
-    <form className="space-y-4 p-6" onSubmit={handleSubmit(onSubmit)}>
+    <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
+      <FormRootError error={errors.root} />
       <FormField label="Supplier" required error={errors.supplier?.message}>
         <Select
           {...register("supplier")}
@@ -100,24 +121,9 @@ const PaymentForm = ({ onSubmit, onClose }) => {
         </FormField>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormField label="Payment Method" error={errors.paymentMethod?.message}>
-          <Select
-            {...register("paymentMethod")}
-            options={[
-              { value: "cash", label: "Cash" },
-              { value: "bank_transfer", label: "Bank Transfer" },
-              { value: "check", label: "Check" },
-              { value: "other", label: "Other" },
-            ]}
-            error={errors.paymentMethod?.message}
-          />
-        </FormField>
-
-        <FormField label="Reference Number" error={errors.referenceNumber?.message}>
-          <Input {...register("referenceNumber")} placeholder="e.g. Check # or TXN ID" error={errors.referenceNumber?.message} />
-        </FormField>
-      </div>
+      <FormField label="Reference Number" error={errors.referenceNumber?.message}>
+        <Input {...register("referenceNumber")} placeholder="e.g. Check # or TXN ID" error={errors.referenceNumber?.message} />
+      </FormField>
 
       <FormField label="Notes" error={errors.notes?.message}>
         <Textarea {...register("notes")} rows={2} error={errors.notes?.message} />
@@ -138,7 +144,6 @@ export const SupplierPaymentsList = () => {
   const [filters, setFilters] = useState({ search: "", supplier: "", status: "", from: "", to: "" });
   const [isOpen, setIsOpen] = useState(false);
   const [voidingPayment, setVoidingPayment] = useState(null);
-  const [voidReason, setVoidReason] = useState("");
 
   const { data: suppliersData } = useQuery({ 
     queryKey: ["suppliers-list"], 
@@ -147,11 +152,7 @@ export const SupplierPaymentsList = () => {
   });
   const suppliers = unwrapListResponse(suppliersData).items || [];
 
-  const params = useMemo(() => ({
-    ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v)),
-    page,
-    limit: 20
-  }), [filters, page]);
+  const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["supplier-payments", params],
@@ -161,15 +162,13 @@ export const SupplierPaymentsList = () => {
   });
   const { items: payments, pagination } = unwrapListResponse(data);
 
-  useEffect(() => {
-    if (pagination && pagination.page < pagination.totalPages) {
-      const nextParams = { ...params, page: page + 1 };
-      queryClient.prefetchQuery({
-        queryKey: ["supplier-payments", nextParams],
-        queryFn: () => getSupplierPayments(nextParams),
-      });
-    }
-  }, [pagination, page, params, queryClient]);
+  usePrefetchNextPage({
+    queryKey: ["supplier-payments"],
+    queryFn: getSupplierPayments,
+    pagination,
+    params,
+    page,
+  });
 
   const createMutation = useMutation({
     mutationFn: createSupplierPayment,
@@ -188,7 +187,6 @@ export const SupplierPaymentsList = () => {
       queryClient.invalidateQueries({ queryKey: ["suppliers"] }); // Balance changed
       toast.success("Payment voided successfully");
       setVoidingPayment(null);
-      setVoidReason("");
     },
   });
 
@@ -197,7 +195,6 @@ export const SupplierPaymentsList = () => {
     { header: "Supplier", accessor: (row) => row.supplier?.name || "Unknown", className: "font-medium" },
     { header: "Date", accessor: (row) => formatDate(row.paymentDate), className: "text-secondary" },
     { header: "Amount", accessor: (row) => <MoneyDisplay amount={row.amount} className={row.status === 'voided' ? 'line-through opacity-50' : ''} /> },
-    { header: "Method", accessor: (row) => <span className="capitalize">{row.paymentMethod?.replace('_', ' ') || "—"}</span>, className: "text-secondary hidden md:table-cell" },
     { 
       header: "Status", 
       accessor: (row) => <StatusBadge status={row.status} />
@@ -283,30 +280,17 @@ export const SupplierPaymentsList = () => {
         />
       </Modal>
 
-      <ConfirmDialog
+      <VoidReasonDialog
         isOpen={!!voidingPayment}
         title="Void Payment"
         message={`Are you sure you want to void this payment of ${voidingPayment?.amount} ETB? This action cannot be undone and will reverse the supplier's balance.`}
         confirmLabel="Void Payment"
-        cancelLabel="Cancel"
-        onConfirm={() => voidMutation.mutateAsync({ id: voidingPayment._id, voidReason })}
-        onCancel={() => { setVoidingPayment(null); setVoidReason(""); }}
-        isDestructive
         isLoading={voidMutation.isPending}
-      >
-        <div className="mt-4">
-          <FormField label="Reason for voiding (required)">
-            <Input
-              type="text"
-              value={voidReason}
-              onChange={(e) => setVoidReason(e.target.value)}
-              placeholder="Entered by mistake, bounced check, etc."
-              required
-            />
-          </FormField>
-        </div>
-      </ConfirmDialog>
+        onConfirm={(reason) => voidMutation.mutateAsync({ id: voidingPayment._id, voidReason: reason })}
+        onCancel={() => setVoidingPayment(null)}
+      />
     </div>
   );
 };
+
 

@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import Order from "../src/modules/orders/order.model.js";
 import CustomerPayment from "../src/modules/customerPayments/customerPayment.model.js";
 import Customer from "../src/modules/customers/customer.model.js";
+import Counter from "../src/core/models/counter.model.js";
 import {
   isValidStatusTransition,
   createOrderService,
@@ -48,7 +49,7 @@ test("createOrderSchema rejects unsupported internal fields", () => {
     customer: "507f1f77bcf86cd799439011",
     createdBy: "507f1f77bcf86cd799439012",
     orderNumber: "ORD-9999",
-    items: [{ description: "Table", quantity: 1, unit: "piece" }],
+    description: "Table",
     agreedAmount: 1200,
     expectedCompletionDate: "2026-10-10T00:00:00.000Z",
   });
@@ -70,8 +71,8 @@ test("createOrderService handles snapshots, order number, and defaults", async (
   const originalCustomerFindById = Customer.findById;
   Customer.findById = () => mockCustomer;
 
-  const originalCount = Order.countDocuments;
-  Order.countDocuments = async () => 5; // Will generate ORD-1006
+  const originalCounterFindOneAndUpdate = Counter.findOneAndUpdate;
+  Counter.findOneAndUpdate = async () => ({ seq: 6 }); // Will generate ORD-1006
 
   const originalFindOne = Order.findOne;
   Order.findOne = async () => null; // No conflict
@@ -86,7 +87,7 @@ test("createOrderService handles snapshots, order number, and defaults", async (
   try {
     const order = await createOrderService({
       customer: customerId,
-      items: [{ description: "Sofa", quantity: 2, unit: "piece" }],
+      description: "Sofa",
       agreedAmount: 5000,
       expectedCompletionDate: new Date(),
     }, userId);
@@ -101,7 +102,7 @@ test("createOrderService handles snapshots, order number, and defaults", async (
     assert.ok(order.date instanceof Date); // Defaulted to today
   } finally {
     Customer.findById = originalCustomerFindById;
-    Order.countDocuments = originalCount;
+    Counter.findOneAndUpdate = originalCounterFindOneAndUpdate;
     Order.findOne = originalFindOne;
     Order.create = originalCreate;
   }

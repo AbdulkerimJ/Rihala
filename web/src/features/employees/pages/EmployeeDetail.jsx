@@ -6,11 +6,12 @@ import { DetailSkeleton } from "../../../components/ui/skeletons";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { SummaryCard } from "../../../components/ui/SummaryCard";
-import { DetailSection, DetailItem } from "../../../components/ui/DetailSection";
+import { DetailSection } from "../../../components/ui/DetailSection";
+import { SystemInfoSection } from "../../../components/ui/SystemInfoSection";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { getApiErrorMessage, unwrapEntityResponse } from "../../../utils/apiResponse";
-import { formatDateTime, formatDate } from "../../../utils/formatters";
-import { User, Briefcase, Calendar, Wallet } from "lucide-react";
+import { formatDate } from "../../../utils/formatters";
+import { User, Briefcase, Calendar, Wallet, ArrowLeft } from "lucide-react";
 
 export const EmployeeDetail = () => {
   const { id } = useParams();
@@ -32,62 +33,59 @@ export const EmployeeDetail = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-4">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl font-bold text-primary font-display tracking-tight">{employee.name}</h1>
-            <StatusBadge status={employee.status} />
+        <div className="flex items-center gap-3">
+          <Link
+            to="/employees"
+            className="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-border bg-surface text-secondary hover:text-primary hover:bg-main transition-colors shrink-0"
+            title="Back to employees"
+            aria-label="Back to employees"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-2xl font-bold text-primary font-display tracking-tight">{employee.name}</h1>
+              <StatusBadge status={employee.status} />
+            </div>
+            <p className="text-sm text-secondary">{employee.phone || "No phone provided"}</p>
           </div>
-          <p className="text-sm text-secondary">{employee.position} • <span className="capitalize">{employee.employmentType}</span> Employee</p>
         </div>
-        <Link
-          to="/employees"
-          className="rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-primary hover:bg-main transition-colors"
-        >
-          Back to employees
-        </Link>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <SummaryCard 
-          title="Position" 
-          value={employee.position || "Not specified"} 
-          icon={Briefcase}
-        />
-        <SummaryCard 
-          title="Hire Date" 
-          value={formatDate(employee.hireDate)} 
-          icon={Calendar}
-        />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <SummaryCard 
           title="Phone" 
           value={employee.phone || "Not specified"} 
           icon={User}
         />
         <SummaryCard 
-          title={employee.employmentType === 'daily' ? "Daily Rate" : "Monthly Base Salary"}
-          value={<MoneyDisplay amount={employee.employmentType === 'daily' ? employee.dailyRate : employee.baseSalary} />} 
-          icon={Wallet}
+          title="Employment Start" 
+          value={formatDate(employee.employmentStartDate)} 
+          icon={Calendar}
+        />
+        <SummaryCard 
+          title="Employment End" 
+          value={employee.employmentEndDate ? formatDate(employee.employmentEndDate) : "Ongoing"} 
+          icon={Briefcase}
         />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
-          {/* Future expansion: Salary advances, attendance summary, recent payrolls could go here */}
-          <DetailSection title="Payroll Summary">
-            <div className="flex items-center justify-center p-8 border border-dashed border-border/50 rounded-lg">
-              <p className="text-secondary text-sm">Detailed payroll history will appear here.</p>
-            </div>
+          <DetailSection title="Employment Status">
+            <p className="text-primary bg-main/50 p-4 rounded-lg">
+              Staff member is currently marked as <strong className="capitalize">{employee.status}</strong>.
+            </p>
           </DetailSection>
         </div>
 
         <div className="space-y-6">
-          <DetailSection title="System Information">
-            <div className="space-y-1">
-              <DetailItem label="Employee ID" value={<span className="font-mono text-xs">{employee._id}</span>} />
-              <DetailItem label="Created On" value={formatDateTime(employee.createdAt)} />
-              <DetailItem label="Last Updated" value={formatDateTime(employee.updatedAt)} />
-            </div>
-          </DetailSection>
+          <SystemInfoSection
+            id={employee._id}
+            idLabel="Employee ID"
+            createdAt={employee.createdAt}
+            updatedAt={employee.updatedAt}
+          />
         </div>
       </div>
     </div>

@@ -5,8 +5,8 @@ import { useAuth } from "../../../hooks/useAuth";
 import { usePermission } from "../../../hooks/usePermission";
 import { getOrders } from "../../orders/api";
 import { getCustomerPayments } from "../../customer-payments/api";
-import { getExpenses } from "../../expenses/api";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
+import { SummaryCard } from "../../../components/ui/SummaryCard";
 import { Card, CardHeader, CardTitle, CardContent } from "../../../components/ui/Card";
 import { InlineSkeleton, Skeleton } from "../../../components/ui/skeletons";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
@@ -75,51 +75,40 @@ export const Dashboard = () => {
       {/* Stats row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Can permission="customerPayments.read">
-          <Card className="flex items-center justify-between p-6">
-            <div>
-              <p className="text-sm font-medium text-secondary mb-1">Total Received</p>
-              {loadingPayments ? <InlineSkeleton className="h-8 w-24 mt-1" /> : <h3 className="text-2xl font-bold text-primary"><MoneyDisplay amount={totalRevenue} /></h3>}
-            </div>
-            <div className="p-3 bg-success/10 rounded-full">
-              <TrendingUp className="w-5 h-5 text-success" />
-            </div>
-          </Card>
+          <SummaryCard
+            title="Total Received"
+            value={loadingPayments ? <InlineSkeleton className="h-6 w-24 mt-1" /> : <MoneyDisplay amount={totalRevenue} />}
+            icon={TrendingUp}
+            iconVariant="success"
+          />
         </Can>
 
         <Can permission="expenses.read">
-          <Card className="flex items-center justify-between p-6">
-            <div>
-              <p className="text-sm font-medium text-secondary mb-1">Total Expenses</p>
-              {loadingExpenses ? <InlineSkeleton className="h-8 w-24 mt-1" /> : <h3 className="text-2xl font-bold text-primary"><MoneyDisplay amount={totalExpenses} /></h3>}
-            </div>
-            <div className="p-3 bg-danger/10 rounded-full">
-              <TrendingDown className="w-5 h-5 text-danger" />
-            </div>
-          </Card>
+          <SummaryCard
+            title="Total Expenses"
+            value={loadingExpenses ? <InlineSkeleton className="h-6 w-24 mt-1" /> : <MoneyDisplay amount={totalExpenses} />}
+            icon={TrendingDown}
+            iconVariant="danger"
+          />
         </Can>
 
         <Can permission="orders.read">
-          <Card className="flex items-center justify-between p-6">
-            <div>
-              <p className="text-sm font-medium text-secondary mb-1">Active Orders</p>
-              {loadingOrders ? <InlineSkeleton className="h-8 w-12 mt-1" /> : <h3 className="text-2xl font-bold text-primary">{orders.filter(o => o.status !== 'completed' && o.status !== 'cancelled').length}</h3>}
-            </div>
-            <div className="p-3 bg-brand/10 rounded-full">
-              <ShoppingCart className="w-5 h-5 text-brand" />
-            </div>
-          </Card>
+          <SummaryCard
+            title="Active Orders"
+            value={loadingOrders ? <InlineSkeleton className="h-6 w-12 mt-1" /> : orders.filter(o => o.status !== 'completed' && o.status !== 'cancelled').length}
+            icon={ShoppingCart}
+            iconVariant="brand"
+          />
         </Can>
 
         <Can permissions={["customerPayments.read", "expenses.read"]} mode="all">
-          <Card className="flex items-center justify-between p-6">
-            <div>
-              <p className="text-sm font-medium text-secondary mb-1">Net Balance</p>
-              {(loadingPayments || loadingExpenses) ? <InlineSkeleton className="h-8 w-32 mt-1" /> : <h3 className="text-2xl font-bold text-accent"><MoneyDisplay amount={totalRevenue - totalExpenses} variant="accent" /></h3>}
-            </div>
-            <div className="p-3 bg-accent/10 rounded-full">
-              <Wallet className="w-5 h-5 text-accent" />
-            </div>
-          </Card>
+          <SummaryCard
+            title="Net Balance"
+            value={(loadingPayments || loadingExpenses) ? <InlineSkeleton className="h-6 w-24 mt-1" /> : <MoneyDisplay amount={totalRevenue - totalExpenses} variant="accent" />}
+            icon={Wallet}
+            iconVariant="accent"
+            valueClassName="text-accent"
+          />
         </Can>
       </div>
 

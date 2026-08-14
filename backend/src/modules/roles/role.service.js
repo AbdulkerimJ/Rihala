@@ -12,15 +12,15 @@ const ADMIN_ROLE_NAME = "Admin";
 // New roles start with zero permissions.
 const createRoleService = async ({ name }) => {
   if (name.trim().toLowerCase() === ADMIN_ROLE_NAME.toLowerCase()) {
-    throw new ConflictError(
-      `The role name "${ADMIN_ROLE_NAME}" is reserved and cannot be created manually.`,
-    );
+    const msg = `The role name "${ADMIN_ROLE_NAME}" is reserved and cannot be created manually.`;
+    throw new ConflictError(msg, [{ field: "name", message: msg }]);
   }
 
   const existingRole = await Role.findOne({ name: name.trim() });
 
   if (existingRole) {
-    throw new ConflictError(`A role with the name "${name}" already exists.`);
+    const msg = `A role with the name "${name}" already exists.`;
+    throw new ConflictError(msg, [{ field: "name", message: msg }]);
   }
 
   const role = await Role.create({ name: name.trim(), permissions: [] });
@@ -60,18 +60,16 @@ const updateRoleService = async (roleId, updateData) => {
   }
 
   if (updateData.name && updateData.name.trim().toLowerCase() === ADMIN_ROLE_NAME.toLowerCase()) {
-    throw new ConflictError(
-      `The role name "${ADMIN_ROLE_NAME}" is reserved and cannot be used.`,
-    );
+    const msg = `The role name "${ADMIN_ROLE_NAME}" is reserved and cannot be used.`;
+    throw new ConflictError(msg, [{ field: "name", message: msg }]);
   }
 
   if (updateData.name && updateData.name.trim() !== role.name) {
     const existingRole = await Role.findOne({ name: updateData.name.trim() });
 
     if (existingRole) {
-      throw new ConflictError(
-        `A role with the name "${updateData.name}" already exists.`,
-      );
+      const msg = `A role with the name "${updateData.name}" already exists.`;
+      throw new ConflictError(msg, [{ field: "name", message: msg }]);
     }
   }
 

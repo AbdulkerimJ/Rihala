@@ -41,9 +41,11 @@ const handleDuplicateSupplierError = (error) => {
   if (error?.code === 11000) {
     const fieldName = Object.keys(error.keyPattern || {})[0] || "field";
     if (fieldName === "phone") {
-      throw new ConflictError("A supplier with this phone already exists.");
+      const msg = "A supplier with this phone already exists.";
+      throw new ConflictError(msg, [{ field: "phone", message: msg }]);
     }
-    throw new ConflictError(`A supplier with this ${fieldName} already exists.`);
+    const msg = `A supplier with this ${fieldName} already exists.`;
+    throw new ConflictError(msg, [{ field: fieldName, message: msg }]);
   }
   throw error;
 };
@@ -57,7 +59,8 @@ const createSupplierService = async (data) => {
     });
 
     if (existingPhoneSupplier) {
-      throw new ConflictError("A supplier with this phone already exists.");
+      const msg = "A supplier with this phone already exists.";
+      throw new ConflictError(msg, [{ field: "phone", message: msg }]);
     }
   }
 
@@ -106,7 +109,8 @@ const updateSupplierService = async (supplierId, updateData) => {
     });
 
     if (existingPhoneSupplier) {
-      throw new ConflictError("A supplier with this phone already exists.");
+      const msg = "A supplier with this phone already exists.";
+      throw new ConflictError(msg, [{ field: "phone", message: msg }]);
     }
   }
 

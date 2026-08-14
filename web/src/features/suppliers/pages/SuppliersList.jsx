@@ -1,5 +1,6 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import { usePermission } from "../../../hooks/usePermission";
+import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createSupplier, getSuppliers, updateSupplier } from "../api";
@@ -17,26 +18,29 @@ import { FormField } from "../../../components/ui/FormField";
 import { Input } from "../../../components/ui/Input";
 import { Select } from "../../../components/ui/Select";
 import { Textarea } from "../../../components/ui/Textarea";
+import { FormRootError } from "../../../components/ui/FormRootError";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
-import { getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
+import { applyServerErrors, cleanFilterParams, getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
 import { formatDateTime } from "../../../utils/formatters";
+import { ethiopianPhone, optionalEmail } from "../../../utils/validation";
+import { ACTIVE_INACTIVE_OPTIONS, STATUS_FILTER_OPTIONS } from "../../../constants/options";
 
 const supplierSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  contactPerson: z.string().optional(),
-  phone: z.string().min(1, "Phone is required"),
-  email: z.string().email("Invalid email").optional().or(z.literal("")),
-  address: z.string().optional(),
-  taxId: z.string().optional(),
-  notes: z.string().optional(),
+  name: z.string().trim().min(2, "Name must be at least 2 characters").max(100, "Name cannot exceed 100 characters"),
+  contactPerson: z.string().trim().optional().or(z.literal("")),
+  phone: ethiopianPhone,
+  email: optionalEmail,
+  address: z.string().trim().max(255, "Address cannot exceed 255 characters").optional().or(z.literal("")),
+  taxId: z.string().trim().optional().or(z.literal("")),
+  notes: z.string().trim().max(1000, "Notes cannot exceed 1000 characters").optional().or(z.literal("")),
   status: z.enum(["active", "inactive"]).default("active"),
 });
 
 const SupplierForm = ({ initialData, onSubmit, onClose }) => {
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(supplierSchema),
     defaultValues: initialData || {
       name: "",
@@ -50,8 +54,17 @@ const SupplierForm = ({ initialData, onSubmit, onClose }) => {
     },
   });
 
+  const handleFormSubmit = async (data) => {
+    try {
+      await onSubmit(data);
+    } catch (error) {
+      applyServerErrors(setError, error);
+    }
+  };
+
   return (
-    <form className="space-y-4 p-6" onSubmit={handleSubmit(onSubmit)}>
+    <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
+      <FormRootError error={errors.root} />
       <FormField label="Company Name" required error={errors.name?.message}>
         <Input {...register("name")} error={errors.name?.message} />
       </FormField>
@@ -62,7 +75,7 @@ const SupplierForm = ({ initialData, onSubmit, onClose }) => {
         </FormField>
         
         <FormField label="Phone" required error={errors.phone?.message}>
-          <Input {...register("phone")} error={errors.phone?.message} />
+          <Input {...register("phone")} error={errors.phone?.message} placeholder="e.g. 0911234567 or +251911234567" />
         </FormField>
       </div>
 
@@ -87,10 +100,7 @@ const SupplierForm = ({ initialData, onSubmit, onClose }) => {
       <FormField label="Status" error={errors.status?.message}>
         <Select
           {...register("status")}
-          options={[
-            { value: "active", label: "Active" },
-            { value: "inactive", label: "Inactive" },
-          ]}
+          options={ACTIVE_INACTIVE_OPTIONS}
           error={errors.status?.message}
         />
       </FormField>
@@ -112,11 +122,7 @@ export const SuppliersList = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState(null);
 
-  const params = useMemo(() => ({
-    ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v)),
-    page,
-    limit: 20
-  }), [filters, page]);
+  const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["suppliers", params],
@@ -126,15 +132,13 @@ export const SuppliersList = () => {
   });
   const { items: suppliers, pagination } = unwrapListResponse(data);
 
-  useEffect(() => {
-    if (pagination && pagination.page < pagination.totalPages) {
-      const nextParams = { ...params, page: page + 1 };
-      queryClient.prefetchQuery({
-        queryKey: ["suppliers", nextParams],
-        queryFn: () => getSuppliers(nextParams),
-      });
-    }
-  }, [pagination, page, params, queryClient]);
+  usePrefetchNextPage({
+    queryKey: ["suppliers"],
+    queryFn: getSuppliers,
+    pagination,
+    params,
+    page,
+  });
 
   const createMutation = useMutation({
     mutationFn: createSupplier,
@@ -201,11 +205,7 @@ export const SuppliersList = () => {
         <Select
           value={filters.status}
           onChange={(e) => { setFilters(p => ({ ...p, status: e.target.value })); setPage(1); }}
-          options={[
-            { value: "", label: "All Statuses" },
-            { value: "active", label: "Active" },
-            { value: "inactive", label: "Inactive" },
-          ]}
+          options={STATUS_FILTER_OPTIONS}
         />
       </FilterBar>
 

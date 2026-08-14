@@ -9,8 +9,9 @@ import { resetPassword } from "../api";
 import { useAuth } from "../../../hooks/useAuth";
 import { applyServerErrors } from "../../../utils/apiResponse";
 import { FormField } from "../../../components/ui/FormField";
-import { Input } from "../../../components/ui/Input";
+import { PasswordInput } from "../../../components/ui/PasswordInput";
 import { Button } from "../../../components/ui/Button";
+import { FormRootError } from "../../../components/ui/FormRootError";
 
 const schema = z
   .object({
@@ -26,8 +27,6 @@ export const ResetPassword = () => {
   const { token } = useParams();
   const navigate = useNavigate();
   const { loginWithToken } = useAuth();
-  const [showNew, setShowNew] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
 
   const {
     register,
@@ -69,52 +68,26 @@ export const ResetPassword = () => {
       <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
         {/* New password */}
         <FormField label="New password" error={errors.newPassword?.message}>
-          <div className="relative">
-            <Input
-              type={showNew ? "text" : "password"}
-              size="lg"
-              placeholder="At least 6 characters"
-              error={errors.newPassword?.message}
-              {...register("newPassword")}
-            />
-            <button
-              type="button"
-              tabIndex={-1}
-              onClick={() => setShowNew((p) => !p)}
-              className="absolute inset-y-0 right-3.5 flex items-center text-muted hover:text-primary transition-colors"
-            >
-              {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
+          <PasswordInput
+            size="lg"
+            placeholder="At least 6 characters"
+            error={errors.newPassword?.message}
+            {...register("newPassword")}
+          />
         </FormField>
 
         {/* Confirm password */}
         <FormField label="Confirm password" error={errors.confirmPassword?.message}>
-          <div className="relative">
-            <Input
-              type={showConfirm ? "text" : "password"}
-              size="lg"
-              placeholder="Repeat your password"
-              error={errors.confirmPassword?.message}
-              {...register("confirmPassword")}
-            />
-            <button
-              type="button"
-              tabIndex={-1}
-              onClick={() => setShowConfirm((p) => !p)}
-              className="absolute inset-y-0 right-3.5 flex items-center text-muted hover:text-primary transition-colors"
-            >
-              {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
+          <PasswordInput
+            size="lg"
+            placeholder="Repeat your password"
+            error={errors.confirmPassword?.message}
+            {...register("confirmPassword")}
+          />
         </FormField>
 
         {/* Server error */}
-        {errors.root && (
-          <div className="rounded-xl bg-danger/8 border border-danger/20 px-4 py-3 text-sm text-danger">
-            {errors.root.message}
-          </div>
-        )}
+        <FormRootError error={errors.root} />
 
         <Button
           id="reset-password-submit"

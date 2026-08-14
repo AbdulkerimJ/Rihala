@@ -1,5 +1,6 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import { usePermission } from "../../../hooks/usePermission";
+import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { createOvertime, getOvertimes, updateOvertime } from "../api";
 import { getEmployees } from "../../employees/api";
@@ -16,66 +17,95 @@ import { FormField } from "../../../components/ui/FormField";
 import { Input } from "../../../components/ui/Input";
 import { Select } from "../../../components/ui/Select";
 import { Textarea } from "../../../components/ui/Textarea";
+import { FormRootError } from "../../../components/ui/FormRootError";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
-import { getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
+import { applyServerErrors, cleanFilterParams, getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
 import { formatDate } from "../../../utils/formatters";
+
+const OVERTIME_DURATIONS = [
+  { value: "HALF_DAY", label: "Half Day (0.5)" },
+  { value: "FULL_DAY", label: "Full Day (1.0)" },
+];
 
 const overtimeSchema = z.object({
   employee: z.string().min(1, "Employee is required"),
-  date: z.string().min(1, "Date is required"),
-  hours: z.coerce.number().positive("Hours must be greater than 0"),
-  notes: z.string().optional(),
+  workDate: z.string().min(1, "Work date is required"),
+  duration: z.enum(["HALF_DAY", "FULL_DAY"], {
+    errorMap: () => ({ message: "Duration is required" }),
+  }),
+  note: z.string().trim().optional().or(z.literal("")),
 });
 
 const OvertimeForm = ({ initialData, onSubmit, onClose }) => {
   const { can } = usePermission();
   const { data: employeesData } = useQuery({ 
     queryKey: ["employees-list"], 
-    queryFn: () => getEmployees({ limit: 1000 }),
+    queryFn: () => getEmployees({ limit: 1000, status: "active" }),
     enabled: can("employees.read")
   });
   const employees = unwrapListResponse(employeesData).items || [];
   
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(overtimeSchema),
     defaultValues: initialData ? {
-      ...initialData,
-      date: initialData.date ? new Date(initialData.date).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
       employee: initialData.employee?._id || initialData.employee,
+      workDate: initialData.workDate ? new Date(initialData.workDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+      duration: initialData.duration || "HALF_DAY",
+      note: initialData.note || "",
     } : {
       employee: "",
-      date: new Date().toISOString().split("T")[0],
-      hours: 1,
-      notes: "",
+      workDate: new Date().toISOString().split("T")[0],
+      duration: "HALF_DAY",
+      note: "",
     },
   });
 
+  const handleFormSubmit = async (data) => {
+    try {
+      const payload = {
+        employee: data.employee,
+        workDate: new Date(data.workDate).toISOString(),
+        duration: data.duration,
+        note: data.note || undefined,
+      };
+      await onSubmit(payload);
+    } catch (error) {
+      applyServerErrors(setError, error);
+    }
+  };
+
   return (
-    <form className="space-y-4 p-6" onSubmit={handleSubmit(onSubmit)}>
+    <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
+      <FormRootError error={errors.root} />
       <FormField label="Employee" required error={errors.employee?.message}>
         <Select
           {...register("employee")}
           placeholder="Select an employee"
           options={employees.map(e => ({ value: e._id, label: e.name }))}
           error={errors.employee?.message}
+          disabled={!!initialData}
         />
       </FormField>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormField label="Date" required error={errors.date?.message}>
-          <Input type="date" {...register("date")} error={errors.date?.message} />
+        <FormField label="Work Date" required error={errors.workDate?.message}>
+          <Input type="date" {...register("workDate")} error={errors.workDate?.message} disabled={!!initialData} />
         </FormField>
 
-        <FormField label="Hours" required error={errors.hours?.message}>
-          <Input type="number" step="0.5" {...register("hours")} error={errors.hours?.message} />
+        <FormField label="Duration" required error={errors.duration?.message}>
+          <Select
+            {...register("duration")}
+            options={OVERTIME_DURATIONS}
+            error={errors.duration?.message}
+          />
         </FormField>
       </div>
 
-      <FormField label="Notes" error={errors.notes?.message}>
-        <Textarea {...register("notes")} rows={2} error={errors.notes?.message} />
+      <FormField label="Notes (Optional)" error={errors.note?.message}>
+        <Textarea {...register("note")} rows={2} error={errors.note?.message} placeholder="Optional notes" />
       </FormField>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
@@ -101,11 +131,7 @@ export const OvertimesList = () => {
   });
   const employees = unwrapListResponse(employeesData).items || [];
 
-  const params = useMemo(() => ({
-    ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v)),
-    page,
-    limit: 20
-  }), [filters, page]);
+  const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["overtimes", params],
@@ -115,15 +141,13 @@ export const OvertimesList = () => {
   });
   const { items: overtimes, pagination } = unwrapListResponse(data);
 
-  useEffect(() => {
-    if (pagination && pagination.page < pagination.totalPages) {
-      const nextParams = { ...params, page: page + 1 };
-      queryClient.prefetchQuery({
-        queryKey: ["overtimes", nextParams],
-        queryFn: () => getOvertimes(nextParams),
-      });
-    }
-  }, [pagination, page, params, queryClient]);
+  usePrefetchNextPage({
+    queryKey: ["overtimes"],
+    queryFn: getOvertimes,
+    pagination,
+    params,
+    page,
+  });
 
   const createMutation = useMutation({
     mutationFn: createOvertime,
@@ -144,10 +168,13 @@ export const OvertimesList = () => {
   });
 
   const columns = [
-    { header: "Date", accessor: (row) => formatDate(row.date), className: "font-medium" },
+    { header: "Date", accessor: (row) => formatDate(row.workDate || row.date), className: "font-medium" },
     { header: "Employee", accessor: (row) => row.employee?.name || "Unknown", className: "font-medium" },
-    { header: "Hours", accessor: "hours" },
-    { header: "Notes", accessor: "notes", className: "text-secondary hidden md:table-cell" },
+    { 
+      header: "Duration", 
+      accessor: (row) => row.duration === 'FULL_DAY' ? 'Full Day (1.0)' : 'Half Day (0.5)' 
+    },
+    { header: "Notes", accessor: (row) => row.note || row.notes || "-", className: "text-secondary hidden md:table-cell" },
     { 
       header: "Actions", 
       isActions: true,
