@@ -59,7 +59,7 @@ export const DataTable = ({
               <tr
                 key={keyExtractor(row)}
                 onClick={() => onRowClick && onRowClick(row)}
-                className={`transition-colors hover:bg-main/50 ${
+                className={`hover:bg-main/50 ${
                   onRowClick ? "cursor-pointer" : ""
                 }`}
               >
@@ -91,7 +91,7 @@ export const DataTable = ({
           <div
             key={keyExtractor(row)}
             onClick={() => onRowClick && onRowClick(row)}
-            className={`rounded-xl border border-border bg-surface p-4 shadow-sm transition-colors hover:bg-main/50 ${
+            className={`rounded-xl border border-border bg-surface p-4 shadow-sm hover:bg-main/50 ${
               onRowClick ? "cursor-pointer" : ""
             }`}
           >

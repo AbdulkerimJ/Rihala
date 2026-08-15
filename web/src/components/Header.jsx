@@ -19,7 +19,7 @@ export const Header = ({ currentUser, onMobileMenuToggle }) => {
   const userName = currentUser?.name || "No User";
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 w-full items-center justify-between bg-surface/90 px-4 sm:px-6 backdrop-blur-md transition-colors duration-200">
+    <header className="sticky top-0 z-20 flex h-16 w-full items-center justify-between bg-main px-4 sm:px-6">
       {/* Left section: Mobile menu button */}
       <div className="flex items-center gap-3">
         <Button

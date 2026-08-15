@@ -3,32 +3,32 @@ import React from "react";
 const ICON_VARIANT_STYLES = {
   brand: "bg-brand/10 text-brand",
   accent: "bg-accent/10 text-accent",
-  blue: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-  success: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-  emerald: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-  danger: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
-  rose: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
-  warning: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-  amber: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-  purple: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
-  indigo: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
-  teal: "bg-teal-500/10 text-teal-600 dark:text-teal-400",
+  blue: "bg-status-processing/10 text-status-processing",
+  success: "bg-success/10 text-success",
+  emerald: "bg-status-delivered/10 text-status-delivered",
+  danger: "bg-danger/10 text-danger",
+  rose: "bg-status-cancelled/10 text-status-cancelled",
+  warning: "bg-warning/10 text-warning",
+  amber: "bg-status-pending/10 text-status-pending",
+  purple: "bg-status-shipped/10 text-status-shipped",
+  indigo: "bg-brand/10 text-brand",
+  teal: "bg-finance-in/10 text-finance-in",
 };
 
 const CARD_VARIANT_STYLES = {
   default: "border-border bg-surface hover:border-border/80",
   brand: "border-border bg-surface hover:border-border/80",
-  blue: "border-blue-500/20 bg-blue-500/[0.03] dark:bg-blue-500/[0.07] hover:border-blue-500/40",
-  accent: "border-accent/20 bg-accent/[0.03] dark:bg-accent/[0.07] hover:border-accent/40",
-  emerald: "border-emerald-500/20 bg-emerald-500/[0.03] dark:bg-emerald-500/[0.07] hover:border-emerald-500/40",
-  success: "border-emerald-500/20 bg-emerald-500/[0.03] dark:bg-emerald-500/[0.07] hover:border-emerald-500/40",
-  amber: "border-amber-500/20 bg-amber-500/[0.03] dark:bg-amber-500/[0.07] hover:border-amber-500/40",
-  warning: "border-amber-500/20 bg-amber-500/[0.03] dark:bg-amber-500/[0.07] hover:border-amber-500/40",
-  purple: "border-purple-500/20 bg-purple-500/[0.03] dark:bg-purple-500/[0.07] hover:border-purple-500/40",
-  indigo: "border-indigo-500/20 bg-indigo-500/[0.03] dark:bg-indigo-500/[0.07] hover:border-indigo-500/40",
-  rose: "border-rose-500/20 bg-rose-500/[0.03] dark:bg-rose-500/[0.07] hover:border-rose-500/40",
-  danger: "border-rose-500/20 bg-rose-500/[0.03] dark:bg-rose-500/[0.07] hover:border-rose-500/40",
-  teal: "border-teal-500/20 bg-teal-500/[0.03] dark:bg-teal-500/[0.07] hover:border-teal-500/40",
+  blue: "border-status-processing/20 bg-status-processing/[0.03] hover:border-status-processing/40",
+  accent: "border-accent/20 bg-accent/[0.03] hover:border-accent/40",
+  emerald: "border-status-delivered/20 bg-status-delivered/[0.03] hover:border-status-delivered/40",
+  success: "border-success/20 bg-success/[0.03] hover:border-success/40",
+  amber: "border-status-pending/20 bg-status-pending/[0.03] hover:border-status-pending/40",
+  warning: "border-warning/20 bg-warning/[0.03] hover:border-warning/40",
+  purple: "border-status-shipped/20 bg-status-shipped/[0.03] hover:border-status-shipped/40",
+  indigo: "border-brand/20 bg-brand/[0.03] hover:border-brand/40",
+  rose: "border-status-cancelled/20 bg-status-cancelled/[0.03] hover:border-status-cancelled/40",
+  danger: "border-danger/20 bg-danger/[0.03] hover:border-danger/40",
+  teal: "border-finance-in/20 bg-finance-in/[0.03] hover:border-finance-in/40",
 };
 
 export const SummaryCard = ({
@@ -56,7 +56,7 @@ export const SummaryCard = ({
 
   return (
     <div
-      className={`group relative flex h-full min-w-0 flex-col justify-between overflow-hidden rounded-xl border p-4 sm:p-5 shadow-xs transition-all duration-200 hover:shadow-sm ${
+      className={`group relative flex h-full min-w-0 flex-col justify-between overflow-hidden rounded-xl border p-4 sm:p-5 shadow-xs transition-shadow duration-200 hover:shadow-sm ${
         CARD_VARIANT_STYLES[resolvedVariant] || CARD_VARIANT_STYLES.default
       } ${className}`}
     >

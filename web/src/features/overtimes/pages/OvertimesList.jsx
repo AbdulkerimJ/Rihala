@@ -42,7 +42,7 @@ const overtimeSchema = z.object({
 const OvertimeForm = ({ initialData, onSubmit, onClose }) => {
   const { can } = usePermission();
   const { data: employeesData } = useQuery({ 
-    queryKey: ["employees-list"], 
+    queryKey: ["employees", "list"], 
     queryFn: () => getEmployees({ limit: 1000, status: "active" }),
     enabled: can("employees.read")
   });
@@ -125,7 +125,7 @@ export const OvertimesList = () => {
   const [editingRecord, setEditingRecord] = useState(null);
 
   const { data: employeesData } = useQuery({ 
-    queryKey: ["employees-list"], 
+    queryKey: ["employees", "list"], 
     queryFn: () => getEmployees({ limit: 1000 }),
     enabled: can("employees.read")
   });

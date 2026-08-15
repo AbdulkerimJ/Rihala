@@ -41,7 +41,7 @@ const paymentSchema = z.object({
 const PaymentForm = ({ onSubmit, onClose }) => {
   const { can } = usePermission();
   const { data: suppliersData } = useQuery({ 
-    queryKey: ["suppliers-list"], 
+    queryKey: ["suppliers", "list"], 
     queryFn: () => getSuppliers({ limit: 1000 }),
     enabled: can("suppliers.read")
   });
@@ -113,7 +113,7 @@ const PaymentForm = ({ onSubmit, onClose }) => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Amount (ETB)" required error={errors.amount?.message}>
-          <Input type="number" step="0.01" {...register("amount")} error={errors.amount?.message} />
+          <Input type="number" placeholder="0" {...register("amount")} error={errors.amount?.message} />
         </FormField>
         
         <FormField label="Payment Date" required error={errors.paymentDate?.message}>
@@ -146,7 +146,7 @@ export const SupplierPaymentsList = () => {
   const [voidingPayment, setVoidingPayment] = useState(null);
 
   const { data: suppliersData } = useQuery({ 
-    queryKey: ["suppliers-list"], 
+    queryKey: ["suppliers", "list"], 
     queryFn: () => getSuppliers({ limit: 1000 }),
     enabled: can("suppliers.read")
   });

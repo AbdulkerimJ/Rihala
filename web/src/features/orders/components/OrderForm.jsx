@@ -29,12 +29,26 @@ export const OrderForm = ({ initialData, customers = [], onSubmit, onClose }) =>
     : [];
 
   const availableCustomers = useMemo(() => {
-    return customers.filter(
+    const list = customers.filter(
       (c) =>
         c.status === "active" ||
         c._id === initialData?.customer?._id ||
         c._id === initialData?.customer
     );
+
+    if (initialData?.customer) {
+      const custId = initialData.customer?._id || initialData.customer;
+      const exists = list.some((c) => c._id === custId);
+      if (!exists) {
+        list.unshift(
+          typeof initialData.customer === "object"
+            ? initialData.customer
+            : { _id: initialData.customer, name: initialData.customerName || "Current Customer" }
+        );
+      }
+    }
+
+    return list;
   }, [customers, initialData]);
 
   const {
@@ -118,8 +132,7 @@ export const OrderForm = ({ initialData, customers = [], onSubmit, onClose }) =>
         >
           <Input
             type="number"
-            step="0.01"
-            placeholder="0.00"
+            placeholder="0"
             {...register("agreedAmount")}
             error={errors.agreedAmount?.message}
           />

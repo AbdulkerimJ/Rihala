@@ -100,7 +100,7 @@ const PaymentForm = ({ contract, onSubmit, onClose }) => {
         <p className="text-sm text-blue-800">Max payable amount: <strong><MoneyDisplay amount={contract.stats.payableAmount} /></strong></p>
       </div>
       <FormField label="Amount (ETB)" required error={errors.amount?.message}>
-        <Input type="number" step="0.01" max={contract.stats.payableAmount} {...register("amount")} error={errors.amount?.message} />
+        <Input type="number" max={contract.stats.payableAmount} placeholder="0" {...register("amount")} error={errors.amount?.message} />
       </FormField>
       <FormField label="Payment Date" required error={errors.paymentDate?.message}>
         <Input type="date" {...register("paymentDate")} error={errors.paymentDate?.message} />

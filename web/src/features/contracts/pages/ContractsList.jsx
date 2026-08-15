@@ -52,14 +52,14 @@ const contractSchema = z
 const ContractForm = ({ onSubmit, onClose }) => {
   const { can } = usePermission();
   const { data: contractorsData } = useQuery({ 
-    queryKey: ["contractors-list"], 
+    queryKey: ["contractors", "list"], 
     queryFn: () => getContractors({ limit: 1000, status: "active" }),
     enabled: can("contractors.read")
   });
   const contractors = unwrapListResponse(contractorsData).items || [];
 
   const { data: tasksData } = useQuery({ 
-    queryKey: ["tasks-list"], 
+    queryKey: ["tasks", "list"], 
     queryFn: () => getTasks({ limit: 1000, isActive: true }),
     enabled: can("tasks.read")
   });
@@ -134,7 +134,7 @@ const ContractForm = ({ onSubmit, onClose }) => {
         <FormField label="Unit Price (ETB)" required error={errors.unitPrice?.message}>
           <Input
             type="number"
-            step="0.01"
+            placeholder="0"
             {...register("unitPrice")}
             error={errors.unitPrice?.message}
           />
@@ -187,14 +187,14 @@ export const ContractsList = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const { data: contractorsData } = useQuery({ 
-    queryKey: ["contractors-list"], 
+    queryKey: ["contractors", "list"], 
     queryFn: () => getContractors({ limit: 1000 }),
     enabled: can("contractors.read")
   });
   const contractors = unwrapListResponse(contractorsData).items || [];
 
   const { data: tasksData } = useQuery({ 
-    queryKey: ["tasks-list"], 
+    queryKey: ["tasks", "list"], 
     queryFn: () => getTasks({ limit: 1000 }),
     enabled: can("tasks.read")
   });

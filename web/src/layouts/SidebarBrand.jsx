@@ -10,7 +10,7 @@ export const SidebarBrand = ({ setSidebarOpen }) => {
   const logoSrc = theme === 'dark' ? '/logo.png' : '/logo.png';
 
   return (
-    <div className="flex items-center justify-center py-5 bg-surface relative overflow-hidden">
+    <div className="flex items-center justify-center py-5 bg-main relative overflow-hidden">
       <Link to="/" onClick={() => setSidebarOpen(false)}>
         <img src={logoSrc} alt="Rihala Logo" className="h-24 w-auto object-contain scale-110" />
       </Link>

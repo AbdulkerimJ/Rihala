@@ -39,7 +39,7 @@ export const FilterBar = ({
 
       {children && (
         <div
-          className={`grid gap-3 rounded-xl border border-border bg-surface p-4 shadow-sm transition-all duration-200 ${
+          className={`grid gap-3 rounded-xl border border-border bg-surface p-4 shadow-sm ${
             isExpanded ? "block" : "hidden lg:grid"
           } sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5`}
         >

@@ -40,7 +40,7 @@ const taskSchema = z.object({
 const TaskForm = ({ initialData, onSubmit, onClose }) => {
   const { can } = usePermission();
   const { data: taskTypesData } = useQuery({ 
-    queryKey: ["task-types-list"], 
+    queryKey: ["task-types", "list"], 
     queryFn: () => getTaskTypes({ limit: 1000, isActive: true }),
     enabled: can("taskTypes.read")
   });
@@ -127,7 +127,7 @@ export const TasksList = () => {
   const [deletingTask, setDeletingTask] = useState(null);
 
   const { data: taskTypesData } = useQuery({ 
-    queryKey: ["task-types-list"], 
+    queryKey: ["task-types", "list"], 
     queryFn: () => getTaskTypes({ limit: 1000 }),
     enabled: can("taskTypes.read")
   });

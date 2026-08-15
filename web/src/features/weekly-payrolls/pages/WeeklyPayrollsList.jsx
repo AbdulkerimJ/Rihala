@@ -134,7 +134,7 @@ export const WeeklyPayrollsList = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const { data: employeesData } = useQuery({ 
-    queryKey: ["employees-list"], 
+    queryKey: ["employees", "list"], 
     queryFn: () => getEmployees({ limit: 1000 }),
     enabled: can("employees.read")
   });

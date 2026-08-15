@@ -96,10 +96,9 @@ const ExpenseForm = ({ initialData, onSubmit, onClose }) => {
       <FormField label="Amount (ETB)" required error={errors.amount?.message}>
         <Input
           type="number"
-          step="0.01"
           {...register("amount")}
           error={errors.amount?.message}
-          placeholder="0.00"
+          placeholder="0"
         />
       </FormField>
 

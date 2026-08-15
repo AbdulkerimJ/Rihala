@@ -21,19 +21,19 @@ export const Dashboard = () => {
 
   // We could fetch a lot here, but let's keep it to recent orders and high-level stats for now
   const { data: ordersData, isLoading: loadingOrders } = useQuery({
-    queryKey: ["dashboard-orders"],
+    queryKey: ["dashboard", "orders"],
     queryFn: () => getOrders({ limit: 5, sort: "-createdAt" }),
     enabled: can("orders.read"),
   });
 
   const { data: paymentsData, isLoading: loadingPayments } = useQuery({
-    queryKey: ["dashboard-payments"],
+    queryKey: ["dashboard", "payments"],
     queryFn: () => getCustomerPayments({ limit: 100 }), // In a real app we'd filter by current month
     enabled: can("customerPayments.read"),
   });
 
   const { data: expensesData, isLoading: loadingExpenses } = useQuery({
-    queryKey: ["dashboard-expenses"],
+    queryKey: ["dashboard", "expenses"],
     queryFn: () => getExpenses({ limit: 100 }), 
     enabled: can("expenses.read"),
   });

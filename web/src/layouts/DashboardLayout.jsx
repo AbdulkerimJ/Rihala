@@ -144,7 +144,7 @@ export const DashboardLayout = () => {
   ];
 
   return (
-    <div className="flex h-screen text-primary relative z-0 bg-surface">
+    <div className="flex h-screen text-primary relative z-0 bg-main">
       {/* Mobile sidebar backdrop */}
       {isSidebarOpen && (
         <div
@@ -155,7 +155,7 @@ export const DashboardLayout = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 flex w-[260px] transform flex-col bg-surface transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-30 flex w-[260px] transform flex-col bg-main transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -191,7 +191,7 @@ export const DashboardLayout = () => {
       </aside>
 
       {/* Main content */}
-      <div className="flex flex-1 flex-col overflow-hidden bg-surface">
+      <div className="flex flex-1 flex-col overflow-hidden bg-main">
         {/* Header */}
         <Header
           sectionTitle={sectionTitle}
@@ -200,7 +200,7 @@ export const DashboardLayout = () => {
         />
 
         {/* Main section */}
-        <main className="flex-1 overflow-y-auto bg-main rounded-tl-2xl sm:rounded-tl-3xl p-4 sm:p-6 lg:p-8 border-t border-l border-border/70 shadow-xs relative">
+        <main className="flex-1 overflow-y-auto bg-surface rounded-tl-2xl sm:rounded-tl-3xl p-4 sm:p-6 lg:p-8 border-t border-l border-border/70 shadow-xs relative">
           <ErrorBoundary>
             <Outlet />
           </ErrorBoundary>

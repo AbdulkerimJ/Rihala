@@ -46,12 +46,12 @@ const purchaseSchema = z.object({
 const PurchaseForm = ({ initialData, onSubmit, onClose }) => {
   const { can } = usePermission();
   const { data: suppliersData } = useQuery({ 
-    queryKey: ["suppliers-list"], 
+    queryKey: ["suppliers", "list"], 
     queryFn: () => getSuppliers({ limit: 1000 }),
     enabled: can("suppliers.read")
   });
   const { data: materialsData } = useQuery({ 
-    queryKey: ["materials-list"], 
+    queryKey: ["materials", "list"], 
     queryFn: () => getMaterials({ limit: 1000 }),
     enabled: can("materials.read")
   });
@@ -207,7 +207,7 @@ export const PurchasesList = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const { data: suppliersData } = useQuery({ 
-    queryKey: ["suppliers-list"], 
+    queryKey: ["suppliers", "list"], 
     queryFn: () => getSuppliers({ limit: 1000 }),
     enabled: can("suppliers.read")
   });

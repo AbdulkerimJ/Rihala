@@ -4,56 +4,85 @@
 
 @layer base {
   :root {
-    /* Modern SaaS High-Contrast Light Theme */
-    --bg-main: 238 242 246; /* #EEF2F6 Defined cool slate-100 canvas */
-    --bg-surface: 255 255 255; /* #FFFFFF Pure white elevated cards */
+    
+    /* 1. Background Canvas & Card Surfaces ONLY */
+    --bg-main: 241 245 249; /* #F1F5F9 Visible slate gray canvas */
+    --bg-surface: 248 250 252; /* #F8FAFC Soft off-white cards/modals */
 
-    --color-primary: 15 23 42; /* #0F172A Deep slate for razor-sharp typography */
+    /* 2. Text Typography Hierarchy ONLY */
+    --text-primary: 15 23 42; /* #0F172A Deep slate for razor-sharp typography */
+    --text-secondary: 71 85 105; /* #475569 Muted slate */
+    --text-muted: 148 163 184; /* #94A3B8 Placeholder/timestamp gray */
+
+    /* 3. Universal Interactive & Semantic Colors */
+    --border-color: 219 226 235; /* #DBE2EB Crisp visible card borders */
+    
+    --color-primary: 15 23 42; /* #0F172A Deep slate brand */
     --color-primary-hover: 51 65 85; 
 
     --color-accent: 37 99 235; /* #2563EB Vibrant royal blue */
     --color-accent-hover: 29 78 216; /* #1D4ED8 */
 
-    --text-primary: 15 23 42; /* #0F172A */
-    --text-secondary: 71 85 105; /* #475569 */
-    --text-muted: 148 163 184; /* #94A3B8 */
-
-    --border-color: 219 226 235; /* #DBE2EB Crisp visible card border */
-
-    /* Semantic Colors */
     --color-success: 16 185 129; /* Emerald */
     --color-warning: 245 158 11; /* Amber */
     --color-danger: 239 68 68; /* Red */
     --color-danger-hover: 220 38 38;
 
-    /* Ambient Glow Colors */
+    /* 4. Semantic Pipeline Status Colors */
+    --color-status-pending: 217 119 6; /* Amber 600 */
+    --color-status-processing: 37 99 235; /* Blue 600 */
+    --color-status-shipped: 147 51 234; /* Purple 600 */
+    --color-status-delivered: 5 150 105; /* Emerald 600 */
+    --color-status-cancelled: 225 29 72; /* Rose 600 */
+    --color-status-completed: 13 148 136; /* Teal 600 */
+
+    /* 5. Semantic Financial Colors */
+    --color-finance-in: 16 185 129; /* Emerald/Success - Income/Paid */
+    --color-finance-out: 225 29 72; /* Rose 600 - Expense/Debt */
+
+    /* 4. Ambient Glow Colors */
     --glow-center: 37 99 235; /* #2563EB */
   }
 
   .dark {
     /* Modern High-Contrast Dark Theme */
+    
+    /* 1. Background Canvas & Card Surfaces ONLY */
     --bg-main: 10 14 23; /* #0A0E17 Deep obsidian navy canvas */
     --bg-surface: 21 29 45; /* #151D2D Distinct elevated slate cards */
+
+    /* 2. Text Typography Hierarchy ONLY */
+    --text-primary: 248 250 252; /* #F8FAFC Pure bright white */
+    --text-secondary: 148 163 184; /* Cool gray for subtitles */
+    --text-muted: 100 116 139; /* Darker gray for placeholders */
+
+    /* 3. Universal Interactive & Semantic Colors */
+    --border-color: 39 52 75; /* #27344B High-contrast dark border */
 
     --color-primary: 248 250 252; /* #F8FAFC */
     --color-primary-hover: 226 232 240; 
 
-    --color-accent: 59 130 246; /* #3B82F6 */
+    --color-accent: 59 130 246; /* #3B82F6 Bright electric blue */
     --color-accent-hover: 96 165 250; 
 
-    --text-primary: 248 250 252; 
-    --text-secondary: 148 163 184; 
-    --text-muted: 100 116 139; 
-
-    --border-color: 39 52 75; /* #27344B High-contrast dark border */
-
-    /* Semantic Colors */
     --color-success: 16 185 129;
     --color-warning: 245 158 11;
     --color-danger: 239 68 68;
     --color-danger-hover: 220 38 38;
 
-    /* Ambient Glow Colors */
+    /* 4. Semantic Pipeline Status Colors */
+    --color-status-pending: 251 191 36; /* Amber 400 */
+    --color-status-processing: 96 165 250; /* Blue 400 */
+    --color-status-shipped: 192 132 252; /* Purple 400 */
+    --color-status-delivered: 52 211 153; /* Emerald 400 */
+    --color-status-cancelled: 251 113 133; /* Rose 400 */
+    --color-status-completed: 45 212 191; /* Teal 400 */
+
+    /* 5. Semantic Financial Colors */
+    --color-finance-in: 16 185 129; /* Emerald/Success - Income/Paid */
+    --color-finance-out: 251 113 133; /* Rose 400 - Expense/Debt */
+
+    /* 4. Ambient Glow Colors */
     --glow-center: 59 130 246; /* #3B82F6 */
   }
 

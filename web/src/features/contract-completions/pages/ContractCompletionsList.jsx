@@ -26,7 +26,7 @@ export const ContractCompletionsList = () => {
   const [voidingCompletion, setVoidingCompletion] = useState(null);
 
   const { data: contractsData } = useQuery({ 
-    queryKey: ["contracts-list"], 
+    queryKey: ["contracts", "list"], 
     queryFn: () => getContracts({ limit: 1000 }),
     enabled: can("contracts.read")
   });

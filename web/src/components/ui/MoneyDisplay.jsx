@@ -17,6 +17,8 @@ export const MoneyDisplay = ({
     warning: "text-warning font-semibold",
     muted: "text-secondary line-through opacity-70",
     accent: "text-accent font-bold",
+    financeIn: "text-finance-in font-bold",
+    financeOut: "text-finance-out font-bold",
   };
 
   return (

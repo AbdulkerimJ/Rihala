@@ -41,7 +41,7 @@ const paymentSchema = z.object({
 const PaymentForm = ({ onSubmit, onClose }) => {
   const { can } = usePermission();
   const { data: customersData } = useQuery({ 
-    queryKey: ["customers-list"], 
+    queryKey: ["customers", "list"], 
     queryFn: () => getCustomers({ limit: 1000 }),
     enabled: can("customers.read")
   });
@@ -146,7 +146,7 @@ const PaymentForm = ({ onSubmit, onClose }) => {
           </div>
           <div className="flex justify-between items-center">
             <span className="text-secondary">Agreed Total:</span>
-            <span className="font-bold text-teal-600 dark:text-teal-400">
+            <span className="font-bold text-primary">
               <MoneyDisplay amount={selectedOrder.agreedAmount} />
             </span>
           </div>
@@ -159,7 +159,7 @@ const PaymentForm = ({ onSubmit, onClose }) => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Amount (ETB)" required error={errors.amount?.message}>
-          <Input type="number" step="0.01" {...register("amount")} error={errors.amount?.message} />
+          <Input type="number" placeholder="0" {...register("amount")} error={errors.amount?.message} />
         </FormField>
         
         <FormField label="Payment Date" required error={errors.paymentDate?.message}>
@@ -188,7 +188,7 @@ export const CustomerPaymentsList = () => {
   const [voidingPayment, setVoidingPayment] = useState(null);
 
   const { data: customersData } = useQuery({ 
-    queryKey: ["customers-list"], 
+    queryKey: ["customers", "list"], 
     queryFn: () => getCustomers({ limit: 1000 }),
     enabled: can("customers.read")
   });

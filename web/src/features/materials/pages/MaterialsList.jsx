@@ -147,7 +147,7 @@ export const MaterialsList = () => {
 
   // Extract unique categories for filter
   const categoriesQuery = useQuery({
-    queryKey: ["materials-categories"],
+    queryKey: ["materials", "categories"],
     queryFn: () => getMaterials({ limit: 1000 }),
   });
   const uniqueCategories = useMemo(() => {

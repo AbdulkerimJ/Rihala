@@ -39,7 +39,7 @@ const paymentSchema = z.object({
 const PaymentForm = ({ onSubmit, onClose }) => {
   const { can } = usePermission();
   const { data: employeesData } = useQuery({ 
-    queryKey: ["employees-list"], 
+    queryKey: ["employees", "list"], 
     queryFn: () => getEmployees({ limit: 1000, status: "active" }),
     enabled: can("employees.read")
   });
@@ -100,7 +100,7 @@ const PaymentForm = ({ onSubmit, onClose }) => {
         </FormField>
 
         <FormField label="Amount (ETB)" required error={errors.amount?.message}>
-          <Input type="number" step="0.01" {...register("amount")} error={errors.amount?.message} />
+          <Input type="number" placeholder="0" {...register("amount")} error={errors.amount?.message} />
         </FormField>
       </div>
 
@@ -129,7 +129,7 @@ export const EmployeePaymentsList = () => {
   const [voidingPayment, setVoidingPayment] = useState(null);
 
   const { data: employeesData } = useQuery({ 
-    queryKey: ["employees-list"], 
+    queryKey: ["employees", "list"], 
     queryFn: () => getEmployees({ limit: 1000 }),
     enabled: can("employees.read")
   });

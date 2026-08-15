@@ -23,7 +23,7 @@ export const Input = forwardRef(
     };
 
     const baseClasses =
-      "block bg-main border text-primary placeholder:text-muted transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-accent/20 disabled:opacity-50 disabled:cursor-not-allowed";
+      "block bg-main border text-primary placeholder:text-muted transition-shadow duration-150 focus:outline-none focus:ring-2 focus:ring-accent/20 disabled:opacity-50 disabled:cursor-not-allowed";
 
     const borderClasses = error
       ? "border-danger focus:border-danger focus:ring-danger/20"
@@ -44,6 +44,13 @@ export const Input = forwardRef(
       .trim()
       .replace(/\s+/g, " ");
 
+    const handleWheel = (e) => {
+      if (type === "number") {
+        e.currentTarget.blur();
+      }
+      props.onWheel?.(e);
+    };
+
     return (
       <div className={`relative ${fullWidth ? "w-full" : "inline-block"}`}>
         {LeftIcon && (
@@ -58,6 +65,7 @@ export const Input = forwardRef(
           disabled={disabled}
           aria-invalid={!!error}
           className={combinedClassName}
+          onWheel={handleWheel}
           {...props}
         />
         {RightIcon && (
