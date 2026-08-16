@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getPurchaseById } from "../api";
-import { createSupplierPayment } from "../../supplier-payments/api";
+import { getPurchaseById, updatePurchase } from "../api";
+import { createSupplierPayment, getSupplierPayments } from "../../supplier-payments/api";
 import { DetailSkeleton } from "../../../components/ui/skeletons";
 import { ErrorState } from "../../../components/ui/ErrorState";
+import { Modal } from "../../../components/ui/Modal";
 import { DetailSection } from "../../../components/ui/DetailSection";
 import { SystemInfoSection } from "../../../components/ui/SystemInfoSection";
 import { DataTable } from "../../../components/ui/DataTable";
@@ -12,22 +13,34 @@ import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { Button } from "../../../components/ui/Button";
 import { Can } from "../../../components/Can";
-import { getApiErrorMessage, unwrapEntityResponse } from "../../../utils/apiResponse";
+import { getApiErrorMessage, unwrapEntityResponse, unwrapListResponse } from "../../../utils/apiResponse";
 import { formatDate } from "../../../utils/formatters";
-import { ShoppingBag, Calendar, Building2, ArrowLeft } from "lucide-react";
+import { usePermission } from "../../../hooks/usePermission";
+import { ShoppingBag, Calendar, Building2, ArrowLeft, Edit } from "lucide-react";
 import toast from "react-hot-toast";
 import { SupplierPaymentModal } from "../../supplier-payments/components/SupplierPaymentModal";
+import { PurchaseForm } from "./PurchasesList";
 
 export const PurchaseDetail = () => {
   const { id } = useParams();
   const queryClient = useQueryClient();
+  const { can } = usePermission();
   const [isPaymentModalOpen, setPaymentModalOpen] = useState(false);
-  
+  const [isEditModalOpen, setEditModalOpen] = useState(false);
+
   const purchaseQuery = useQuery({
     queryKey: ["purchases", id],
     queryFn: () => getPurchaseById(id),
     enabled: !!id,
   });
+
+  const { data: paymentsData, isLoading: isPaymentsLoading } = useQuery({
+    queryKey: ["supplier-payments", { purchase: id }],
+    queryFn: () => getSupplierPayments({ purchase: id, limit: 100 }),
+    enabled: can("supplierPayments.read") && !!id,
+  });
+  
+  const payments = unwrapListResponse(paymentsData).items || [];
 
   const createPaymentMutation = useMutation({
     mutationFn: createSupplierPayment,
@@ -41,6 +54,20 @@ export const PurchaseDetail = () => {
     },
     onError: (error) => {
       toast.error(getApiErrorMessage(error, "Failed to record payment"));
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data) => updatePurchase({ id, data }),
+    meta: { suppressToast: true },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["purchases"] });
+      queryClient.invalidateQueries({ queryKey: ["suppliers"] }); // Since total amount might change and affect supplier balance
+      toast.success("Purchase updated successfully");
+      setEditModalOpen(false);
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, "Failed to update purchase"));
     },
   });
 
@@ -82,6 +109,33 @@ export const PurchaseDetail = () => {
     },
   ];
 
+  const paymentColumns = [
+    { header: "Date", accessor: (row) => formatDate(row.date) },
+    { header: "Reference", accessor: "paymentReference", className: "font-mono text-xs" },
+    { 
+      header: "Type", 
+      accessor: (row) => (
+        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${row.type === 'SPECIFIC' ? 'bg-primary/10 text-primary' : 'bg-secondary/10 text-secondary'}`}>
+          {row.type}
+        </span>
+      ) 
+    },
+    { 
+      header: "Applied Amount", 
+      accessor: (row) => {
+        let applied = row.amount;
+        if (row.type === "GENERAL") {
+          const allocation = row.allocations?.find(a => a.purchase?._id === id || a.purchase === id);
+          applied = allocation ? allocation.amount : 0;
+        }
+        return <MoneyDisplay amount={applied} variant="financeOut" />;
+      },
+      className: "text-right",
+      headerClassName: "text-right",
+    },
+    { header: "Status", accessor: (row) => <StatusBadge status={row.status} /> },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-4">
@@ -104,6 +158,11 @@ export const PurchaseDetail = () => {
         </div>
         
         <div className="flex items-center gap-3">
+          <Can permission="purchases.update">
+            <Button variant="outline" onClick={() => setEditModalOpen(true)}>
+              <Edit className="h-4 w-4 mr-2" /> Edit Purchase
+            </Button>
+          </Can>
           <Can permission="supplierPayments.create">
              {purchase.paymentStatus !== "PAID" && (
                 <Button onClick={() => setPaymentModalOpen(true)}>Record Payment</Button>
@@ -205,6 +264,22 @@ export const PurchaseDetail = () => {
             </div>
           </DetailSection>
 
+          <Can permission="supplierPayments.read">
+            <DetailSection title="Related Payments">
+              <DataTable
+                columns={paymentColumns}
+                data={payments}
+                keyExtractor={(row) => row._id}
+                isLoading={isPaymentsLoading}
+                emptyState={
+                  <div className="text-center py-6 text-sm text-secondary">
+                    No payments have been recorded for this purchase yet.
+                  </div>
+                }
+              />
+            </DetailSection>
+          </Can>
+
           <SupplierPaymentModal
             isOpen={isPaymentModalOpen}
             onClose={() => setPaymentModalOpen(false)}
@@ -226,6 +301,26 @@ export const PurchaseDetail = () => {
           />
         </div>
       </div>
+
+      <Modal isOpen={isEditModalOpen} title="Edit Purchase" onClose={() => setEditModalOpen(false)}>
+        {purchase && (
+          <PurchaseForm
+            initialData={{
+              supplier: purchase.supplier?._id || purchase.supplier || "",
+              purchaseDate: purchase.date ? new Date(purchase.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+              notes: purchase.note || "",
+              items: purchase.items?.map(i => ({
+                material: i.material?._id || i.material || "",
+                quantity: i.quantity,
+                unitPrice: i.unitPrice
+              })) || []
+            }}
+            onClose={() => setEditModalOpen(false)}
+            onSubmit={(data) => updateMutation.mutateAsync(data)}
+            isFullyPaid={purchase.paymentStatus === "PAID"}
+          />
+        )}
+      </Modal>
     </div>
   );
 };

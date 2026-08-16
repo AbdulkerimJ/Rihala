@@ -16,6 +16,6 @@ export const createSupplierPayment = async (data) => {
 };
 
 export const voidSupplierPayment = async ({ id, voidReason }) => {
-  const response = await api.post(`/supplier-payments/${id}/void`, { voidReason });
+  const response = await api.patch(`/supplier-payments/${id}/void`, { voidReason });
   return response.data;
 };

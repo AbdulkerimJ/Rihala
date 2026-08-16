@@ -77,7 +77,18 @@ const getSupplierPaymentsService = async (filters = {}) => {
   if (!filters.status) {
     filters.status = "active";
   }
-  return getPaginatedQueryResult(SupplierPayment, filters, supplierPaymentQueryConfig);
+
+  const customQuery = {};
+  if (filters.purchase) {
+    customQuery.$or = [
+      { purchaseId: filters.purchase },
+      { "allocations.purchase": filters.purchase }
+    ];
+    // Remove from filters to bypass strict validation in query parser
+    delete filters.purchase;
+  }
+
+  return getPaginatedQueryResult(SupplierPayment, filters, supplierPaymentQueryConfig, { query: customQuery });
 };
 
 const getSupplierPaymentByIdService = async (paymentId) => {

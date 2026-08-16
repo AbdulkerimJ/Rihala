@@ -44,7 +44,7 @@ const purchaseSchema = z.object({
   items: z.array(purchaseItemSchema).min(1, "At least one item is required"),
 });
 
-const PurchaseForm = ({ initialData, onSubmit, onClose }) => {
+export const PurchaseForm = ({ initialData, onSubmit, onClose, isFullyPaid }) => {
   const { can } = usePermission();
   const { data: suppliersData } = useQuery({ 
     queryKey: ["suppliers", "list", { status: "active" }], 
@@ -92,6 +92,10 @@ const PurchaseForm = ({ initialData, onSubmit, onClose }) => {
       };
       delete payload.purchaseDate;
       delete payload.notes;
+      
+      if (isFullyPaid) {
+        delete payload.items;
+      }
 
       await onSubmit(payload);
     } catch (error) {
@@ -109,6 +113,7 @@ const PurchaseForm = ({ initialData, onSubmit, onClose }) => {
             placeholder="Select a supplier"
             options={suppliers.map(s => ({ value: s._id, label: s.name }))}
             error={errors.supplier?.message}
+            disabled={!!initialData}
           />
           {selectedSupplierObj && (
             <p className="text-xs text-secondary mt-1 flex gap-1 items-center">
@@ -128,10 +133,12 @@ const PurchaseForm = ({ initialData, onSubmit, onClose }) => {
 
       <div className="pt-4 border-t border-border/50">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-semibold text-primary">Purchase Items</h3>
-          <Button type="button" variant="secondary" size="sm" onClick={() => append({ material: "", quantity: "", unitPrice: "" })}>
-            <Plus className="h-4 w-4 mr-1" /> Add Item
-          </Button>
+          <h3 className="text-sm font-semibold text-primary">Purchase Items {isFullyPaid && <span className="text-xs font-normal text-warning ml-2">(Locked - Fully Paid)</span>}</h3>
+          {!isFullyPaid && (
+            <Button type="button" variant="secondary" size="sm" onClick={() => append({ material: "", quantity: "", unitPrice: "" })}>
+              <Plus className="h-4 w-4 mr-1" /> Add Item
+            </Button>
+          )}
         </div>
         
         {errors.items?.root && <p className="text-xs text-danger mb-2">{errors.items.root.message}</p>}
@@ -146,6 +153,7 @@ const PurchaseForm = ({ initialData, onSubmit, onClose }) => {
                     placeholder="Select material"
                     options={materials.map(m => ({ value: m._id, label: `${m.name} (${m.unit})` }))}
                     error={errors.items?.[index]?.material?.message}
+                    disabled={isFullyPaid}
                   />
                 </FormField>
               </div>
@@ -157,6 +165,7 @@ const PurchaseForm = ({ initialData, onSubmit, onClose }) => {
                     placeholder="Qty"
                     {...register(`items.${index}.quantity`)}
                     error={errors.items?.[index]?.quantity?.message}
+                    disabled={isFullyPaid}
                   />
                 </FormField>
               </div>
@@ -170,13 +179,14 @@ const PurchaseForm = ({ initialData, onSubmit, onClose }) => {
                         {...field}
                         placeholder="Unit Price"
                         error={errors.items?.[index]?.unitPrice?.message}
+                        disabled={isFullyPaid}
                       />
                     )}
                   />
                 </FormField>
               </div>
               <div className="col-span-1 flex justify-end pt-2">
-                {fields.length > 1 && (
+                {fields.length > 1 && !isFullyPaid && (
                   <button
                     type="button"
                     onClick={() => remove(index)}
