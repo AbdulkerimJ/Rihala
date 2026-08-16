@@ -6,6 +6,7 @@ const supplierPaymentQueryConfig = {
   populate: [
     { path: "supplier", select: "name phone" },
     { path: "allocations.purchase", select: "purchaseNumber date totalAmount allocatedAmount paymentStatus" },
+    { path: "voidedBy", select: "name email" },
   ],
 };
 

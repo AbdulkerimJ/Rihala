@@ -53,28 +53,36 @@ const generateOrderNumber = async () => {
 };
 
 const createOrderService = async (data, userId) => {
-  const customer = await ensureCustomerCanBeUsed(data.customer);
+  const session = await mongoose.startSession();
+  try {
+    return await session.withTransaction(async () => {
+      const customer = await ensureCustomerCanBeUsed(data.customer);
 
-  const orderNumber = await generateOrderNumber();
+      const orderNumber = await generateOrderNumber();
 
-  const normalizedData = {
-    ...data,
-    orderNumber,
-    customerName: customer.name,
-    customerPhone: customer.phone,
-    createdBy: userId,
-    date: data.date || new Date(),
-    status: "pending",
-    statusHistory: [
-      {
+      const normalizedData = {
+        ...data,
+        orderNumber,
+        customerName: customer.name,
+        customerPhone: customer.phone,
+        createdBy: userId,
+        date: data.date || new Date(),
         status: "pending",
-        changedBy: userId,
-      },
-    ],
-  };
+        statusHistory: [
+          {
+            status: "pending",
+            changedBy: userId,
+          },
+        ],
+      };
 
-  const order = await Order.create(normalizedData);
-  return order.populate(["customer", "createdBy", "statusHistory.changedBy"]);
+      const [order] = await Order.create([normalizedData], { session });
+      
+      return order.populate(["customer", "createdBy", "statusHistory.changedBy"]);
+    });
+  } finally {
+    session.endSession();
+  }
 };
 
 const getOrdersService = async (filters = {}) => {

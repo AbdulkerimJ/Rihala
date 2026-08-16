@@ -17,6 +17,8 @@ const materialSchema = new mongoose.Schema(
           "MDF",
           "Wood",
           "Fabric",
+          "Foam",
+          "Safarian",
           "Nails",
           "Paint",
           "Adhesives",

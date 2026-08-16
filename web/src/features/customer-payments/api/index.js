@@ -16,6 +16,6 @@ export const createCustomerPayment = async (data) => {
 };
 
 export const voidCustomerPayment = async ({ id, voidReason }) => {
-  const response = await api.post(`/customer-payments/${id}/void`, { voidReason });
+  const response = await api.patch(`/customer-payments/${id}/void`, { voidReason });
   return response.data;
 };

@@ -63,7 +63,11 @@ const adjustPurchaseAllocation = async (purchaseId, delta, session = null) => {
   // Explicitly set the paymentStatus!
   purchase.paymentStatus = getPaymentStatus(purchase.totalAmount, purchase.allocatedAmount);
   
-  await purchase.save({ session });
+  await Purchase.updateOne(
+    { _id: purchase._id },
+    { $set: { allocatedAmount: purchase.allocatedAmount, paymentStatus: purchase.paymentStatus } },
+    { session }
+  );
 };
 
 /**
@@ -303,7 +307,11 @@ export const reconcilePurchaseTotal = async (purchaseId, session = null) => {
   
   // Set the payment status explicitly based on the current totals
   purchase.paymentStatus = getPaymentStatus(purchase.totalAmount, purchase.allocatedAmount);
-  await purchase.save({ session });
+  await Purchase.updateOne(
+    { _id: purchase._id },
+    { $set: { paymentStatus: purchase.paymentStatus } },
+    { session }
+  );
 
   if (purchase.allocatedAmount <= purchase.totalAmount) {
     return; // All good
@@ -339,7 +347,11 @@ export const reconcilePurchaseTotal = async (purchaseId, session = null) => {
   }
 
   purchase.paymentStatus = getPaymentStatus(purchase.totalAmount, purchase.allocatedAmount);
-  await purchase.save({ session });
+  await Purchase.updateOne(
+    { _id: purchase._id },
+    { $set: { allocatedAmount: purchase.allocatedAmount, paymentStatus: purchase.paymentStatus } },
+    { session }
+  );
 };
 
 export { getPaymentStatus };

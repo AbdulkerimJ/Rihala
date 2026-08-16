@@ -74,7 +74,6 @@ export const OrderDetailHeader = ({
           {remainingBalance > 0 && !isCancelled && (
             <Button
               variant="primary"
-              size="sm"
               leftIcon={Plus}
               onClick={onOpenPaymentModal}
             >

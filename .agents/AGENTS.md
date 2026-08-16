@@ -15,3 +15,7 @@ Any agent working on the Rihala frontend must strictly adhere to this 4-Layer Pe
 ## 4. API Fetching
 - When using React Query's `useQuery` for sub-resources, always pass the `enabled` flag tied to the `can()` hook to prevent unauthorized network requests.
 - Example: `enabled: can('roles.read')`
+
+## 5. UI and Design System Reusability
+- Agents MUST ALWAYS reuse existing UI components, CSS variables, and design system tokens (colors, spacings, typography) before attempting to create new ones or hardcoding values.
+- Check `web/src/components/ui/` for existing interactive elements (Buttons, Badges, Modals, Forms) and `index.css` for semantic color definitions (e.g. `text-primary`, `bg-finance-in`) to ensure strict visual consistency.

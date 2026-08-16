@@ -21,7 +21,8 @@ import { FormField } from "../../../components/ui/FormField";
 import { Input } from "../../../components/ui/Input";
 import { Select } from "../../../components/ui/Select";
 import { Textarea } from "../../../components/ui/Textarea";
-import { useForm } from "react-hook-form";
+import { CurrencyInput } from "../../../components/ui/CurrencyInput";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
@@ -80,7 +81,7 @@ const paymentSchema = z.object({
 });
 
 const PaymentForm = ({ contract, onSubmit, onClose }) => {
-  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm({
+  const { register, control, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(paymentSchema),
     defaultValues: { amount: contract.stats.payableAmount, paymentDate: new Date().toISOString().split("T")[0], note: "" }
   });
@@ -100,7 +101,18 @@ const PaymentForm = ({ contract, onSubmit, onClose }) => {
         <p className="text-sm text-blue-800">Max payable amount: <strong><MoneyDisplay amount={contract.stats.payableAmount} /></strong></p>
       </div>
       <FormField label="Amount (ETB)" required error={errors.amount?.message}>
-        <Input type="number" max={contract.stats.payableAmount} placeholder="0" {...register("amount")} error={errors.amount?.message} />
+        <Controller
+          name="amount"
+          control={control}
+          render={({ field }) => (
+            <CurrencyInput
+              {...field}
+              max={contract.stats.payableAmount}
+              placeholder="0"
+              error={errors.amount?.message}
+            />
+          )}
+        />
       </FormField>
       <FormField label="Payment Date" required error={errors.paymentDate?.message}>
         <Input type="date" {...register("paymentDate")} error={errors.paymentDate?.message} />

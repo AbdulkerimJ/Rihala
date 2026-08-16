@@ -45,7 +45,7 @@ export const DataTable = ({
               {columns.map((col, index) => (
                 <th
                   key={index}
-                  className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-secondary ${
+                  className={`px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-secondary ${
                     col.headerClassName || ""
                   }`}
                 >
@@ -71,7 +71,7 @@ export const DataTable = ({
                   return (
                     <td
                       key={colIndex}
-                      className={`px-6 py-4 text-sm ${
+                      className={`px-5 py-3 text-sm ${
                         col.className || "text-primary"
                       }`}
                     >

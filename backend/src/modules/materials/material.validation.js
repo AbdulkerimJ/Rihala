@@ -4,6 +4,8 @@ const CATEGORIES = [
   "MDF",
   "Wood",
   "Fabric",
+  "Foam",
+  "Safarian",
   "Nails",
   "Paint",
   "Adhesives",

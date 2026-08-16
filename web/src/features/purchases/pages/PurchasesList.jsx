@@ -19,9 +19,11 @@ import { FormField } from "../../../components/ui/FormField";
 import { Input } from "../../../components/ui/Input";
 import { Select } from "../../../components/ui/Select";
 import { Textarea } from "../../../components/ui/Textarea";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { FormRootError } from "../../../components/ui/FormRootError";
-import { useForm, useFieldArray } from "react-hook-form";
+import { CurrencyInput } from "../../../components/ui/CurrencyInput";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
@@ -38,7 +40,6 @@ const purchaseItemSchema = z.object({
 const purchaseSchema = z.object({
   supplier: z.string().min(1, "Supplier is required"),
   purchaseDate: z.string().min(1, "Purchase date is required"),
-  referenceNumber: z.string().optional(),
   notes: z.string().optional(),
   items: z.array(purchaseItemSchema).min(1, "At least one item is required"),
 });
@@ -46,13 +47,13 @@ const purchaseSchema = z.object({
 const PurchaseForm = ({ initialData, onSubmit, onClose }) => {
   const { can } = usePermission();
   const { data: suppliersData } = useQuery({ 
-    queryKey: ["suppliers", "list"], 
-    queryFn: () => getSuppliers({ limit: 1000 }),
+    queryKey: ["suppliers", "list", { status: "active" }], 
+    queryFn: () => getSuppliers({ limit: 1000, status: "active" }),
     enabled: can("suppliers.read")
   });
   const { data: materialsData } = useQuery({ 
-    queryKey: ["materials", "list"], 
-    queryFn: () => getMaterials({ limit: 1000 }),
+    queryKey: ["materials", "list", { status: "active" }], 
+    queryFn: () => getMaterials({ limit: 1000, status: "active" }),
     enabled: can("materials.read")
   });
   
@@ -64,9 +65,8 @@ const PurchaseForm = ({ initialData, onSubmit, onClose }) => {
     defaultValues: initialData || {
       supplier: "",
       purchaseDate: new Date().toISOString().split("T")[0],
-      referenceNumber: "",
       notes: "",
-      items: [{ material: "", quantity: 1, unitPrice: 0 }],
+      items: [{ material: "", quantity: "", unitPrice: "" }],
     },
   });
 
@@ -76,6 +76,11 @@ const PurchaseForm = ({ initialData, onSubmit, onClose }) => {
   });
 
   const watchItems = watch("items");
+  const watchSupplier = watch("supplier");
+  const selectedSupplierObj = React.useMemo(() => {
+    return suppliers.find((s) => s._id === watchSupplier);
+  }, [suppliers, watchSupplier]);
+
   const totalAmount = watchItems.reduce((sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0), 0);
 
   const handleFormSubmit = async (data) => {
@@ -84,11 +89,9 @@ const PurchaseForm = ({ initialData, onSubmit, onClose }) => {
         ...data,
         date: new Date(data.purchaseDate).toISOString(),
         note: data.notes,
-        purchaseNumber: data.referenceNumber,
       };
       delete payload.purchaseDate;
       delete payload.notes;
-      delete payload.referenceNumber;
 
       await onSubmit(payload);
     } catch (error) {
@@ -107,6 +110,15 @@ const PurchaseForm = ({ initialData, onSubmit, onClose }) => {
             options={suppliers.map(s => ({ value: s._id, label: s.name }))}
             error={errors.supplier?.message}
           />
+          {selectedSupplierObj && (
+            <p className="text-xs text-secondary mt-1 flex gap-1 items-center">
+              Current Balance: 
+              <MoneyDisplay 
+                amount={selectedSupplierObj.balance || 0} 
+                variant={(selectedSupplierObj.balance || 0) > 0 ? "financeOut" : (selectedSupplierObj.balance || 0) < 0 ? "financeIn" : "default"} 
+              />
+            </p>
+          )}
         </FormField>
         
         <FormField label="Purchase Date" required error={errors.purchaseDate?.message}>
@@ -114,16 +126,10 @@ const PurchaseForm = ({ initialData, onSubmit, onClose }) => {
         </FormField>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormField label="Reference Number" error={errors.referenceNumber?.message}>
-          <Input {...register("referenceNumber")} placeholder="e.g. INV-12345" error={errors.referenceNumber?.message} />
-        </FormField>
-      </div>
-
       <div className="pt-4 border-t border-border/50">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-semibold text-primary">Purchase Items</h3>
-          <Button type="button" variant="secondary" size="sm" onClick={() => append({ material: "", quantity: 1, unitPrice: 0 })}>
+          <Button type="button" variant="secondary" size="sm" onClick={() => append({ material: "", quantity: "", unitPrice: "" })}>
             <Plus className="h-4 w-4 mr-1" /> Add Item
           </Button>
         </div>
@@ -134,7 +140,7 @@ const PurchaseForm = ({ initialData, onSubmit, onClose }) => {
           {fields.map((item, index) => (
             <div key={item.id} className="grid grid-cols-12 gap-2 items-start bg-main/50 p-3 rounded-lg border border-border/50">
               <div className="col-span-12 sm:col-span-5">
-                <FormField error={errors.items?.[index]?.material?.message}>
+                <FormField label="Material" error={errors.items?.[index]?.material?.message}>
                   <Select
                     {...register(`items.${index}.material`)}
                     placeholder="Select material"
@@ -144,7 +150,7 @@ const PurchaseForm = ({ initialData, onSubmit, onClose }) => {
                 </FormField>
               </div>
               <div className="col-span-6 sm:col-span-3">
-                <FormField error={errors.items?.[index]?.quantity?.message}>
+                <FormField label="Quantity" error={errors.items?.[index]?.quantity?.message}>
                   <Input
                     type="number"
                     step="0.01"
@@ -155,13 +161,17 @@ const PurchaseForm = ({ initialData, onSubmit, onClose }) => {
                 </FormField>
               </div>
               <div className="col-span-5 sm:col-span-3">
-                <FormField error={errors.items?.[index]?.unitPrice?.message}>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    placeholder="Unit Price"
-                    {...register(`items.${index}.unitPrice`)}
-                    error={errors.items?.[index]?.unitPrice?.message}
+                <FormField label="Unit Price (ETB)" error={errors.items?.[index]?.unitPrice?.message}>
+                  <Controller
+                    name={`items.${index}.unitPrice`}
+                    control={control}
+                    render={({ field }) => (
+                      <CurrencyInput
+                        {...field}
+                        placeholder="Unit Price"
+                        error={errors.items?.[index]?.unitPrice?.message}
+                      />
+                    )}
                   />
                 </FormField>
               </div>
@@ -243,18 +253,20 @@ export const PurchasesList = () => {
   const columns = [
     { header: "Purchase Number", accessor: (row) => row.purchaseNumber || "-", className: "font-mono font-medium text-xs" },
     { header: "Supplier", accessor: (row) => row.supplier?.name || "Unknown", className: "font-medium" },
-    { header: "Date", accessor: (row) => formatDate(row.purchaseDate), className: "text-secondary hidden sm:table-cell" },
-    { header: "Total Amount", accessor: (row) => <MoneyDisplay amount={row.totalAmount} variant="accent" /> },
-    { header: "Items", accessor: (row) => `${row.items?.length || 0} items`, className: "text-secondary hidden md:table-cell", hiddenOnMobile: true },
+    { header: "Date", accessor: (row) => formatDate(row.date), className: "text-secondary hidden sm:table-cell" },
+    { header: "Total Amount", accessor: (row) => <MoneyDisplay amount={row.totalAmount} variant="financeOut" /> },
+    { header: "Status", accessor: (row) => <StatusBadge status={row.paymentStatus} /> },
     { 
-      header: "Actions", 
-      isActions: true,
-      accessor: (row) => (
-        <Button variant="secondary" size="sm" onClick={(e) => { e.stopPropagation(); navigate(`/purchases/${row._id}`); }}>
-          View Details
-        </Button>
-      ) 
-    }
+      header: "Items", 
+      accessor: (row) => {
+        if (!row.items?.length) return "-";
+        const names = row.items.map(item => item.materialName).filter(Boolean);
+        if (names.length <= 3) return names.join(", ");
+        return `${names.slice(0, 3).join(", ")} +${names.length - 3} more`;
+      }, 
+      className: "text-secondary hidden md:table-cell", 
+      hiddenOnMobile: true 
+    },
   ];
 
   if (isError) return <ErrorState description={getApiErrorMessage(error, "Failed to load purchases.")} />;
@@ -285,16 +297,22 @@ export const PurchasesList = () => {
             ...suppliers.map(s => ({ value: s._id, label: s.name }))
           ]}
         />
-        <Input
-          type="date"
-          value={filters.from}
-          onChange={(e) => { setFilters(p => ({ ...p, from: e.target.value })); setPage(1); }}
-        />
-        <Input
-          type="date"
-          value={filters.to}
-          onChange={(e) => { setFilters(p => ({ ...p, to: e.target.value })); setPage(1); }}
-        />
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-secondary font-medium">From:</span>
+          <Input
+            type="date"
+            value={filters.from}
+            onChange={(e) => { setFilters(p => ({ ...p, from: e.target.value })); setPage(1); }}
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-secondary font-medium">To:</span>
+          <Input
+            type="date"
+            value={filters.to}
+            onChange={(e) => { setFilters(p => ({ ...p, to: e.target.value })); setPage(1); }}
+          />
+        </div>
       </FilterBar>
 
       <DataTable 

@@ -28,6 +28,12 @@ import {
   ClipboardCheck,
   Hammer,
   ListTree,
+  Banknote,
+  HandCoins,
+  Building2,
+  BadgeDollarSign,
+  HardHat,
+  Store,
 } from "lucide-react";
 
 import { NavGroup } from "./NavGroup";
@@ -75,10 +81,6 @@ export const DashboardLayout = () => {
     return matchedEntry?.[1] || "Dashboard";
   }, [location.pathname]);
 
-  const handleLogout = async () => {
-    await logout();
-    navigate("/login");
-  };
 
   const navGroups = [
     {
@@ -92,6 +94,7 @@ export const DashboardLayout = () => {
     {
       title: "Operations",
       icon: Briefcase,
+      defaultExpanded: true,
       items: [
         { name: "Attendance", path: "/attendances", icon: CalendarDays, permission: "attendances.read" },
         { name: "Overtime", path: "/overtimes", icon: Clock, permission: "overtimes.read" },
@@ -106,10 +109,10 @@ export const DashboardLayout = () => {
       title: "Payments",
       icon: CreditCard,
       items: [
-        { name: "Employee Payments", path: "/employee-payments", icon: Wallet, permission: "employeePayments.read" },
-        { name: "Contractor Payments", path: "/contractor-payments", icon: Wallet, permission: "contractorPayments.read" },
-        { name: "Supplier Payments", path: "/supplier-payments", icon: Wallet, permission: "supplierPayments.read" },
-        { name: "Customer Payments", path: "/customer-payments", icon: Wallet, permission: "customerPayments.read" },
+        { name: "Employee Payments", path: "/employee-payments", icon: UserSquare2, permission: "employeePayments.read" },
+        { name: "Contractor Payments", path: "/contractor-payments", icon: HardHat, permission: "contractorPayments.read" },
+        { name: "Supplier Payments", path: "/supplier-payments", icon: Building2, permission: "supplierPayments.read" },
+        { name: "Customer Payments", path: "/customer-payments", icon: Store, permission: "customerPayments.read" },
         { name: "Expenses", path: "/expenses", icon: Receipt, permission: "expenses.read" },
       ]
     },
@@ -118,7 +121,7 @@ export const DashboardLayout = () => {
       icon: Package,
       items: [
         { name: "Materials", path: "/materials", icon: Package, permission: "materials.read" },
-        { name: "Suppliers", path: "/suppliers", icon: Contact, permission: "suppliers.read" },
+        { name: "Suppliers", path: "/suppliers", icon: Building2, permission: "suppliers.read" },
       ]
     },
     {
@@ -126,8 +129,8 @@ export const DashboardLayout = () => {
       icon: Users,
       items: [
         { name: "Employees", path: "/employees", icon: UserSquare2, permission: "employees.read" },
-        { name: "Contractors", path: "/contractors", icon: Contact, permission: "contractors.read" },
-        { name: "Customers", path: "/customers", icon: Contact, permission: "customers.read" },
+        { name: "Contractors", path: "/contractors", icon: HardHat, permission: "contractors.read" },
+        { name: "Customers", path: "/customers", icon: Store, permission: "customers.read" },
       ]
     },
     {
@@ -163,7 +166,7 @@ export const DashboardLayout = () => {
         <SidebarBrand setSidebarOpen={setSidebarOpen} />
 
         {/* Navigation Area */}
-        <nav className="flex-1 overflow-y-auto overflow-x-hidden space-y-1 px-4 py-6 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-4 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
           {navGroups.map((group, idx) => (
             <NavGroup 
               key={idx} 
@@ -176,18 +179,6 @@ export const DashboardLayout = () => {
           ))}
         </nav>
 
-        {/* Footer Area */}
-        <div className="mt-auto p-4">
-          <Button
-            variant="ghostDanger"
-            onClick={handleLogout}
-            size="none"
-            className="flex w-full items-center justify-start px-3 py-2.5 text-sm font-medium transition-colors"
-          >
-            <LogOut className="mr-3 h-5 w-5" />
-            Sign out
-          </Button>
-        </div>
       </aside>
 
       {/* Main content */}
@@ -201,7 +192,7 @@ export const DashboardLayout = () => {
 
         {/* Main section */}
         <main className="flex-1 overflow-y-auto bg-surface rounded-tl-2xl sm:rounded-tl-3xl p-4 sm:p-6 lg:p-8 border-t border-l border-border/70 shadow-xs relative">
-          <ErrorBoundary>
+          <ErrorBoundary key={location.pathname}>
             <Outlet />
           </ErrorBoundary>
         </main>

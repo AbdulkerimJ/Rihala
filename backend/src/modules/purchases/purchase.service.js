@@ -10,6 +10,7 @@ import Supplier from "../suppliers/supplier.model.js";
 import SupplierPayment from "../supplierPayments/supplierPayment.model.js";
 import * as allocationService from "../supplierPayments/allocation.service.js";
 import Counter from "../../core/models/counter.model.js";
+import User from "../users/user.model.js";
 
 const generatePurchaseNumber = async () => {
   const counter = await Counter.findOneAndUpdate(
@@ -51,10 +52,15 @@ const validateAndPrepareItems = async (items, session = null) => {
   return { preparedItems, totalAmount };
 };
 
-const createPurchaseService = async (data) => {
+const createPurchaseService = async (data, userId) => {
   const session = await mongoose.startSession();
   try {
     return await session.withTransaction(async () => {
+      const creator = await User.findById(userId).select("name").session(session);
+      if (!creator) {
+        throw new ValidationError("Purchase creator not found. Cannot record purchase without a valid user.");
+      }
+
       const supplier = await Supplier.findById(data.supplier).session(session);
       if (!supplier) {
         throw new NotFoundError("Supplier not found");
@@ -84,9 +90,14 @@ const createPurchaseService = async (data) => {
         note: data.note,
         allocatedAmount: 0,
         paymentStatus: "UNPAID",
+        createdBy: creator._id,
+        createdByName: creator.name,
       };
 
       const [purchase] = await Purchase.create([purchaseData], { session });
+
+      // Update supplier balance
+      await Supplier.findByIdAndUpdate(supplier._id, { $inc: { balance: totalAmount } }, { session });
 
       // Check and apply existing supplier credit to the new purchase
       await allocationService.applyCreditToPurchase(purchase._id, session);
@@ -124,6 +135,9 @@ const updatePurchaseService = async (purchaseId, updateData) => {
         throw new NotFoundError("Purchase not found.");
       }
 
+      const oldSupplierId = purchase.supplier;
+      const oldTotalAmount = purchase.totalAmount;
+
       if (updateData.supplier && updateData.supplier.toString() !== purchase.supplier.toString()) {
         const hasFinancialHistory = await SupplierPayment.exists({
           $or: [
@@ -157,6 +171,16 @@ const updatePurchaseService = async (purchaseId, updateData) => {
       purchase.paymentStatus = allocationService.getPaymentStatus(purchase.totalAmount, purchase.allocatedAmount);
 
       await purchase.save({ session });
+
+      // Update supplier balance
+      const newSupplierId = purchase.supplier;
+      const newTotalAmount = purchase.totalAmount;
+      if (oldSupplierId.toString() !== newSupplierId.toString()) {
+        await Supplier.findByIdAndUpdate(oldSupplierId, { $inc: { balance: -oldTotalAmount } }, { session });
+        await Supplier.findByIdAndUpdate(newSupplierId, { $inc: { balance: newTotalAmount } }, { session });
+      } else if (oldTotalAmount !== newTotalAmount) {
+        await Supplier.findByIdAndUpdate(newSupplierId, { $inc: { balance: newTotalAmount - oldTotalAmount } }, { session });
+      }
 
       // If total drops below allocated, or goes above, we need to reconcile allocations.
       await allocationService.reconcilePurchaseTotal(purchase._id, session);

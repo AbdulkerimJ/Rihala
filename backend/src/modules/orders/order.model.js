@@ -56,6 +56,12 @@ const orderSchema = new mongoose.Schema(
       min: [1, "Agreed amount must be at least 1"],
     },
 
+    totalPaid: {
+      type: Number,
+      default: 0,
+      min: [0, "Total paid cannot be negative"],
+    },
+
     expectedCompletionDate: {
       type: Date,
       required: [true, "Expected completion date is required"],

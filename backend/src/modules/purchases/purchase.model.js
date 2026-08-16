@@ -80,6 +80,15 @@ const purchaseSchema = new mongoose.Schema(
       enum: ["UNPAID", "PARTIALLY_PAID", "PAID"],
       default: "UNPAID",
     },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: [true, "Purchase creator is required"],
+    },
+    createdByName: {
+      type: String,
+      trim: true,
+    },
   },
   {
     timestamps: true,

@@ -27,7 +27,7 @@ import { OrderStatusPipeline } from "../components/OrderStatusPipeline";
 import { OrderPaymentsSection } from "../components/OrderPaymentsSection";
 import { OrderCustomerCard } from "../components/OrderCustomerCard";
 import { OrderStatusTimeline } from "../components/OrderStatusTimeline";
-import { OrderPaymentModal } from "../components/OrderPaymentModal";
+import { CustomerPaymentModal } from "../../customer-payments/components/CustomerPaymentModal";
 
 import {
   getApiErrorMessage,
@@ -43,7 +43,6 @@ export const OrderDetail = () => {
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [isPaymentModalOpen, setPaymentModalOpen] = useState(false);
   const [cancellingOrder, setCancellingOrder] = useState(false);
-  const [voidingPayment, setVoidingPayment] = useState(null);
 
   // 1. Fetch Order (Layer 4 permission compliance)
   const orderQuery = useQuery({
@@ -75,6 +74,7 @@ export const OrderDetail = () => {
   // 4. Mutations
   const updateMutation = useMutation({
     mutationFn: updateOrder,
+    meta: { suppressToast: true },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders", id] });
       queryClient.invalidateQueries({ queryKey: ["orders"] });
@@ -89,6 +89,7 @@ export const OrderDetail = () => {
 
   const createPaymentMutation = useMutation({
     mutationFn: createCustomerPayment,
+    meta: { suppressToast: true },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["customer-payments", { order: id }],
@@ -102,24 +103,6 @@ export const OrderDetail = () => {
     },
     onError: (error) => {
       toast.error(getApiErrorMessage(error, "Failed to record payment"));
-    },
-  });
-
-  const voidPaymentMutation = useMutation({
-    mutationFn: voidCustomerPayment,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["customer-payments", { order: id }],
-      });
-      queryClient.invalidateQueries({ queryKey: ["customer-payments"] });
-      queryClient.invalidateQueries({ queryKey: ["orders", id] });
-      queryClient.invalidateQueries({ queryKey: ["orders"] });
-      queryClient.invalidateQueries({ queryKey: ["customers"] });
-      toast.success("Payment voided successfully");
-      setVoidingPayment(null);
-    },
-    onError: (error) => {
-      toast.error(getApiErrorMessage(error, "Failed to void payment"));
     },
   });
 
@@ -233,7 +216,6 @@ export const OrderDetail = () => {
               remainingBalance={remainingBalance}
               isLoading={paymentsQuery.isLoading}
               onOpenPaymentModal={() => setPaymentModalOpen(true)}
-              onVoidPayment={(payment) => setVoidingPayment(payment)}
             />
           )}
         </div>
@@ -287,11 +269,11 @@ export const OrderDetail = () => {
       </Modal>
 
       {/* Direct Payment Modal */}
-      <OrderPaymentModal
+      <CustomerPaymentModal
         isOpen={isPaymentModalOpen}
         onClose={() => setPaymentModalOpen(false)}
-        order={order}
-        remainingBalance={remainingBalance}
+        preSelectedOrder={order}
+        preSelectedCustomer={order?.customer}
         onSubmit={(data) => createPaymentMutation.mutateAsync(data)}
       />
 
@@ -312,21 +294,6 @@ export const OrderDetail = () => {
         onCancel={() => setCancellingOrder(false)}
       />
 
-      {/* Void Payment Dialog */}
-      <VoidReasonDialog
-        isOpen={!!voidingPayment}
-        title="Void Customer Payment"
-        message={`Are you sure you want to void payment of ${voidingPayment?.amount} ETB? This action cannot be undone.`}
-        confirmLabel="Void Payment"
-        isLoading={voidPaymentMutation.isPending}
-        onConfirm={(reason) =>
-          voidPaymentMutation.mutateAsync({
-            id: voidingPayment._id,
-            voidReason: reason,
-          })
-        }
-        onCancel={() => setVoidingPayment(null)}
-      />
     </div>
   );
 };

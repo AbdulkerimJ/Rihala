@@ -26,6 +26,7 @@ import { MaterialsList } from "../features/materials/pages/MaterialsList";
 import { PurchasesList } from "../features/purchases/pages/PurchasesList";
 import { PurchaseDetail } from "../features/purchases/pages/PurchaseDetail";
 import { CustomerPaymentsList } from "../features/customer-payments/pages/CustomerPaymentsList";
+import { CustomerPaymentDetail } from "../features/customer-payments/pages/CustomerPaymentDetail";
 import { SupplierPaymentsList } from "../features/supplier-payments/pages/SupplierPaymentsList";
 import { EmployeesList } from "../features/employees/pages/EmployeesList";
 import { EmployeeDetail } from "../features/employees/pages/EmployeeDetail";
@@ -153,6 +154,14 @@ export const router = createBrowserRouter([
         element: (
           <RequirePermission permission="customerPayments.read">
             <CustomerPaymentsList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "customer-payments/:id",
+        element: (
+          <RequirePermission permission="customerPayments.read">
+            <CustomerPaymentDetail />
           </RequirePermission>
         ),
       },

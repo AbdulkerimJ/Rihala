@@ -1,5 +1,6 @@
 import React from "react";
 import { Plus, Receipt } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { DetailSection } from "../../../components/ui/DetailSection";
 import { DataTable } from "../../../components/ui/DataTable";
 import { Button } from "../../../components/ui/Button";
@@ -15,8 +16,8 @@ export const OrderPaymentsSection = ({
   remainingBalance,
   isLoading = false,
   onOpenPaymentModal,
-  onVoidPayment,
 }) => {
+  const navigate = useNavigate();
   const isCancelled = order?.status === "cancelled";
 
   const paymentColumns = [
@@ -49,28 +50,6 @@ export const OrderPaymentsSection = ({
     {
       header: "Status",
       accessor: (row) => <StatusBadge status={row.status} showDot />,
-    },
-    {
-      header: "Actions",
-      isActions: true,
-      accessor: (row) => (
-        <div className="flex justify-end">
-          <Can permission="customerPayments.void">
-            {row.status !== "voided" && (
-              <Button
-                variant="ghostDanger"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onVoidPayment(row);
-                }}
-              >
-                Void
-              </Button>
-            )}
-          </Can>
-        </div>
-      ),
     },
   ];
 
@@ -113,9 +92,10 @@ export const OrderPaymentsSection = ({
           columns={paymentColumns}
           data={payments}
           keyExtractor={(row) => row._id}
+          onRowClick={(row) => navigate(`/customer-payments/${row._id}`)}
           isLoading={isLoading}
           emptyState={
-            <div className="text-center py-6 text-secondary text-sm">
+            <div className="flex flex-col items-center justify-center p-8 text-center bg-surface border border-dashed border-border/60 rounded-xl">
               <Receipt className="w-8 h-8 mx-auto mb-2 text-muted opacity-50" />
               <p>No customer payments recorded for this order yet.</p>
               <Can permission="customerPayments.create">

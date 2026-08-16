@@ -1,8 +1,10 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 import { ThemeToggle } from "./ui/ThemeToggle";
 import { Button } from "./ui/Button";
 import { SearchInput } from "./ui/SearchInput";
-import { Menu } from "lucide-react";
+import { Menu, LogOut } from "lucide-react";
 
 export const Header = ({ currentUser, onMobileMenuToggle }) => {
   // Helper to extract user initials for avatar
@@ -15,8 +17,15 @@ export const Header = ({ currentUser, onMobileMenuToggle }) => {
     return name.slice(0, 2).toUpperCase();
   };
 
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   const userRole = currentUser?.roles?.[0]?.name || "No Role";
   const userName = currentUser?.name || "No User";
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
 
   return (
     <header className="sticky top-0 z-20 flex h-16 w-full items-center justify-between bg-main px-4 sm:px-6">
@@ -68,6 +77,17 @@ export const Header = ({ currentUser, onMobileMenuToggle }) => {
             </div>
           </div>
         </div>
+
+        {/* Logout Button */}
+        <Button
+          variant="ghostDanger"
+          size="icon"
+          onClick={handleLogout}
+          className="rounded-lg p-2 transition-all ml-1"
+          title="Sign out"
+        >
+          <LogOut className="h-4 w-4" />
+        </Button>
       </div>
     </header>
   );

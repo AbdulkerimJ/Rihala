@@ -14,6 +14,7 @@ import { EmptyState } from "../../../components/ui/EmptyState";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { Modal } from "../../../components/ui/Modal";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
+import { Badge } from "../../../components/ui/Badge";
 import { DataTable } from "../../../components/ui/DataTable";
 import { FilterBar } from "../../../components/ui/FilterBar";
 import { FormField } from "../../../components/ui/FormField";
@@ -120,39 +121,25 @@ export const OrdersList = () => {
     { header: "Customer", accessor: (row) => row.customer?.name || "-", className: "font-medium" },
     { header: "Description", accessor: (row) => <div className="max-w-[200px] truncate">{row.description || row.items?.[0]?.description || "-"}</div>, className: "text-secondary hidden sm:table-cell" },
     { header: "Amount", accessor: (row) => <MoneyDisplay amount={row.agreedAmount} /> },
-    { header: "Expected", accessor: (row) => formatDate(row.expectedCompletionDate), className: "text-secondary hidden md:table-cell" },
-    { header: "Status", accessor: (row) => <StatusBadge status={row.status} /> },
     { 
-      header: "Actions", 
-      isActions: true,
-      accessor: (row) => (
-        <div className="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/orders/${row._id}`);
-            }}
-          >
-            View
-          </Button>
-          <Can permission="orders.update">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                setEditingOrder(row);
-                setIsOpen(true);
-              }}
-            >
-              Edit
-            </Button>
-          </Can>
-        </div>
-      ) 
-    }
+      header: "Payment", 
+      accessor: (row) => {
+        const isFullyPaid = (row.totalPaid || 0) >= row.agreedAmount;
+        const isPartiallyPaid = (row.totalPaid || 0) > 0 && (row.totalPaid || 0) < row.agreedAmount;
+        
+        const variant = isFullyPaid ? "financeIn" : isPartiallyPaid ? "warning" : "danger";
+        const label = isFullyPaid ? "Paid" : isPartiallyPaid ? "Partial" : "Unpaid";
+
+        return (
+          <Badge variant={variant} className="uppercase tracking-wider text-[10px]">
+            {label}
+          </Badge>
+        );
+      },
+      className: "hidden md:table-cell"
+    },
+    { header: "Expected", accessor: (row) => formatDate(row.expectedCompletionDate), className: "text-secondary hidden md:table-cell" },
+    { header: "Status", accessor: (row) => <StatusBadge status={row.status} /> }
   ];
 
   if (ordersQuery.isError)

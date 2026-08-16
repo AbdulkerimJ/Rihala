@@ -23,13 +23,13 @@ export const NavGroup = ({ group, isSidebarOpen, setSidebarOpen, pathname, can }
   // Flat group (like Dashboard)
   if (!group.title || group.isFlat) {
     return (
-      <div className="mb-4">
+      <div className="mb-2">
         {accessibleItems.map((item) => (
           <NavLink
             key={item.name}
             to={item.path}
             className={({ isActive }) =>
-              `group flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${
+              `group flex items-center rounded-md px-3 py-1 text-sm font-medium transition-colors ${
                 isActive
                   ? "bg-accent/10 text-accent font-semibold"
                   : "text-primary/90 hover:bg-black/5 dark:hover:bg-white/5 hover:text-primary"
@@ -47,10 +47,10 @@ export const NavGroup = ({ group, isSidebarOpen, setSidebarOpen, pathname, can }
 
   // Hierarchical group
   return (
-    <div className="mb-3">
+    <div className="mb-0">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className={`group flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+        className={`group flex w-full items-center justify-between rounded-md px-3 py-1 text-sm font-medium transition-colors ${
           isActiveGroup
             ? "text-primary bg-brand/5 font-semibold"
             : "text-secondary hover:bg-black/5 dark:hover:bg-white/5 hover:text-primary"
@@ -72,13 +72,13 @@ export const NavGroup = ({ group, isSidebarOpen, setSidebarOpen, pathname, can }
           isExpanded ? "max-h-[500px] opacity-100 mt-1" : "max-h-0 opacity-0"
         }`}
       >
-        <div className="pl-6 space-y-1 relative before:absolute before:left-[19px] before:top-1 before:bottom-2 before:w-[1px] before:bg-border/60">
+        <div className="pl-6 relative before:absolute before:left-[19px] before:top-1 before:bottom-2 before:w-[1px] before:bg-border/60">
           {accessibleItems.map((item) => (
             <NavLink
               key={item.name}
               to={item.path}
               className={({ isActive }) =>
-                `group flex items-center rounded-sm px-3 py-2 text-sm font-medium transition-colors ${
+                `group flex items-center rounded-sm px-3 py-1 text-sm font-medium transition-colors ${
                   isActive
                     ? "text-accent bg-accent/10 font-semibold relative before:absolute before:left-[-12.5px] before:top-1/2 before:-translate-y-1/2 before:w-[5px] before:h-[5px] before:rounded-full before:bg-accent"
                     : "text-primary/90 hover:text-primary hover:bg-black/5 dark:hover:bg-white/5"

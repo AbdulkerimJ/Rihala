@@ -17,7 +17,7 @@ const getAllPurchasesController = catchAsync(async (req, res) => {
 });
 
 const createPurchaseController = catchAsync(async (req, res) => {
-  const purchase = await createPurchaseService(req.validatedBody);
+  const purchase = await createPurchaseService(req.validatedBody, req.user.id);
 
   res.status(201).json({
     status: "success",

@@ -62,6 +62,9 @@ const createSupplierPaymentService = async (data) => {
         await allocateGeneralPayment(payment, null, session);
       }
 
+      // Update supplier balance
+      await Supplier.findByIdAndUpdate(supplier._id, { $inc: { balance: -payment.amount } }, { session });
+
       const finalPayment = await SupplierPayment.findById(payment._id).populate(supplierPaymentQueryConfig.populate).session(session);
       return finalPayment;
     });
@@ -74,7 +77,7 @@ const getSupplierPaymentsService = async (filters = {}) => {
   if (!filters.status) {
     filters.status = "active";
   }
-  return getPaginatedQueryResult(SupplierPayment, filters, supplierPaymentQueryConfig, { populate: "voidedBy" });
+  return getPaginatedQueryResult(SupplierPayment, filters, supplierPaymentQueryConfig);
 };
 
 const getSupplierPaymentByIdService = async (paymentId) => {
@@ -109,8 +112,11 @@ const updateSupplierPaymentService = async (paymentId, updateData) => {
       if (updateData.note !== undefined) payment.note = updateData.note;
 
       if (updateData.amount && updateData.amount !== payment.amount) {
+        const oldAmount = payment.amount;
         // Triggers reconciliation if amount decreases below allocated total
         await reconcilePaymentAmount(payment, updateData.amount, session);
+        // Update supplier balance
+        await Supplier.findByIdAndUpdate(payment.supplier, { $inc: { balance: oldAmount - updateData.amount } }, { session });
       } else {
         await payment.save({ session });
       }
@@ -149,6 +155,9 @@ const voidSupplierPaymentService = async (paymentId, voidReason, userId) => {
 
       // Reverse allocations and update unallocatedAmount to 0
       await reversePaymentAllocations(payment, session);
+
+      // Restore supplier balance
+      await Supplier.findByIdAndUpdate(payment.supplier, { $inc: { balance: payment.amount } }, { session });
 
       const finalPayment = await SupplierPayment.findById(payment._id)
         .populate(supplierPaymentQueryConfig.populate)

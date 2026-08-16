@@ -184,6 +184,8 @@ export const getPaginatedQueryResult = async (
 
   if (options.populate) {
     queryBuilder = queryBuilder.populate(options.populate);
+  } else if (config.populate) {
+    queryBuilder = queryBuilder.populate(config.populate);
   }
 
   const data = await queryBuilder;

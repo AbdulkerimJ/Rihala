@@ -48,8 +48,8 @@
     /* Modern High-Contrast Dark Theme */
     
     /* 1. Background Canvas & Card Surfaces ONLY */
-    --bg-main: 10 14 23; /* #0A0E17 Deep obsidian navy canvas */
-    --bg-surface: 21 29 45; /* #151D2D Distinct elevated slate cards */
+    --bg-main: 13 18 30; /* Softer obsidian canvas for lower contrast */
+    --bg-surface: 19 26 42; /* Gently elevated surface */
 
     /* 2. Text Typography Hierarchy ONLY */
     --text-primary: 248 250 252; /* #F8FAFC Pure bright white */
@@ -57,7 +57,7 @@
     --text-muted: 100 116 139; /* Darker gray for placeholders */
 
     /* 3. Universal Interactive & Semantic Colors */
-    --border-color: 39 52 75; /* #27344B High-contrast dark border */
+    --border-color: 30 41 59; /* Softer slate border */
 
     --color-primary: 248 250 252; /* #F8FAFC */
     --color-primary-hover: 226 232 240; 

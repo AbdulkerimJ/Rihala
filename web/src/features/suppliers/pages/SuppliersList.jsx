@@ -12,6 +12,7 @@ import { EmptyState } from "../../../components/ui/EmptyState";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { Modal } from "../../../components/ui/Modal";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
+import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { DataTable } from "../../../components/ui/DataTable";
 import { FilterBar } from "../../../components/ui/FilterBar";
 import { FormField } from "../../../components/ui/FormField";
@@ -25,30 +26,24 @@ import { z } from "zod";
 import toast from "react-hot-toast";
 import { applyServerErrors, cleanFilterParams, getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
 import { formatDateTime } from "../../../utils/formatters";
-import { ethiopianPhone, optionalEmail } from "../../../utils/validation";
+import { ethiopianPhone } from "../../../utils/validation";
 import { ACTIVE_INACTIVE_OPTIONS, STATUS_FILTER_OPTIONS } from "../../../constants/options";
 
 const supplierSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(100, "Name cannot exceed 100 characters"),
-  contactPerson: z.string().trim().optional().or(z.literal("")),
   phone: ethiopianPhone,
-  email: optionalEmail,
   address: z.string().trim().max(255, "Address cannot exceed 255 characters").optional().or(z.literal("")),
-  taxId: z.string().trim().optional().or(z.literal("")),
   notes: z.string().trim().max(1000, "Notes cannot exceed 1000 characters").optional().or(z.literal("")),
   status: z.enum(["active", "inactive"]).default("active"),
 });
 
-const SupplierForm = ({ initialData, onSubmit, onClose }) => {
+export const SupplierForm = ({ initialData, onSubmit, onClose }) => {
   const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(supplierSchema),
     defaultValues: initialData || {
       name: "",
-      contactPerson: "",
       phone: "",
-      email: "",
       address: "",
-      taxId: "",
       notes: "",
       status: "active",
     },
@@ -65,29 +60,13 @@ const SupplierForm = ({ initialData, onSubmit, onClose }) => {
   return (
     <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
       <FormRootError error={errors.root} />
-      <FormField label="Company Name" required error={errors.name?.message}>
+      <FormField label="Name" required error={errors.name?.message}>
         <Input {...register("name")} error={errors.name?.message} />
       </FormField>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormField label="Contact Person" error={errors.contactPerson?.message}>
-          <Input {...register("contactPerson")} error={errors.contactPerson?.message} />
-        </FormField>
-        
-        <FormField label="Phone" required error={errors.phone?.message}>
-          <Input {...register("phone")} error={errors.phone?.message} placeholder="e.g. 0911234567 or +251911234567" />
-        </FormField>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormField label="Email" error={errors.email?.message}>
-          <Input {...register("email")} type="email" error={errors.email?.message} />
-        </FormField>
-        
-        <FormField label="Tax ID / TIN" error={errors.taxId?.message}>
-          <Input {...register("taxId")} error={errors.taxId?.message} />
-        </FormField>
-      </div>
+      <FormField label="Phone" required error={errors.phone?.message}>
+        <Input {...register("phone")} error={errors.phone?.message} placeholder="e.g. 0911234567 or +251911234567" />
+      </FormField>
 
       <FormField label="Address" error={errors.address?.message}>
         <Input {...register("address")} error={errors.address?.message} />
@@ -161,25 +140,16 @@ export const SuppliersList = () => {
   const columns = [
     { header: "Name", accessor: "name", className: "font-medium" },
     { header: "Phone", accessor: "phone", className: "text-secondary" },
-    { header: "Contact", accessor: (row) => row.contactPerson || "-", className: "text-secondary hidden md:table-cell", hiddenOnMobile: true },
+    { 
+      header: "Balance", 
+      accessor: (row) => {
+        const bal = row.balance || 0;
+        const variant = bal > 0 ? "financeOut" : bal < 0 ? "financeIn" : "default";
+        return <MoneyDisplay amount={bal} variant={variant} />;
+      }
+    },
     { header: "Status", accessor: (row) => <StatusBadge status={row.status} /> },
     { header: "Created", accessor: (row) => formatDateTime(row.createdAt), className: "text-secondary hidden lg:table-cell", hiddenOnMobile: true },
-    { 
-      header: "Actions", 
-      isActions: true,
-      accessor: (row) => (
-        <div className="flex gap-2 justify-end">
-          <Button variant="secondary" size="sm" onClick={(e) => { e.stopPropagation(); navigate(`/suppliers/${row._id}`); }}>
-            View
-          </Button>
-          <Can permission="suppliers.update">
-            <Button variant="secondary" size="sm" onClick={(e) => { e.stopPropagation(); setEditingSupplier(row); setIsOpen(true); }}>
-              Edit
-            </Button>
-          </Can>
-        </div>
-      ) 
-    }
   ];
 
   if (isError) return <ErrorState description={getApiErrorMessage(error, "Failed to load suppliers.")} />;

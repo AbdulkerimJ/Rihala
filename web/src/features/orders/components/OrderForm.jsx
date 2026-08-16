@@ -1,11 +1,12 @@
 import React, { useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { getAllowedOrderTransitions, ORDER_STATUS_LABELS } from "../constants";
 import { Button } from "../../../components/ui/Button";
 import { FormField } from "../../../components/ui/FormField";
 import { Input } from "../../../components/ui/Input";
+import { CurrencyInput } from "../../../components/ui/CurrencyInput";
 import { Textarea } from "../../../components/ui/Textarea";
 import { Select } from "../../../components/ui/Select";
 import { FormRootError } from "../../../components/ui/FormRootError";
@@ -53,6 +54,7 @@ export const OrderForm = ({ initialData, customers = [], onSubmit, onClose }) =>
 
   const {
     register,
+    control,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
@@ -130,11 +132,15 @@ export const OrderForm = ({ initialData, customers = [], onSubmit, onClose }) =>
           required
           error={errors.agreedAmount?.message}
         >
-          <Input
-            type="number"
-            placeholder="0"
-            {...register("agreedAmount")}
-            error={errors.agreedAmount?.message}
+          <Controller
+            name="agreedAmount"
+            control={control}
+            render={({ field }) => (
+              <CurrencyInput
+                {...field}
+                error={errors.agreedAmount?.message}
+              />
+            )}
           />
         </FormField>
 

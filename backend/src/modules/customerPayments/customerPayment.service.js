@@ -54,6 +54,7 @@ const createCustomerPaymentService = async (data, userId) => {
         orderNumber: order.orderNumber,
         note: data.note,
         status: "active",
+        createdBy: userId,
         voidReason: undefined,
         voidedAt: undefined,
         voidedBy: undefined,
@@ -61,6 +62,10 @@ const createCustomerPaymentService = async (data, userId) => {
 
       // 9. Create payment
       const [payment] = await CustomerPayment.create([paymentData], { session });
+
+      // 10. Update the Order's totalPaid
+      order.totalPaid = totalPaid + data.amount;
+      await order.save({ session });
 
       return payment;
     });
@@ -70,20 +75,17 @@ const createCustomerPaymentService = async (data, userId) => {
 };
 
 const getCustomerPaymentsService = async (filters = {}) => {
-  if (!filters.status) {
-    filters.status = "active";
-  }
 
   return getPaginatedQueryResult(
     CustomerPayment,
     filters,
     customerPaymentQueryConfig,
-    { populate: "order voidedBy" }
+    { populate: "order voidedBy createdBy" }
   );
 };
 
 const getCustomerPaymentByIdService = async (paymentId) => {
-  const payment = await CustomerPayment.findById(paymentId).populate("order voidedBy");
+  const payment = await CustomerPayment.findById(paymentId).populate("order voidedBy createdBy");
 
   if (!payment) {
     throw new NotFoundError("Customer payment not found.");
@@ -113,24 +115,38 @@ const updateCustomerPaymentService = async (paymentId, updateData) => {
 };
 
 const voidCustomerPaymentService = async (paymentId, voidReason, userId) => {
-  const payment = await CustomerPayment.findById(paymentId);
+  const session = await mongoose.startSession();
+  try {
+    return await session.withTransaction(async () => {
+      const payment = await CustomerPayment.findById(paymentId).session(session);
 
-  if (!payment) {
-    throw new NotFoundError("Customer payment not found.");
+      if (!payment) {
+        throw new NotFoundError("Customer payment not found.");
+      }
+
+      if (payment.status === "voided") {
+        throw new ValidationError("Customer payment is already voided.");
+      }
+
+      payment.status = "voided";
+      payment.voidReason = voidReason;
+      payment.voidedAt = new Date();
+      payment.voidedBy = userId;
+
+      await payment.save({ session });
+
+      // Update the Order's totalPaid
+      await Order.updateOne(
+        { _id: payment.order },
+        { $inc: { totalPaid: -payment.amount } },
+        { session }
+      );
+
+      return payment;
+    });
+  } finally {
+    session.endSession();
   }
-
-  if (payment.status === "voided") {
-    throw new ValidationError("Customer payment is already voided.");
-  }
-
-  payment.status = "voided";
-  payment.voidReason = voidReason;
-  payment.voidedAt = new Date();
-  payment.voidedBy = userId;
-
-  await payment.save();
-
-  return payment;
 };
 
 export {

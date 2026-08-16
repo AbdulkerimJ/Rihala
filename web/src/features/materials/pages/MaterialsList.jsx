@@ -29,6 +29,8 @@ const CATEGORIES = [
   "MDF",
   "Wood",
   "Fabric",
+  "Foam",
+  "Safarian",
   "Nails",
   "Paint",
   "Adhesives",
@@ -65,7 +67,7 @@ const MaterialForm = ({ initialData, onSubmit, onClose }) => {
     resolver: zodResolver(materialSchema),
     defaultValues: initialData || {
       name: "",
-      category: "Wood",
+      category: "MDF",
       unit: "piece",
       status: "active",
     },
@@ -145,16 +147,6 @@ export const MaterialsList = () => {
     page,
   });
 
-  // Extract unique categories for filter
-  const categoriesQuery = useQuery({
-    queryKey: ["materials", "categories"],
-    queryFn: () => getMaterials({ limit: 1000 }),
-  });
-  const uniqueCategories = useMemo(() => {
-    const all = unwrapListResponse(categoriesQuery.data).items || [];
-    return [...new Set(all.map(m => m.category).filter(Boolean))].sort();
-  }, [categoriesQuery.data]);
-
   const createMutation = useMutation({
     mutationFn: createMaterial,
     onSuccess: () => {
@@ -215,7 +207,7 @@ export const MaterialsList = () => {
           value={filters.category}
           onChange={(e) => { setFilters(p => ({ ...p, category: e.target.value })); setPage(1); }}
           placeholder="All Categories"
-          options={uniqueCategories.map(cat => ({ value: cat, label: cat }))}
+          options={CATEGORIES.map(cat => ({ value: cat, label: cat }))}
         />
         <Select
           value={filters.status}

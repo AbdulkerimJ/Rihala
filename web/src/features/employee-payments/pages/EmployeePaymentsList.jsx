@@ -21,7 +21,8 @@ import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { VoidReasonDialog } from "../../../components/ui/VoidReasonDialog";
 import { FormRootError } from "../../../components/ui/FormRootError";
-import { useForm } from "react-hook-form";
+import { CurrencyInput } from "../../../components/ui/CurrencyInput";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
@@ -45,7 +46,7 @@ const PaymentForm = ({ onSubmit, onClose }) => {
   });
   const employees = unwrapListResponse(employeesData).items || [];
   
-  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm({
+  const { register, control, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(paymentSchema),
     defaultValues: {
       employee: "",
@@ -100,7 +101,16 @@ const PaymentForm = ({ onSubmit, onClose }) => {
         </FormField>
 
         <FormField label="Amount (ETB)" required error={errors.amount?.message}>
-          <Input type="number" placeholder="0" {...register("amount")} error={errors.amount?.message} />
+          <Controller
+            name="amount"
+            control={control}
+            render={({ field }) => (
+              <CurrencyInput
+                {...field}
+                error={errors.amount?.message}
+              />
+            )}
+          />
         </FormField>
       </div>
 

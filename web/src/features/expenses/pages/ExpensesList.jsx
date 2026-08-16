@@ -23,7 +23,8 @@ import { Input } from "../../../components/ui/Input";
 import { Select } from "../../../components/ui/Select";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { FormRootError } from "../../../components/ui/FormRootError";
-import { useForm } from "react-hook-form";
+import { CurrencyInput } from "../../../components/ui/CurrencyInput";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
@@ -54,6 +55,7 @@ const initialFilters = {
 const ExpenseForm = ({ initialData, onSubmit, onClose }) => {
   const {
     register,
+    control,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
@@ -94,11 +96,16 @@ const ExpenseForm = ({ initialData, onSubmit, onClose }) => {
       </FormField>
 
       <FormField label="Amount (ETB)" required error={errors.amount?.message}>
-        <Input
-          type="number"
-          {...register("amount")}
-          error={errors.amount?.message}
-          placeholder="0"
+        <Controller
+          name="amount"
+          control={control}
+          render={({ field }) => (
+            <CurrencyInput
+              {...field}
+              error={errors.amount?.message}
+              placeholder="0"
+            />
+          )}
         />
       </FormField>
 
