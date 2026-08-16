@@ -223,7 +223,7 @@ export const PurchasesList = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState({ search: "", supplier: "", from: "", to: "" });
+  const [filters, setFilters] = useState({ search: "", supplier: "", paymentStatus: "", from: "", to: "" });
   const [isOpen, setIsOpen] = useState(false);
 
   const { data: suppliersData } = useQuery({ 
@@ -255,6 +255,7 @@ export const PurchasesList = () => {
     mutationFn: createPurchase,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["purchases"] });
+      queryClient.invalidateQueries({ queryKey: ["suppliers"] }); // Purchase changes supplier balance
       toast.success("Purchase recorded successfully");
       setIsOpen(false);
     },
@@ -297,7 +298,7 @@ export const PurchasesList = () => {
         searchPlaceholder="Search by number or reference..."
         searchValue={filters.search}
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}
-        onClear={filters.search || filters.supplier || filters.from || filters.to ? () => { setFilters({ search: "", supplier: "", from: "", to: "" }); setPage(1); } : undefined}
+        onClear={filters.search || filters.supplier || filters.paymentStatus || filters.from || filters.to ? () => { setFilters({ search: "", supplier: "", paymentStatus: "", from: "", to: "" }); setPage(1); } : undefined}
       >
         <Select
           value={filters.supplier}
@@ -305,6 +306,16 @@ export const PurchasesList = () => {
           options={[
             { value: "", label: "All Suppliers" },
             ...suppliers.map(s => ({ value: s._id, label: s.name }))
+          ]}
+        />
+        <Select
+          value={filters.paymentStatus}
+          onChange={(e) => { setFilters(p => ({ ...p, paymentStatus: e.target.value })); setPage(1); }}
+          options={[
+            { value: "", label: "All Statuses" },
+            { value: "UNPAID", label: "Unpaid" },
+            { value: "PARTIALLY_PAID", label: "Partially Paid" },
+            { value: "PAID", label: "Paid" },
           ]}
         />
         <div className="flex items-center gap-2">

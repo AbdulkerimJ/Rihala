@@ -31,6 +31,7 @@ const purchaseQuerySchema = z.object({
   sort: z.string().optional(),
   supplier: z.string().regex(/^[0-9a-fA-F]{24}$/).optional(),
   paymentStatus: z.enum(["UNPAID", "PARTIALLY_PAID", "PAID"]).optional(),
+  paymentStatuses: z.string().optional(),
   search: z.string().optional(),
 });
 

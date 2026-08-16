@@ -123,11 +123,8 @@ export const PurchaseDetail = () => {
     { 
       header: "Applied Amount", 
       accessor: (row) => {
-        let applied = row.amount;
-        if (row.type === "GENERAL") {
-          const allocation = row.allocations?.find(a => a.purchase?._id === id || a.purchase === id);
-          applied = allocation ? allocation.amount : 0;
-        }
+        const allocation = row.allocations?.find(a => a.purchase?._id === id || a.purchase === id);
+        const applied = allocation ? allocation.amount : 0;
         return <MoneyDisplay amount={applied} variant="financeOut" />;
       },
       className: "text-right",

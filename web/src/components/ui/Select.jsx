@@ -1,4 +1,5 @@
 import React, { forwardRef } from "react";
+import { ChevronDown } from "lucide-react";
 
 export const Select = forwardRef(
   (
@@ -17,13 +18,13 @@ export const Select = forwardRef(
     ref
   ) => {
     const sizeClasses = {
-      sm: "px-2.5 py-1.5 text-xs rounded-md",
-      md: "px-3 py-2 text-sm rounded-md",
-      lg: "px-4 py-2.5 text-sm rounded-xl",
+      sm: "pl-2.5 pr-8 py-1.5 text-xs rounded-md",
+      md: "pl-3 pr-10 py-2 text-sm rounded-lg",
+      lg: "pl-4 pr-10 py-2.5 text-sm rounded-xl",
     };
 
     const baseClasses =
-      "block bg-main border text-primary transition-shadow duration-150 focus:outline-none focus:ring-2 focus:ring-accent/20 disabled:opacity-50 disabled:cursor-not-allowed";
+      "block bg-main border text-primary appearance-none cursor-pointer transition-all duration-200 hover:border-accent/50 hover:bg-surface focus:outline-none focus:ring-4 focus:ring-accent/10 disabled:opacity-50 disabled:cursor-not-allowed";
 
     const borderClasses = error
       ? "border-danger focus:border-danger focus:ring-danger/20"
@@ -62,6 +63,9 @@ export const Select = forwardRef(
               ))
             : children}
         </select>
+        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-secondary">
+          <ChevronDown className="h-4 w-4 opacity-70" />
+        </div>
       </div>
     );
   }

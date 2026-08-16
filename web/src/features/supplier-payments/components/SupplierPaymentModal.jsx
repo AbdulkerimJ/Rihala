@@ -48,6 +48,7 @@ export const SupplierPaymentModal = ({
     handleSubmit,
     watch,
     setError,
+    setValue,
     formState: { errors, isSubmitting },
     reset,
   } = useForm({
@@ -77,12 +78,20 @@ export const SupplierPaymentModal = ({
 
   const selectedSupplier = watch("supplier");
   const selectedSupplierObj = React.useMemo(() => {
-    return suppliers.find((s) => s._id === selectedSupplier) || preSelectedSupplier;
+    if (preSelectedSupplier && selectedSupplier === preSelectedSupplier._id) {
+      return preSelectedSupplier;
+    }
+    return suppliers.find((s) => s._id === selectedSupplier);
   }, [suppliers, selectedSupplier, preSelectedSupplier]);
 
   const { data: purchasesData } = useQuery({
     queryKey: ["purchases", "list", "by-supplier", selectedSupplier],
-    queryFn: () => getPurchases({ supplier: selectedSupplier, limit: 100, status: "active" }),
+    queryFn: () => getPurchases({ 
+      supplier: selectedSupplier, 
+      limit: 100, 
+      status: "active",
+      paymentStatuses: "UNPAID,PARTIALLY_PAID"
+    }),
     enabled: !!selectedSupplier && can("purchases.read") && isOpen,
     staleTime: 0,
   });
@@ -124,7 +133,18 @@ export const SupplierPaymentModal = ({
         <FormRootError error={errors.root} />
         <FormField label="Supplier" required error={errors.supplier?.message}>
           <Select
-            {...register("supplier")}
+            {...register("supplier", {
+              onChange: (e) => {
+                const supplierId = e.target.value;
+                const sObj = suppliers.find(s => s._id === supplierId);
+                setValue("purchase", ""); // Clear purchase when supplier changes
+                if (sObj && sObj.balance > 0) {
+                  setValue("amount", sObj.balance, { shouldValidate: true, shouldDirty: true });
+                } else {
+                  setValue("amount", "", { shouldValidate: false });
+                }
+              }
+            })}
             placeholder="Select a supplier"
             options={suppliers.map((s) => ({ value: s._id, label: s.name }))}
             error={errors.supplier?.message}
@@ -143,7 +163,29 @@ export const SupplierPaymentModal = ({
 
         <FormField label="Purchase (Optional)" error={errors.purchase?.message}>
           <Select
-            {...register("purchase")}
+            {...register("purchase", {
+              onChange: (e) => {
+                const purchaseId = e.target.value;
+                if (purchaseId) {
+                  const pObj = purchases.find(p => p._id === purchaseId);
+                  if (pObj) {
+                    const remaining = Math.max(0, pObj.totalAmount - (pObj.allocatedAmount || 0));
+                    if (remaining > 0) {
+                      setValue("amount", remaining, { shouldValidate: true, shouldDirty: true });
+                    } else {
+                      setValue("amount", "", { shouldValidate: false });
+                    }
+                  }
+                } else {
+                  // Reverted back to general payment, use supplier balance
+                  if (selectedSupplierObj && selectedSupplierObj.balance > 0) {
+                    setValue("amount", selectedSupplierObj.balance, { shouldValidate: true, shouldDirty: true });
+                  } else {
+                    setValue("amount", "", { shouldValidate: false });
+                  }
+                }
+              }
+            })}
             disabled={!selectedSupplier || !!preSelectedPurchase}
             placeholder="Apply to general balance"
             options={purchases.map((p) => ({

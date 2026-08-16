@@ -8,6 +8,11 @@ const purchaseQueryConfig = {
       date.setHours(23, 59, 59, 999);
       return { field: "date", operator: "$lte", value: date };
     },
+    paymentStatuses: (val) => ({
+      field: "paymentStatus",
+      operator: "$in",
+      value: val.split(",").map((s) => s.trim()),
+    }),
   },
   sortableFields: ["date", "createdAt", "updatedAt", "totalAmount", "purchaseNumber"],
   defaultSort: "-date",

@@ -87,7 +87,6 @@ export const applyCreditToPurchase = async (purchaseId, session = null) => {
   // Find payments with unallocated credit, oldest first
   const payments = await SupplierPayment.find({
     supplier: purchase.supplier,
-    type: "GENERAL",
     status: "active",
     unallocatedAmount: { $gt: 0 }
   }).session(session).sort({ date: 1 });
