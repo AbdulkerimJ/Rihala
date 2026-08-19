@@ -1,40 +1,33 @@
 # Rihala
 
-Rihala is a monorepo for a furniture workshop management system. The current backend already implements authentication, user and role management, permissions, expense tracking, and customer management. The remaining major business areas are still planned rather than implemented.
+Rihala is a monorepo for a furniture workshop management system. The system implements a comprehensive suite of features including authentication, user and role management, permissions, expense tracking, HR and payroll management, contracting, purchasing, and customer orders.
 
 ## Current backend scope
 
-Implemented modules:
+The REST API implements the following modules:
 
 - Auth
-- Users
-- Roles
-- Permissions
+- Users, Roles, and Permissions
+- Customers, Orders, and Customer Payments
 - Expenses
-- Customers
-
-Planned modules:
-
-- Employees (attendance, overtime, daily rates, weekly settlements, adjustments)
-- Contractors
-- Contracts
-- Suppliers
-- Purchases
-- Customer Orders
-- Payments
-- Dashboard and reporting
+- Employees (Attendances, Overtimes, Employee Rates, Employee Payments, Weekly Payrolls)
+- Contractors, Contracts, Contract Completions, and Contractor Payments
+- Suppliers, Materials, Purchases, and Supplier Payments
+- Tasks and Task Types
 
 ## Current web scope
 
-The web app currently implements the authenticated frontend for:
+The web app implements the authenticated frontend for all of the backend modules:
 
 - Authentication and invitation onboarding
-- Users
-- Roles
-- Permissions
+- Dashboard and reporting
+- Users, Roles, and Permissions
+- Customers, Orders, and Customer Payments
 - Expenses
-- Customers
-- Orders
+- Employees, Attendances, Overtimes, Employee Payments, and Weekly Payrolls
+- Contractors, Contracts, Contract Completions, and Contractor Payments
+- Suppliers, Materials, Purchases, and Supplier Payments
+- Tasks and Task Types
 
 The web app uses an access-token-in-memory plus refresh-token-in-HttpOnly-cookie pattern. Permission-aware navigation and actions are driven by the permissions returned by the backend, but the backend remains the source of truth for authorization.
 
