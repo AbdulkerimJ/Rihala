@@ -223,22 +223,22 @@ export const UsersList = () => {
             <table className="min-w-full divide-y divide-border">
               <thead className="bg-main">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-secondary">
+                  <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-secondary">
                     Name
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-secondary">
+                  <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-secondary">
                     Email
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-secondary">
+                  <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-secondary">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-secondary">
+                  <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-secondary">
                     Roles
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-secondary">
+                  <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-secondary">
                     Created
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-secondary">
+                  <th className="px-4 py-2 text-right text-xs font-medium uppercase tracking-wider text-secondary">
                     Actions
                   </th>
                 </tr>
@@ -250,50 +250,50 @@ export const UsersList = () => {
                     onClick={() => navigate(`/users/${user._id}`)}
                     className="hover:bg-main transition-colors cursor-pointer"
                   >
-                    <td className="px-6 py-4 text-sm font-medium text-primary">
+                    <td className="px-4 py-2 text-xs font-medium text-primary">
                       <span className="hover:text-brand font-medium text-primary">
                         {user.name}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-secondary">
+                    <td className="px-4 py-2 text-xs text-secondary">
                       {user.email}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-2 text-xs">
                       <StatusBadge status={user.status} />
                     </td>
-                    <td className="px-6 py-4 text-sm text-secondary">
+                    <td className="px-4 py-2 text-xs text-secondary">
                       {user.roles?.length
                         ? user.roles.map((role) => role.name || role).join(", ")
                         : "-"}
                     </td>
-                    <td className="px-6 py-4 text-sm text-secondary">
+                    <td className="px-4 py-2 text-xs text-secondary">
                       {formatDateTime(user.createdAt)}
                     </td>
                     <td
-                      className="px-6 py-4 text-right text-sm"
+                      className="px-4 py-2 text-right text-xs"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end gap-1.5">
                         {!user.deletedAt && (
                           <>
                             <Can permission="users.assign-role">
                               <Button
                                 variant="secondary"
-                                size="sm"
+                                size="xs"
                                 onClick={() => {
                                   setRolesUser(user);
                                   setIsRolesModalOpen(true);
                                 }}
                                 title="Assign Roles"
                               >
-                                <ShieldCheck className="h-4 w-4 mr-1 sm:mr-1.5" />
+                                <ShieldCheck className="h-3 w-3" />
                                 Assign Roles
                               </Button>
                             </Can>
                             <Can permission="users.update">
                               <Button
                                 variant="secondary"
-                                size="sm"
+                                size="xs"
                                 onClick={() => {
                                   setEditingUser(user);
                                   setIsModalOpen(true);
@@ -304,7 +304,7 @@ export const UsersList = () => {
                               {user.status === "invited" && (
                                 <Button
                                   variant="secondary"
-                                  size="sm"
+                                  size="xs"
                                   onClick={() => resendMutation.mutate(user._id)}
                                   disabled={resendMutation.isPending && resendMutation.variables === user._id}
                                 >
@@ -316,7 +316,7 @@ export const UsersList = () => {
                               {user.status === "inactive" ? (
                                 <Button
                                   variant="secondary"
-                                  size="sm"
+                                  size="xs"
                                   onClick={() => activateMutation.mutate(user._id)}
                                   disabled={activateMutation.isPending && activateMutation.variables === user._id}
                                 >
@@ -325,7 +325,7 @@ export const UsersList = () => {
                               ) : (
                                 <Button
                                   variant="secondary"
-                                  size="sm"
+                                  size="xs"
                                   onClick={() => deactivateMutation.mutate(user._id)}
                                   disabled={deactivateMutation.isPending && deactivateMutation.variables === user._id}
                                 >
@@ -339,7 +339,7 @@ export const UsersList = () => {
                           <Can permission="users.restore">
                             <Button
                               variant="secondary"
-                              size="sm"
+                              size="xs"
                               onClick={() => restoreMutation.mutate(user._id)}
                               disabled={restoreMutation.isPending && restoreMutation.variables === user._id}
                             >
@@ -350,7 +350,7 @@ export const UsersList = () => {
                           <Can permission="users.delete">
                             <Button
                               variant="danger"
-                              size="sm"
+                              size="xs"
                               onClick={() => handleDelete(user._id)}
                             >
                               Delete

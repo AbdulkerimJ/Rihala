@@ -166,6 +166,7 @@ export const AttendancesList = () => {
 
   const createMutation = useMutation({
     mutationFn: createAttendance,
+    meta: { suppressToast: true },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendances"] });
       toast.success("Attendance recorded successfully");
@@ -175,6 +176,7 @@ export const AttendancesList = () => {
 
   const updateMutation = useMutation({
     mutationFn: updateAttendance,
+    meta: { suppressToast: true },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendances"] });
       toast.success("Attendance updated successfully");
@@ -281,7 +283,18 @@ export const AttendancesList = () => {
         <AttendanceForm
           initialData={editingRecord}
           onClose={() => setIsOpen(false)}
-          onSubmit={(data) => editingRecord ? updateMutation.mutateAsync({ id: editingRecord._id, data }) : createMutation.mutateAsync(data)}
+          onSubmit={(data) => {
+            if (editingRecord) {
+              return updateMutation.mutateAsync({ 
+                id: editingRecord._id, 
+                data: {
+                  morningStatus: data.morningStatus,
+                  afternoonStatus: data.afternoonStatus,
+                } 
+              });
+            }
+            return createMutation.mutateAsync(data);
+          }}
         />
       </Modal>
     </div>
