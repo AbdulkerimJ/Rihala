@@ -25,18 +25,6 @@ const overtimeSchema = new mongoose.Schema(
       trim: true,
     },
 
-    dailyRate: {
-      type: Number,
-      required: [true, "Daily rate is required"],
-      min: [0, "Daily rate cannot be negative"],
-    },
-
-    amount: {
-      type: Number,
-      required: [true, "Amount is required"],
-      min: [0, "Amount cannot be negative"],
-    },
-
     note: {
       type: String,
       trim: true,

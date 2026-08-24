@@ -121,6 +121,7 @@ const calculatePayrollData = async (
   }).session(session);
 
   let normalEarnings = 0;
+  const dailyBreakdown = [];
 
   for (const currentDate of requiredDates) {
     const key = currentDate.toISOString().slice(0, 10);
@@ -136,7 +137,7 @@ const calculatePayrollData = async (
 
     if (!applicableRate) {
       throw new NotFoundError(
-        "No applicable employee rate found for this date.",
+        `No applicable employee rate found for ${currentDate.toISOString().slice(0, 10)}.`,
       );
     }
 
@@ -145,7 +146,17 @@ const calculatePayrollData = async (
       record.afternoonStatus,
     );
 
-    normalEarnings += dailyPortion * applicableRate.dailyRate;
+    const dayEarnings = dailyPortion * applicableRate.dailyRate;
+    normalEarnings += dayEarnings;
+
+    dailyBreakdown.push({
+      workDate: currentDate,
+      morningStatus: record.morningStatus,
+      afternoonStatus: record.afternoonStatus,
+      portion: dailyPortion,
+      dailyRate: applicableRate.dailyRate,
+      earnings: dayEarnings,
+    });
   }
 
   const overtimeRecords = await Overtime.find({
@@ -153,10 +164,32 @@ const calculatePayrollData = async (
     workDate: { $gte: startDate, $lte: periodEndDate },
   }).session(session);
 
-  const overtimeEarnings = overtimeRecords.reduce(
-    (sum, record) => sum + (record.amount || 0),
-    0,
-  );
+  let overtimeEarnings = 0;
+  const overtimeBreakdown = [];
+
+  for (const record of overtimeRecords) {
+    const applicableRate = rateHistory.find(
+      (rate) => rate.effectiveDate <= record.workDate,
+    );
+
+    if (!applicableRate) {
+      throw new NotFoundError(
+        `No applicable employee rate found for overtime on ${record.workDate.toISOString().slice(0, 10)}.`,
+      );
+    }
+
+    const durationFactor = record.duration === "HALF_DAY" ? 0.5 : 1;
+    const earnings = applicableRate.dailyRate * 2 * durationFactor;
+
+    overtimeEarnings += earnings;
+    overtimeBreakdown.push({
+      workDate: record.workDate,
+      duration: record.duration,
+      multiplier: durationFactor * 2,
+      dailyRate: applicableRate.dailyRate,
+      earnings,
+    });
+  }
 
   return {
     missingAttendanceDates,
@@ -164,6 +197,8 @@ const calculatePayrollData = async (
     normalEarnings,
     overtimeEarnings,
     totalEarnings: normalEarnings + overtimeEarnings,
+    dailyBreakdown,
+    overtimeBreakdown,
   };
 };
 
@@ -195,6 +230,8 @@ const getCurrentPayrollCalculationService = async (employeeId) => {
     status: "OPEN",
     isComplete: payrollData.isComplete,
     missingAttendanceDates: payrollData.missingAttendanceDates,
+    dailyBreakdown: payrollData.dailyBreakdown,
+    overtimeBreakdown: payrollData.overtimeBreakdown,
   };
 };
 
@@ -282,6 +319,8 @@ const closeEmployeeWeeklyPayrollService = async (employeeId) => {
               normalEarnings: payrollData.normalEarnings,
               overtimeEarnings: payrollData.overtimeEarnings,
               totalEarnings: payrollData.totalEarnings,
+              dailyBreakdown: payrollData.dailyBreakdown,
+              overtimeBreakdown: payrollData.overtimeBreakdown,
               status: "CLOSED",
               closedAt: new Date(),
             },

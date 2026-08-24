@@ -367,10 +367,10 @@ export const ContractDetail = () => {
       <VoidReasonDialog
         isOpen={isCancelModalOpen}
         title="Cancel Contract"
-        message="Are you sure you want to cancel this contract? You can only cancel if there are no unpaid completed tasks and the contractor hasn't been overpaid. This action cannot be undone."
+        description="Are you sure you want to cancel this contract? You can only cancel if there are no unpaid completed tasks and the contractor hasn't been overpaid. This action cannot be undone."
         confirmLabel="Cancel Contract"
         placeholder="Reason for contract cancellation..."
-        isLoading={cancelMutation.isPending}
+        isSubmitting={cancelMutation.isPending}
         onConfirm={(reason) => cancelMutation.mutateAsync(reason)}
         onCancel={() => setCancelModalOpen(false)}
       />
@@ -378,9 +378,9 @@ export const ContractDetail = () => {
       <VoidReasonDialog
         isOpen={!!voidingCompletion}
         title="Void Completion"
-        message="Are you sure you want to void this completion? This will decrease the total completed work value."
+        description="Are you sure you want to void this completion? This will decrease the total completed work value."
         confirmLabel="Void Completion"
-        isLoading={voidCompletionMutation.isPending}
+        isSubmitting={voidCompletionMutation.isPending}
         onConfirm={(reason) => voidCompletionMutation.mutateAsync({ id: voidingCompletion._id, voidReason: reason })}
         onCancel={() => setVoidingCompletion(null)}
       />
@@ -388,9 +388,9 @@ export const ContractDetail = () => {
       <VoidReasonDialog
         isOpen={!!voidingPayment}
         title="Void Payment"
-        message="Are you sure you want to void this payment? This will increase the payable amount."
+        description="Are you sure you want to void this payment? This will increase the payable amount."
         confirmLabel="Void Payment"
-        isLoading={voidPaymentMutation.isPending}
+        isSubmitting={voidPaymentMutation.isPending}
         onConfirm={(reason) => voidPaymentMutation.mutateAsync({ id: voidingPayment._id, voidReason: reason })}
         onCancel={() => setVoidingPayment(null)}
       />

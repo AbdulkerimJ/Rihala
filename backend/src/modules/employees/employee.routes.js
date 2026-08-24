@@ -8,6 +8,7 @@ import {
   createEmployeeController,
   getEmployeeByIdController,
   updateEmployeeController,
+  getEmployeeStatsController,
 } from "./employee.controller.js";
 import {
   createEmployeeSchema,
@@ -39,6 +40,13 @@ router.get(
   authorize("employees.read"),
   validate(employeeIdSchema, "Please check the employee id.", "params"),
   getEmployeeByIdController,
+);
+
+router.get(
+  "/:id/stats",
+  authorize("employees.read"),
+  validate(employeeIdSchema, "Please check the employee id.", "params"),
+  getEmployeeStatsController,
 );
 
 router.patch(

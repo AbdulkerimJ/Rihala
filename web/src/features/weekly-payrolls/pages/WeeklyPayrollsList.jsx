@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import { usePermission } from "../../../hooks/usePermission";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { closeWeeklyPayroll, getCurrentPayrollCalculation, getWeeklyPayrolls } from "../api";
+import { getWeeklyPayrolls } from "../api";
 import { getEmployees } from "../../employees/api";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
@@ -18,112 +18,9 @@ import { Input } from "../../../components/ui/Input";
 import { Select } from "../../../components/ui/Select";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import toast from "react-hot-toast";
-import { getApiErrorMessage, unwrapListResponse, unwrapEntityResponse, cleanFilterParams } from "../../../utils/apiResponse";
+import { getApiErrorMessage, unwrapListResponse, cleanFilterParams } from "../../../utils/apiResponse";
 import { formatDate } from "../../../utils/formatters";
-import { CheckCircle } from "lucide-react";
-import { Skeleton } from "../../../components/ui/skeletons";
-
-const PayrollClosureForm = ({ onClose }) => {
-  const { can } = usePermission();
-  const queryClient = useQueryClient();
-  const [selectedEmployee, setSelectedEmployee] = useState("");
-
-  const { data: employeesData } = useQuery({ 
-    queryKey: ["employees-list", "active"], 
-    queryFn: () => getEmployees({ limit: 1000, status: "active" }),
-    enabled: can("employees.read")
-  });
-  const employees = unwrapListResponse(employeesData).items || [];
-
-  const { data: calculationData, isLoading: isCalculating, isError, error } = useQuery({
-    queryKey: ["payroll-calculation", selectedEmployee],
-    queryFn: () => getCurrentPayrollCalculation(selectedEmployee),
-    enabled: !!selectedEmployee,
-    retry: false
-  });
-  
-  const calculation = unwrapEntityResponse(calculationData);
-
-  const closeMutation = useMutation({
-    mutationFn: () => closeWeeklyPayroll(selectedEmployee),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["weekly-payrolls"] });
-      queryClient.invalidateQueries({ queryKey: ["employees"] }); 
-      toast.success("Payroll closed successfully");
-      setSelectedEmployee("");
-      onClose();
-    },
-  });
-
-  return (
-    <div className="space-y-4 p-6">
-      <p className="text-sm text-secondary mb-4">
-        Select a daily-wage employee to view their unclosed attendance and overtime, and close the payroll period.
-      </p>
-
-      <FormField label="Employee">
-        <Select 
-          value={selectedEmployee} 
-          onChange={(e) => setSelectedEmployee(e.target.value)}
-          placeholder="Select an employee"
-          options={employees.map(e => ({ value: e._id, label: e.name }))}
-        />
-      </FormField>
-
-      {selectedEmployee && isCalculating && (
-        <div className="space-y-4 pt-4 border-t border-border/50">
-           <Skeleton className="h-5 w-40" />
-           <div className="bg-main/50 rounded-lg p-4 space-y-3 border border-border/50">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-4 w-1/2 mt-4" />
-           </div>
-        </div>
-      )}
-      {selectedEmployee && isError && (
-        <div className="p-4 bg-danger/10 text-danger rounded-md text-sm border border-danger/20">
-          {getApiErrorMessage(error, "Failed to calculate payroll or no pending records.")}
-        </div>
-      )}
-
-      {selectedEmployee && calculation && !isCalculating && !isError && (
-        <div className="space-y-4 pt-4 border-t border-border/50">
-          <h4 className="font-semibold text-primary">Calculation Preview</h4>
-          <div className="bg-main/50 rounded-lg p-4 space-y-3 text-sm border border-border/50">
-            <div className="flex justify-between">
-              <span className="text-secondary">Days Present:</span>
-              <span className="font-medium text-primary">{calculation.totalDaysPresent} days</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-secondary">Base Pay ({calculation.totalDaysPresent} x {calculation.dailyRate} ETB):</span>
-              <span className="font-medium text-primary"><MoneyDisplay amount={calculation.totalBasePay} /></span>
-            </div>
-            <div className="flex justify-between border-b border-border/50 pb-2">
-              <span className="text-secondary">Overtime Pay ({calculation.totalOvertimeHours} hrs):</span>
-              <span className="font-medium text-primary"><MoneyDisplay amount={calculation.totalOvertimePay} /></span>
-            </div>
-            <div className="flex justify-between border-b border-border/50 pb-2">
-              <span className="text-secondary">Previous Advances:</span>
-              <span className="font-medium text-danger">- <MoneyDisplay amount={calculation.previousAdvances} /></span>
-            </div>
-            <div className="flex justify-between pt-1">
-              <span className="font-bold text-primary">Net Pay:</span>
-              <span className="font-bold text-accent"><MoneyDisplay amount={calculation.netPay} variant="accent" /></span>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4">
-            <Button variant="secondary" onClick={onClose} disabled={closeMutation.isPending}>Cancel</Button>
-            <Button onClick={() => closeMutation.mutate()} isLoading={closeMutation.isPending} leftIcon={CheckCircle}>
-              Close & Generate Payroll
-            </Button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
+import { PayrollClosureForm } from "../components/PayrollClosureForm";
 
 export const WeeklyPayrollsList = () => {
   const { can } = usePermission();
@@ -161,10 +58,11 @@ export const WeeklyPayrollsList = () => {
   }, [pagination, page, params, queryClient]);
 
   const columns = [
-    { header: "Period", accessor: (row) => `${formatDate(row.periodStart)} - ${formatDate(row.periodEnd)}`, className: "font-medium" },
+    { header: "Period", accessor: (row) => `${formatDate(row.startDate)} - ${formatDate(row.endDate)}`, className: "font-medium" },
     { header: "Employee", accessor: (row) => row.employee?.name || "Unknown", className: "font-medium" },
-    { header: "Net Pay", accessor: (row) => <MoneyDisplay amount={row.netPay} variant="accent" /> },
-    { header: "Days", accessor: "totalDaysPresent", className: "text-secondary hidden sm:table-cell" },
+    { header: "Normal Earnings", accessor: (row) => <MoneyDisplay amount={row.normalEarnings} /> },
+    { header: "Overtime Earnings", accessor: (row) => <MoneyDisplay amount={row.overtimeEarnings} /> },
+    { header: "Total Earnings", accessor: (row) => <MoneyDisplay amount={row.totalEarnings} variant="accent" /> },
     { 
       header: "Actions", 
       isActions: true,

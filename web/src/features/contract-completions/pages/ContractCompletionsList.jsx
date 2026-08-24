@@ -141,9 +141,9 @@ export const ContractCompletionsList = () => {
       <VoidReasonDialog
         isOpen={!!voidingCompletion}
         title="Void Completion"
-        message={`Are you sure you want to void this completion of ${voidingCompletion?.quantity} units? This action cannot be undone.`}
+        description={`Are you sure you want to void this completion of ${voidingCompletion?.quantity} units? This action cannot be undone.`}
         confirmLabel="Void Completion"
-        isLoading={voidMutation.isPending}
+        isSubmitting={voidMutation.isPending}
         onConfirm={(reason) => voidMutation.mutateAsync({ id: voidingCompletion._id, voidReason: reason })}
         onCancel={() => setVoidingCompletion(null)}
       />

@@ -7,9 +7,12 @@ import {
   getAllEmployeeRatesController,
   createEmployeeRateController,
   getEmployeeRateByIdController,
+  updateEmployeeRateController,
+  deleteEmployeeRateController,
 } from "./employeeRate.controller.js";
 import {
   createEmployeeRateSchema,
+  updateEmployeeRateSchema,
   employeeRateIdSchema,
   employeeRateQuerySchema,
 } from "./employeeRate.validation.js";
@@ -48,6 +51,32 @@ router.get(
     "params",
   ),
   getEmployeeRateByIdController,
+);
+
+router.delete(
+  "/:id",
+  authorize("employeeRates.delete"),
+  validate(
+    employeeRateIdSchema,
+    "Please check the employee rate id.",
+    "params",
+  ),
+  deleteEmployeeRateController,
+);
+
+router.patch(
+  "/:id",
+  authorize("employeeRates.update"),
+  validate(
+    employeeRateIdSchema,
+    "Please check the employee rate id.",
+    "params",
+  ),
+  validate(
+    updateEmployeeRateSchema,
+    "Please check the employee rate information.",
+  ),
+  updateEmployeeRateController,
 );
 
 export default router;

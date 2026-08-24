@@ -7,11 +7,9 @@ import { ConfirmDialog } from "./ConfirmDialog";
 export const VoidReasonDialog = ({
   isOpen,
   title = "Void Record",
-  message,
   description = "Are you sure you want to void this item? This action cannot be undone.",
   confirmLabel = "Void Payment",
   cancelLabel = "Cancel",
-  isLoading = false,
   isSubmitting = false,
   onConfirm,
   onCancel,
@@ -20,12 +18,12 @@ export const VoidReasonDialog = ({
     <ConfirmDialog
       isOpen={isOpen}
       title={title}
-      description={message || description}
+      description={description}
       confirmLabel={confirmLabel}
       cancelLabel={cancelLabel}
       variant="danger"
       requireReason={true}
-      isSubmitting={isLoading || isSubmitting}
+      isSubmitting={isSubmitting}
       onConfirm={onConfirm}
       onCancel={onCancel}
     />

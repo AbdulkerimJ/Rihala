@@ -19,3 +19,8 @@ export const updateOvertime = async ({ id, data }) => {
   const response = await api.patch(`/overtimes/${id}`, data);
   return response.data;
 };
+
+export const deleteOvertime = async (id) => {
+  const response = await api.delete(`/overtimes/${id}`);
+  return response.data;
+};

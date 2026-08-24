@@ -19,3 +19,8 @@ export const updateEmployee = async ({ id, data }) => {
   const response = await api.patch(`/employees/${id}`, data);
   return response.data;
 };
+
+export const getEmployeeStats = async (id) => {
+  const response = await api.get(`/employees/${id}/stats`);
+  return response.data;
+};

@@ -60,6 +60,7 @@ export const DashboardLayout = () => {
       "/purchases": "Purchases",
       "/employee-payments": "Employee Payments",
       "/employees": "Employees",
+      "/employee-rates": "Employee Rates",
       "/attendances": "Attendance",
       "/overtimes": "Overtime",
       "/weekly-payrolls": "Weekly Payroll",
@@ -129,6 +130,7 @@ export const DashboardLayout = () => {
       icon: Users,
       items: [
         { name: "Employees", path: "/employees", icon: UserSquare2, permission: "employees.read" },
+        { name: "Employee Rates", path: "/employee-rates", icon: BadgeDollarSign, permission: "employeeRates.read" },
         { name: "Contractors", path: "/contractors", icon: HardHat, permission: "contractors.read" },
         { name: "Customers", path: "/customers", icon: Store, permission: "customers.read" },
       ]

@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { usePermission } from "../../../hooks/usePermission";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { createAttendance, getAttendances, updateAttendance } from "../api";
+import { createAttendance, getAttendances, updateAttendance, deleteAttendance } from "../api";
 import { getEmployees } from "../../employees/api";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
@@ -11,6 +11,7 @@ import { Can } from "../../../components/Can";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { Modal } from "../../../components/ui/Modal";
+import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { DataTable } from "../../../components/ui/DataTable";
 import { FilterBar } from "../../../components/ui/FilterBar";
 import { FormField } from "../../../components/ui/FormField";
@@ -76,7 +77,10 @@ const AttendanceForm = ({ initialData, onSubmit, onClose }) => {
 
   const handleFormSubmit = async (data) => {
     try {
-      const payload = {
+      const payload = initialData ? {
+        morningStatus: data.morningStatus,
+        afternoonStatus: data.afternoonStatus,
+      } : {
         employee: data.employee,
         workDate: new Date(data.workDate).toISOString(),
         morningStatus: data.morningStatus,
@@ -138,6 +142,7 @@ export const AttendancesList = () => {
   const [filters, setFilters] = useState({ search: "", employee: "", status: "", from: "", to: "" });
   const [isOpen, setIsOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
+  const [deletingAttendance, setDeletingAttendance] = useState(null);
 
   const { data: employeesData } = useQuery({ 
     queryKey: ["employees", "list"], 
@@ -169,6 +174,8 @@ export const AttendancesList = () => {
     meta: { suppressToast: true },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendances"] });
+      queryClient.invalidateQueries({ queryKey: ["weeklyPayrolls"] });
+      queryClient.invalidateQueries({ queryKey: ["payroll-calculation"] });
       toast.success("Attendance recorded successfully");
       setIsOpen(false);
     },
@@ -179,9 +186,25 @@ export const AttendancesList = () => {
     meta: { suppressToast: true },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendances"] });
+      queryClient.invalidateQueries({ queryKey: ["weeklyPayrolls"] });
+      queryClient.invalidateQueries({ queryKey: ["payroll-calculation"] });
       toast.success("Attendance updated successfully");
       setIsOpen(false);
     },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteAttendance,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["attendances"] });
+      queryClient.invalidateQueries({ queryKey: ["weeklyPayrolls"] });
+      queryClient.invalidateQueries({ queryKey: ["payroll-calculation"] });
+      toast.success("Attendance deleted successfully");
+      setDeletingAttendance(null);
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, "Failed to delete attendance"));
+    }
   });
 
   const columns = [
@@ -203,6 +226,11 @@ export const AttendancesList = () => {
           <Can permission="attendances.update">
             <Button variant="secondary" size="sm" onClick={(e) => { e.stopPropagation(); setEditingRecord(row); setIsOpen(true); }}>
               Edit
+            </Button>
+          </Can>
+          <Can permission="attendances.delete">
+            <Button variant="danger" size="sm" onClick={(e) => { e.stopPropagation(); setDeletingAttendance(row); }}>
+              Delete
             </Button>
           </Can>
         </div>
@@ -279,7 +307,7 @@ export const AttendancesList = () => {
         }
       />
 
-      <Modal isOpen={isOpen} title={editingRecord ? "Edit Record" : "Record Attendance"} onClose={() => setIsOpen(false)}>
+      <Modal isOpen={isOpen} title={editingRecord ? "Edit Attendance" : "Record Attendance"} onClose={() => setIsOpen(false)}>
         <AttendanceForm
           initialData={editingRecord}
           onClose={() => setIsOpen(false)}
@@ -297,6 +325,16 @@ export const AttendancesList = () => {
           }}
         />
       </Modal>
+
+      <ConfirmDialog
+        isOpen={!!deletingAttendance}
+        title="Delete Attendance"
+        description="Are you sure you want to delete this attendance record? This action cannot be undone."
+        onConfirm={() => deleteMutation.mutate(deletingAttendance._id)}
+        onCancel={() => setDeletingAttendance(null)}
+        isSubmitting={deleteMutation.isPending}
+        variant="danger"
+      />
     </div>
   );
 };

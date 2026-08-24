@@ -3,6 +3,8 @@ import {
   createEmployeeRateService,
   getEmployeeRatesService,
   getEmployeeRateByIdService,
+  updateEmployeeRateService,
+  deleteEmployeeRateService,
 } from "./employeeRate.service.js";
 
 const getAllEmployeeRatesController = catchAsync(async (req, res) => {
@@ -33,8 +35,28 @@ const getEmployeeRateByIdController = catchAsync(async (req, res) => {
   });
 });
 
+const updateEmployeeRateController = catchAsync(async (req, res) => {
+  const employeeRate = await updateEmployeeRateService(
+    req.validatedParams.id,
+    req.validatedBody,
+  );
+
+  res.status(200).json({
+    status: "success",
+    data: employeeRate,
+  });
+});
+
+const deleteEmployeeRateController = catchAsync(async (req, res) => {
+  await deleteEmployeeRateService(req.validatedParams.id);
+
+  res.status(204).send();
+});
+
 export {
   getAllEmployeeRatesController,
   createEmployeeRateController,
   getEmployeeRateByIdController,
+  updateEmployeeRateController,
+  deleteEmployeeRateController,
 };

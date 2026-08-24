@@ -4,6 +4,7 @@ import {
   getAttendancesService,
   getAttendanceByIdService,
   updateAttendanceService,
+  deleteAttendanceService,
 } from "./attendance.service.js";
 
 const getAllAttendancesController = catchAsync(async (req, res) => {
@@ -46,9 +47,18 @@ const updateAttendanceController = catchAsync(async (req, res) => {
   });
 });
 
+const deleteAttendanceController = catchAsync(async (req, res) => {
+  await deleteAttendanceService(req.validatedParams.id);
+  res.status(204).json({
+    status: "success",
+    data: null,
+  });
+});
+
 export {
   getAllAttendancesController,
   createAttendanceController,
   getAttendanceByIdController,
   updateAttendanceController,
+  deleteAttendanceController,
 };

@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { usePermission } from "../../../hooks/usePermission";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { createOvertime, getOvertimes, updateOvertime } from "../api";
+import { createOvertime, getOvertimes, updateOvertime, deleteOvertime } from "../api";
 import { getEmployees } from "../../employees/api";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
@@ -11,6 +11,7 @@ import { Can } from "../../../components/Can";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { Modal } from "../../../components/ui/Modal";
+import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { DataTable } from "../../../components/ui/DataTable";
 import { FilterBar } from "../../../components/ui/FilterBar";
 import { FormField } from "../../../components/ui/FormField";
@@ -26,8 +27,8 @@ import { applyServerErrors, cleanFilterParams, getApiErrorMessage, unwrapListRes
 import { formatDate } from "../../../utils/formatters";
 
 const OVERTIME_DURATIONS = [
-  { value: "HALF_DAY", label: "Half Day (0.5)" },
-  { value: "FULL_DAY", label: "Full Day (1.0)" },
+  { value: "HALF_DAY", label: "Half Day" },
+  { value: "FULL_DAY", label: "Full Day" },
 ];
 
 const overtimeSchema = z.object({
@@ -65,7 +66,10 @@ const OvertimeForm = ({ initialData, onSubmit, onClose }) => {
 
   const handleFormSubmit = async (data) => {
     try {
-      const payload = {
+      const payload = initialData ? {
+        duration: data.duration,
+        note: data.note || undefined,
+      } : {
         employee: data.employee,
         workDate: new Date(data.workDate).toISOString(),
         duration: data.duration,
@@ -123,6 +127,7 @@ export const OvertimesList = () => {
   const [filters, setFilters] = useState({ search: "", employee: "", from: "", to: "" });
   const [isOpen, setIsOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
+  const [recordToDelete, setRecordToDelete] = useState(null);
 
   const { data: employeesData } = useQuery({ 
     queryKey: ["employees", "list"], 
@@ -153,6 +158,8 @@ export const OvertimesList = () => {
     mutationFn: createOvertime,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["overtimes"] });
+      queryClient.invalidateQueries({ queryKey: ["weeklyPayrolls"] });
+      queryClient.invalidateQueries({ queryKey: ["payroll-calculation"] });
       toast.success("Overtime recorded successfully");
       setIsOpen(false);
     },
@@ -162,8 +169,25 @@ export const OvertimesList = () => {
     mutationFn: updateOvertime,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["overtimes"] });
+      queryClient.invalidateQueries({ queryKey: ["weeklyPayrolls"] });
+      queryClient.invalidateQueries({ queryKey: ["payroll-calculation"] });
       toast.success("Overtime updated successfully");
       setIsOpen(false);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteOvertime,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["overtimes"] });
+      queryClient.invalidateQueries({ queryKey: ["weeklyPayrolls"] });
+      queryClient.invalidateQueries({ queryKey: ["payroll-calculation"] });
+      toast.success("Overtime deleted successfully");
+      setRecordToDelete(null);
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, "Failed to delete overtime."));
+      setRecordToDelete(null);
     },
   });
 
@@ -172,7 +196,7 @@ export const OvertimesList = () => {
     { header: "Employee", accessor: (row) => row.employee?.name || "Unknown", className: "font-medium" },
     { 
       header: "Duration", 
-      accessor: (row) => row.duration === 'FULL_DAY' ? 'Full Day (1.0)' : 'Half Day (0.5)' 
+      accessor: (row) => row.duration === 'FULL_DAY' ? 'Full Day' : 'Half Day' 
     },
     { header: "Notes", accessor: (row) => row.note || row.notes || "-", className: "text-secondary hidden md:table-cell" },
     { 
@@ -183,6 +207,18 @@ export const OvertimesList = () => {
           <Can permission="overtimes.update">
             <Button variant="secondary" size="sm" onClick={(e) => { e.stopPropagation(); setEditingRecord(row); setIsOpen(true); }}>
               Edit
+            </Button>
+          </Can>
+          <Can permission="overtimes.delete">
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setRecordToDelete(row);
+              }}
+            >
+              Delete
             </Button>
           </Can>
         </div>
@@ -248,13 +284,23 @@ export const OvertimesList = () => {
         }
       />
 
-      <Modal isOpen={isOpen} title={editingRecord ? "Edit Record" : "Record Overtime"} onClose={() => setIsOpen(false)}>
+      <Modal isOpen={isOpen} title={editingRecord ? "Edit Overtime" : "Record Overtime"} onClose={() => setIsOpen(false)}>
         <OvertimeForm
           initialData={editingRecord}
           onClose={() => setIsOpen(false)}
           onSubmit={(data) => editingRecord ? updateMutation.mutateAsync({ id: editingRecord._id, data }) : createMutation.mutateAsync(data)}
         />
       </Modal>
+
+      <ConfirmDialog
+        isOpen={!!recordToDelete}
+        title="Delete Overtime"
+        description={`Are you sure you want to delete the overtime for ${recordToDelete?.employee?.name} on ${recordToDelete ? formatDate(recordToDelete.workDate) : ''}? This action cannot be undone.`}
+        confirmLabel="Delete"
+        isSubmitting={deleteMutation.isPending}
+        onConfirm={() => deleteMutation.mutate(recordToDelete._id)}
+        onCancel={() => setRecordToDelete(null)}
+      />
     </div>
   );
 };

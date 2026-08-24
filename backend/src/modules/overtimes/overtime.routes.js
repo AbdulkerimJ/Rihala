@@ -8,6 +8,7 @@ import {
   createOvertimeController,
   getOvertimeByIdController,
   updateOvertimeController,
+  deleteOvertimeController,
 } from "./overtime.controller.js";
 import {
   createOvertimeSchema,
@@ -47,6 +48,13 @@ router.patch(
   validate(overtimeIdSchema, "Please check the overtime id.", "params"),
   validate(updateOvertimeSchema, "Please check the overtime information."),
   updateOvertimeController,
+);
+
+router.delete(
+  "/:id",
+  authorize("overtimes.delete"),
+  validate(overtimeIdSchema, "Please check the overtime id.", "params"),
+  deleteOvertimeController,
 );
 
 export default router;

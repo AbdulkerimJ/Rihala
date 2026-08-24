@@ -8,6 +8,7 @@ import {
   createAttendanceController,
   getAttendanceByIdController,
   updateAttendanceController,
+  deleteAttendanceController,
 } from "./attendance.controller.js";
 import {
   createAttendanceSchema,
@@ -51,6 +52,13 @@ router.patch(
   validate(attendanceIdSchema, "Please check the attendance id.", "params"),
   validate(updateAttendanceSchema, "Please check the attendance information."),
   updateAttendanceController,
+);
+
+router.delete(
+  "/:id",
+  authorize("attendances.delete"),
+  validate(attendanceIdSchema, "Please check the attendance id.", "params"),
+  deleteAttendanceController,
 );
 
 export default router;

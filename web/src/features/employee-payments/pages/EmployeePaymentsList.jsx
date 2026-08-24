@@ -134,7 +134,7 @@ export const EmployeePaymentsList = () => {
   const { can } = usePermission();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState({ search: "", employee: "", status: "", paymentType: "" });
+  const [filters, setFilters] = useState({ search: "", employee: "", status: "", type: "" });
   const [isOpen, setIsOpen] = useState(false);
   const [voidingPayment, setVoidingPayment] = useState(null);
 
@@ -184,11 +184,11 @@ export const EmployeePaymentsList = () => {
   });
 
   const columns = [
-    { header: "Receipt No", accessor: (row) => row.receiptNumber || "-", className: "font-mono font-medium text-xs hidden sm:table-cell" },
+    { header: "Reference", accessor: (row) => row.paymentReference || "-", className: "font-mono font-medium text-xs hidden sm:table-cell" },
     { header: "Employee", accessor: (row) => row.employee?.name || "Unknown", className: "font-medium" },
     { header: "Date", accessor: (row) => formatDate(row.paymentDate), className: "text-secondary" },
     { header: "Amount", accessor: (row) => <MoneyDisplay amount={row.amount} className={row.status === 'voided' ? 'line-through opacity-50' : ''} /> },
-    { header: "Type", accessor: (row) => <span className="capitalize">{row.paymentType?.replace('_', ' ') || "—"}</span>, className: "text-secondary hidden md:table-cell" },
+    { header: "Type", accessor: (row) => <span className="capitalize">{row.type?.replace('_', ' ') || "—"}</span>, className: "text-secondary hidden md:table-cell" },
     { 
       header: "Status", 
       accessor: (row) => <StatusBadge status={row.status} />
@@ -228,7 +228,7 @@ export const EmployeePaymentsList = () => {
         searchPlaceholder="Search by receipt or ref..."
         searchValue={filters.search}
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}
-        onClear={Object.values(filters).some(Boolean) ? () => { setFilters({ search: "", employee: "", status: "", paymentType: "" }); setPage(1); } : undefined}
+        onClear={Object.values(filters).some(Boolean) ? () => { setFilters({ search: "", employee: "", status: "", type: "" }); setPage(1); } : undefined}
       >
         <Select
           value={filters.employee}
@@ -239,8 +239,8 @@ export const EmployeePaymentsList = () => {
           ]}
         />
         <Select
-          value={filters.paymentType}
-          onChange={(e) => { setFilters(p => ({ ...p, paymentType: e.target.value })); setPage(1); }}
+          value={filters.type}
+          onChange={(e) => { setFilters(p => ({ ...p, type: e.target.value })); setPage(1); }}
           options={[
             { value: "", label: "All Types" },
             { value: "salary", label: "Salary" },
@@ -253,9 +253,9 @@ export const EmployeePaymentsList = () => {
           value={filters.status}
           onChange={(e) => { setFilters(p => ({ ...p, status: e.target.value })); setPage(1); }}
           options={[
-            { value: "", label: "All Statuses" },
-            { value: "valid", label: "Valid" },
-            { value: "voided", label: "Voided" },
+            { value: "", label: "Active Only (Default)" },
+            { value: "voided", label: "Voided Only" },
+            { value: "all", label: "All Payments" },
           ]}
         />
       </FilterBar>
@@ -288,9 +288,9 @@ export const EmployeePaymentsList = () => {
       <VoidReasonDialog
         isOpen={!!voidingPayment}
         title="Void Payment"
-        message={`Are you sure you want to void this payment of ${voidingPayment?.amount} ETB? This action cannot be undone and will reverse the employee's balance.`}
+        description={`Are you sure you want to void this payment of ${voidingPayment?.amount} ETB? This action cannot be undone and will reverse the employee's balance.`}
         confirmLabel="Void Payment"
-        isLoading={voidMutation.isPending}
+        isSubmitting={voidMutation.isPending}
         onConfirm={(reason) => voidMutation.mutateAsync({ id: voidingPayment._id, voidReason: reason })}
         onCancel={() => setVoidingPayment(null)}
       />

@@ -4,7 +4,17 @@ import employeePaymentQueryConfig from "./employeePayment.query.js";
 import NotFoundError from "../../core/errors/NotFoundError.js";
 import ValidationError from "../../core/errors/ValidationError.js";
 import { getPaginatedQueryResult } from "../../core/utils/query.js";
-import { normalizeDateValue } from "../../core/utils/date.js";
+import { normalizeDateValue, isFutureDate } from "../../core/utils/date.js";
+import Counter from "../../core/models/counter.model.js";
+
+const generatePaymentReference = async () => {
+  const counter = await Counter.findOneAndUpdate(
+    { _id: "paymentReference" },
+    { $inc: { seq: 1 } },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+  return `PAY-${counter.seq + 1000}`;
+};
 
 const createEmployeePaymentService = async (data) => {
   const employee = await ensureEmployeeExists(data.employee);
@@ -19,6 +29,20 @@ const createEmployeePaymentService = async (data) => {
     employeeName: employee.name,
   };
 
+  if (isFutureDate(normalizedData.paymentDate)) {
+    const msg = "Payment date cannot be in the future.";
+    throw new ValidationError(msg, [{ field: "paymentDate", message: msg }]);
+  }
+
+  const normalizedStartDate = normalizeDateValue(employee.employmentStartDate);
+  if (normalizedData.paymentDate < normalizedStartDate) {
+    const msg = "Payment date cannot be before the employee's start date.";
+    throw new ValidationError(msg, [{ field: "paymentDate", message: msg }]);
+  }
+
+  const paymentReference = await generatePaymentReference();
+  normalizedData.paymentReference = paymentReference;
+
   const payment = await EmployeePayment.create(normalizedData);
 
   return payment.populate("employee", "name phone");
@@ -28,6 +52,8 @@ const getEmployeePaymentsService = async (filters = {}) => {
   const queryFilters = { ...filters };
   if (queryFilters.status === undefined) {
     queryFilters.status = "active";
+  } else if (queryFilters.status === "all") {
+    delete queryFilters.status;
   }
 
   return getPaginatedQueryResult(EmployeePayment, queryFilters, employeePaymentQueryConfig, {

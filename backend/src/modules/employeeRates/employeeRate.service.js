@@ -31,10 +31,8 @@ const createEmployeeRateService = async (data) => {
   });
 
   if (closedPayrollForPeriod) {
-    throw new ValidationError(
-      "Cannot create a rate with an effective date that falls inside an already-closed payroll period. " +
-      "The payroll for that period has been finalized and its earnings cannot be retroactively explained by a new rate.",
-    );
+    const msg = "Cannot create a rate with an effective date that falls inside an already-closed payroll period. The payroll for that period has been finalized and its earnings cannot be retroactively explained by a new rate.";
+    throw new ValidationError(msg, [{ field: "effectiveDate", message: msg }]);
   }
 
   const existingRate = await EmployeeRate.findOne({
@@ -72,6 +70,85 @@ const getEmployeeRateByIdService = async (employeeRateId) => {
   return employeeRate;
 };
 
+const updateEmployeeRateService = async (employeeRateId, updateData) => {
+  const employeeRate = await EmployeeRate.findById(employeeRateId).populate("employee");
+
+  if (!employeeRate) {
+    throw new NotFoundError("Employee rate not found.");
+  }
+
+  const normalizedEffectiveDate = updateData.effectiveDate
+    ? normalizeDateValue(updateData.effectiveDate)
+    : employeeRate.effectiveDate;
+
+  // Check if current rate's effective date is inside a closed payroll
+  const closedPayrollForCurrentDate = await WeeklyPayroll.findOne({
+    employee: employeeRate.employee._id,
+    startDate: { $lte: employeeRate.effectiveDate },
+    endDate: { $gte: employeeRate.effectiveDate },
+    status: "CLOSED",
+  });
+
+  if (closedPayrollForCurrentDate) {
+    const msg = "Cannot update a rate whose effective date falls inside an already-closed payroll period.";
+    throw new ValidationError(msg, [{ field: "effectiveDate", message: msg }]);
+  }
+
+  // Check if new rate's effective date is inside a closed payroll
+  if (updateData.effectiveDate) {
+    const closedPayrollForNewDate = await WeeklyPayroll.findOne({
+      employee: employeeRate.employee._id,
+      startDate: { $lte: normalizedEffectiveDate },
+      endDate: { $gte: normalizedEffectiveDate },
+      status: "CLOSED",
+    });
+
+    if (closedPayrollForNewDate) {
+      const msg = "Cannot move a rate's effective date into an already-closed payroll period.";
+      throw new ValidationError(msg, [{ field: "effectiveDate", message: msg }]);
+    }
+    
+    // Check for conflicts if date changed
+    if (normalizedEffectiveDate.getTime() !== employeeRate.effectiveDate.getTime()) {
+      const existingRate = await EmployeeRate.findOne({
+        employee: employeeRate.employee._id,
+        effectiveDate: normalizedEffectiveDate,
+        _id: { $ne: employeeRateId },
+      });
+
+      if (existingRate) {
+        const msg = "An employee rate already exists for this employee and effective date.";
+        throw new ConflictError(msg, [{ field: "effectiveDate", message: msg }]);
+      }
+    }
+  }
+
+  if (updateData.dailyRate !== undefined) {
+    employeeRate.dailyRate = updateData.dailyRate;
+  }
+  
+  if (updateData.effectiveDate !== undefined) {
+    employeeRate.effectiveDate = normalizedEffectiveDate;
+  }
+
+  if (updateData.note !== undefined) {
+    employeeRate.note = updateData.note;
+  }
+
+  await employeeRate.save();
+  return employeeRate;
+};
+
+const deleteEmployeeRateService = async (employeeRateId) => {
+  const employeeRate = await EmployeeRate.findByIdAndDelete(employeeRateId);
+
+  if (!employeeRate) {
+    throw new NotFoundError("Employee rate not found.");
+  }
+
+  return employeeRate;
+};
+
 const getApplicableRateService = async (employeeId, workDate) => {
   const normalizedWorkDate = normalizeDateValue(workDate);
   const applicableRate = await EmployeeRate.findOne({
@@ -92,5 +169,7 @@ export {
   createEmployeeRateService,
   getEmployeeRatesService,
   getEmployeeRateByIdService,
+  updateEmployeeRateService,
+  deleteEmployeeRateService,
   getApplicableRateService,
 };

@@ -303,13 +303,13 @@ export const TasksList = () => {
       <ConfirmDialog
         isOpen={!!deletingTask}
         title="Delete Task"
-        message={`Are you sure you want to delete "${deletingTask?.name}"? This action cannot be undone. You can only delete tasks that are not associated with any contracts.`}
+        description={`Are you sure you want to delete "${deletingTask?.name}"? This action cannot be undone. You can only delete tasks that are not associated with any contracts.`}
         confirmLabel="Delete"
         cancelLabel="Cancel"
         onConfirm={() => deleteMutation.mutateAsync(deletingTask._id)}
         onCancel={() => setDeletingTask(null)}
-        isDestructive
-        isLoading={deleteMutation.isPending}
+        variant="danger"
+        isSubmitting={deleteMutation.isPending}
       />
     </div>
   );

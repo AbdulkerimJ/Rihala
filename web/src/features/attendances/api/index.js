@@ -19,3 +19,8 @@ export const updateAttendance = async ({ id, data }) => {
   const response = await api.patch(`/attendances/${id}`, data);
   return response.data;
 };
+
+export const deleteAttendance = async (id) => {
+  const response = await api.delete(`/attendances/${id}`);
+  return response.data;
+};
