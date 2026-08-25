@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { usePermission } from "../../../hooks/usePermission";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
@@ -20,6 +21,7 @@ import { cleanFilterParams, getApiErrorMessage, unwrapListResponse } from "../..
 import { formatDate } from "../../../utils/formatters";
 
 export const ContractorPaymentsList = () => {
+  const navigate = useNavigate();
   const { can } = usePermission();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
@@ -99,6 +101,8 @@ export const ContractorPaymentsList = () => {
       <PageHeader
         title="Contractor Payments"
         description="View all payments made to contractors across all contracts."
+        actionLabel={can("contracts.read") ? "Go to Contracts" : null}
+        onAction={() => navigate("/contracts")}
       />
 
       <FilterBar 
@@ -134,7 +138,9 @@ export const ContractorPaymentsList = () => {
         emptyState={
           <EmptyState
             title="No payments found"
-            description="Payments are recorded directly from the Contract detail page."
+            description="Payments are recorded directly from the Contract detail page to ensure accurate accounting."
+            actionLabel={can("contracts.read") ? "Go to Contracts" : null}
+            onAction={() => navigate("/contracts")}
           />
         }
       />

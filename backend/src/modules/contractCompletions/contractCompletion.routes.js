@@ -18,12 +18,12 @@ router
   .route("/")
   .get(
     authorize("contractCompletions.read"),
-    validate(contractCompletionQuerySchema, "query"),
+    validate(contractCompletionQuerySchema, "Invalid query parameters", "query"),
     contractCompletionController.getCompletions
   )
   .post(
     authorize("contractCompletions.create"),
-    validate(createContractCompletionSchema, "body"),
+    validate(createContractCompletionSchema, "Please correct the highlighted fields", "body"),
     contractCompletionController.recordCompletion
   );
 
@@ -31,7 +31,7 @@ router
   .route("/:id")
   .get(
     authorize("contractCompletions.read"),
-    validate(contractCompletionIdSchema, "params"),
+    validate(contractCompletionIdSchema, "Invalid request parameters", "params"),
     contractCompletionController.getCompletionById
   );
 
@@ -39,8 +39,8 @@ router
   .route("/:id/void")
   .patch(
     authorize("contractCompletions.void"),
-    validate(contractCompletionIdSchema, "params"),
-    validate(voidContractCompletionSchema, "body"),
+    validate(contractCompletionIdSchema, "Invalid request parameters", "params"),
+    validate(voidContractCompletionSchema, "Please correct the highlighted fields", "body"),
     contractCompletionController.voidCompletion
   );
 

@@ -58,7 +58,7 @@ const getEmployeeStatsController = catchAsync(async (req, res) => {
 });
 
 const softDeleteEmployeeController = catchAsync(async (req, res) => {
-  const employee = await softDeleteEmployeeService(req.validatedParams.id, req.user._id);
+  const employee = await softDeleteEmployeeService(req.validatedParams.id, req.user.id);
 
   res.status(200).json({
     status: "success",

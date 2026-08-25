@@ -18,12 +18,12 @@ router
   .route("/")
   .get(
     authorize("taskTypes.read"),
-    validate(taskTypeQuerySchema, "query"),
+    validate(taskTypeQuerySchema, "Invalid query parameters", "query"),
     taskTypeController.getTaskTypes
   )
   .post(
     authorize("taskTypes.create"),
-    validate(createTaskTypeSchema, "body"),
+    validate(createTaskTypeSchema, "Please correct the highlighted fields", "body"),
     taskTypeController.createTaskType
   );
 
@@ -31,18 +31,18 @@ router
   .route("/:id")
   .get(
     authorize("taskTypes.read"),
-    validate(taskTypeIdSchema, "params"),
+    validate(taskTypeIdSchema, "Invalid request parameters", "params"),
     taskTypeController.getTaskTypeById
   )
   .patch(
     authorize("taskTypes.update"),
-    validate(taskTypeIdSchema, "params"),
-    validate(updateTaskTypeSchema, "body"),
+    validate(taskTypeIdSchema, "Invalid request parameters", "params"),
+    validate(updateTaskTypeSchema, "Please correct the highlighted fields", "body"),
     taskTypeController.updateTaskType
   )
   .delete(
     authorize("taskTypes.delete"),
-    validate(taskTypeIdSchema, "params"),
+    validate(taskTypeIdSchema, "Invalid request parameters", "params"),
     taskTypeController.deleteTaskType
   );
 

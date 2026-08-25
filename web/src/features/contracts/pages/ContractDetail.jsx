@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { usePermission } from "../../../hooks/usePermission";
+import { Can } from "../../../components/Can";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, HardHat, Hammer, ClipboardCheck, FileText, AlertCircle } from "lucide-react";
 import { getContractById, cancelContract } from "../api";
@@ -8,6 +10,7 @@ import { createContractorPayment, voidContractorPayment } from "../../contractor
 import { DetailSkeleton } from "../../../components/ui/skeletons";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
+import { Badge } from "../../../components/ui/Badge";
 import { Button } from "../../../components/ui/Button";
 import { SummaryCard } from "../../../components/ui/SummaryCard";
 import { DetailSection, DetailItem } from "../../../components/ui/DetailSection";
@@ -152,7 +155,8 @@ export const ContractDetail = () => {
   const recordCompletionMutation = useMutation({
     mutationFn: (data) => recordCompletion({ contract: id, ...data }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["contracts", id] });
+      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      queryClient.invalidateQueries({ queryKey: ["contractors"] });
       toast.success("Completion recorded");
       setCompletionModalOpen(false);
     },
@@ -161,7 +165,8 @@ export const ContractDetail = () => {
   const recordPaymentMutation = useMutation({
     mutationFn: (data) => createContractorPayment({ contract: id, ...data }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["contracts", id] });
+      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      queryClient.invalidateQueries({ queryKey: ["contractors"] });
       toast.success("Payment recorded");
       setPaymentModalOpen(false);
     },
@@ -170,7 +175,8 @@ export const ContractDetail = () => {
   const voidCompletionMutation = useMutation({
     mutationFn: ({ id, voidReason }) => voidCompletion({ id, voidReason }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["contracts", id] });
+      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      queryClient.invalidateQueries({ queryKey: ["contractors"] });
       toast.success("Completion voided");
       setVoidingCompletion(null);
       setVoidReason("");
@@ -180,7 +186,8 @@ export const ContractDetail = () => {
   const voidPaymentMutation = useMutation({
     mutationFn: ({ id, voidReason }) => voidContractorPayment({ id, voidReason }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["contracts", id] });
+      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      queryClient.invalidateQueries({ queryKey: ["contractors"] });
       toast.success("Payment voided");
       setVoidingPayment(null);
       setVoidReason("");
@@ -190,7 +197,8 @@ export const ContractDetail = () => {
   const cancelMutation = useMutation({
     mutationFn: (reason) => cancelContract({ id, cancelReason: reason }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["contracts", id] });
+      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      queryClient.invalidateQueries({ queryKey: ["contractors"] });
       toast.success("Contract cancelled");
       setCancelModalOpen(false);
       setCancelReason("");
@@ -256,6 +264,9 @@ export const ContractDetail = () => {
               <h1 className="text-2xl font-bold text-primary font-display tracking-tight">Contract {contract.contractNumber}</h1>
               <StatusBadge status={contract.status} />
               {isOverdue && <StatusBadge label="Overdue" className="bg-danger/10 text-danger border border-danger/20" />}
+              <Badge variant="default" className="font-medium bg-secondary/10">
+                {contract.taskTypeName}
+              </Badge>
             </div>
             <p className="text-sm text-secondary">Manage contract progress and financial standing.</p>
           </div>
@@ -293,23 +304,27 @@ export const ContractDetail = () => {
             </div>
             
             {/* Action Buttons */}
-            {contract.status === "ACTIVE" && (
+            {(contract.status === "ACTIVE" || contract.status === "COMPLETED") && (
               <div className="flex flex-wrap gap-3 mt-6">
-                <Can permission="contractCompletions.create">
-                  <Button onClick={() => setCompletionModalOpen(true)} disabled={stats.completedQuantity >= contract.quantity}>
-                    Record Completion
-                  </Button>
-                </Can>
+                {contract.status === "ACTIVE" && (
+                  <Can permission="contractCompletions.create">
+                    <Button onClick={() => setCompletionModalOpen(true)} disabled={stats.completedQuantity >= contract.quantity}>
+                      Record Completion
+                    </Button>
+                  </Can>
+                )}
                 <Can permission="contractorPayments.create">
-                  <Button variant="secondary" onClick={() => setPaymentModalOpen(true)} disabled={stats.payableAmount <= 0}>
+                  <Button onClick={() => setPaymentModalOpen(true)} disabled={stats.payableAmount <= 0}>
                     Record Payment
                   </Button>
                 </Can>
-                <Can permission="contracts.cancel">
-                  <Button variant="ghostDanger" onClick={() => setCancelModalOpen(true)}>
-                    Cancel Contract
-                  </Button>
-                </Can>
+                {contract.status === "ACTIVE" && (
+                  <Can permission="contracts.cancel">
+                    <Button variant="ghostDanger" onClick={() => setCancelModalOpen(true)}>
+                      Cancel Contract
+                    </Button>
+                  </Can>
+                )}
               </div>
             )}
           </DetailSection>

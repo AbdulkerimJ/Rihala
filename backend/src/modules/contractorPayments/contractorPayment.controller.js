@@ -4,7 +4,7 @@ import * as contractorPaymentService from "./contractorPayment.service.js";
 const createPayment = catchAsync(async (req, res) => {
   const payment = await contractorPaymentService.createPaymentService(
     req.validatedBody,
-    req.user._id
+    req.user.id
   );
 
   res.status(201).json({
@@ -39,7 +39,7 @@ const voidPayment = catchAsync(async (req, res) => {
   const payment = await contractorPaymentService.voidPaymentService(
     req.validatedParams.id,
     req.validatedBody.voidReason,
-    req.user._id
+    req.user.id
   );
 
   res.status(200).json({

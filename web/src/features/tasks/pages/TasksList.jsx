@@ -19,8 +19,9 @@ import { Checkbox } from "../../../components/ui/Checkbox";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
+import { CurrencyInput } from "../../../components/ui/CurrencyInput";
 import { FormRootError } from "../../../components/ui/FormRootError";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
@@ -46,7 +47,7 @@ const TaskForm = ({ initialData, onSubmit, onClose }) => {
   });
   const taskTypes = unwrapListResponse(taskTypesData).items || [];
 
-  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, control, setError, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(taskSchema),
     defaultValues: initialData ? {
       ...initialData,
@@ -88,12 +89,18 @@ const TaskForm = ({ initialData, onSubmit, onClose }) => {
       </FormField>
 
       <FormField label="Default Unit Price (ETB)" required error={errors.defaultUnitPrice?.message}>
-        <Input
-          type="number"
-          step="0.01"
-          {...register("defaultUnitPrice")}
-          placeholder="e.g. 500"
-          error={errors.defaultUnitPrice?.message}
+        <Controller
+          name="defaultUnitPrice"
+          control={control}
+          render={({ field: { onChange, value, ref } }) => (
+            <CurrencyInput
+              ref={ref}
+              value={value}
+              onChange={onChange}
+              placeholder="e.g. 500"
+              error={errors.defaultUnitPrice?.message}
+            />
+          )}
         />
       </FormField>
 

@@ -21,7 +21,8 @@ import { Textarea } from "../../../components/ui/Textarea";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { FormRootError } from "../../../components/ui/FormRootError";
-import { useForm } from "react-hook-form";
+import { CurrencyInput } from "../../../components/ui/CurrencyInput";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
@@ -65,7 +66,7 @@ const ContractForm = ({ onSubmit, onClose }) => {
   });
   const tasks = unwrapListResponse(tasksData).items || [];
 
-  const { register, handleSubmit, watch, setValue, setError, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, control, watch, setValue, setError, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(contractSchema),
     defaultValues: {
       contractor: "",
@@ -132,11 +133,18 @@ const ContractForm = ({ onSubmit, onClose }) => {
           />
         </FormField>
         <FormField label="Unit Price (ETB)" required error={errors.unitPrice?.message}>
-          <Input
-            type="number"
-            placeholder="0"
-            {...register("unitPrice")}
-            error={errors.unitPrice?.message}
+          <Controller
+            name="unitPrice"
+            control={control}
+            render={({ field: { onChange, value, ref } }) => (
+              <CurrencyInput
+                ref={ref}
+                value={value}
+                onChange={onChange}
+                placeholder="0"
+                error={errors.unitPrice?.message}
+              />
+            )}
           />
         </FormField>
       </div>
@@ -232,6 +240,7 @@ export const ContractsList = () => {
   const columns = [
     { header: "Contract No", accessor: "contractNumber", className: "font-mono font-medium text-xs" },
     { header: "Contractor", accessor: (row) => row.contractor?.name || "-", className: "font-medium" },
+    { header: "Task Type", accessor: "taskTypeName", className: "text-secondary hidden md:table-cell" },
     { header: "Task", accessor: (row) => row.task?.name || "-", className: "text-secondary hidden sm:table-cell" },
     { header: "Date", accessor: (row) => formatDate(row.contractDate), className: "text-secondary" },
     { header: "Value", accessor: (row) => <MoneyDisplay amount={row.quantity * row.unitPrice} />, className: "font-medium" },

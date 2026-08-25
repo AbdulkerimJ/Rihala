@@ -48,7 +48,7 @@ const updateSupplierController = catchAsync(async (req, res) => {
 });
 
 const softDeleteSupplierController = catchAsync(async (req, res) => {
-  const supplier = await softDeleteSupplierService(req.validatedParams.id, req.user._id);
+  const supplier = await softDeleteSupplierService(req.validatedParams.id, req.user.id);
 
   res.status(200).json({
     status: "success",

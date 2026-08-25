@@ -4,7 +4,7 @@ import * as contractCompletionService from "./contractCompletion.service.js";
 const recordCompletion = catchAsync(async (req, res) => {
   const completion = await contractCompletionService.recordCompletionService(
     req.validatedBody,
-    req.user._id
+    req.user.id
   );
 
   res.status(201).json({
@@ -39,7 +39,7 @@ const voidCompletion = catchAsync(async (req, res) => {
   const completion = await contractCompletionService.voidCompletionService(
     req.validatedParams.id,
     req.validatedBody.voidReason,
-    req.user._id
+    req.user.id
   );
 
   res.status(200).json({

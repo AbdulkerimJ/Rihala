@@ -18,12 +18,12 @@ router
   .route("/")
   .get(
     authorize("contractorPayments.read"),
-    validate(contractorPaymentQuerySchema, "query"),
+    validate(contractorPaymentQuerySchema, "Invalid query parameters", "query"),
     contractorPaymentController.getPayments
   )
   .post(
     authorize("contractorPayments.create"),
-    validate(createContractorPaymentSchema, "body"),
+    validate(createContractorPaymentSchema, "Please correct the highlighted fields", "body"),
     contractorPaymentController.createPayment
   );
 
@@ -31,7 +31,7 @@ router
   .route("/:id")
   .get(
     authorize("contractorPayments.read"),
-    validate(contractorPaymentIdSchema, "params"),
+    validate(contractorPaymentIdSchema, "Invalid request parameters", "params"),
     contractorPaymentController.getPaymentById
   );
 
@@ -39,8 +39,8 @@ router
   .route("/:id/void")
   .patch(
     authorize("contractorPayments.void"),
-    validate(contractorPaymentIdSchema, "params"),
-    validate(voidContractorPaymentSchema, "body"),
+    validate(contractorPaymentIdSchema, "Invalid request parameters", "params"),
+    validate(voidContractorPaymentSchema, "Please correct the highlighted fields", "body"),
     contractorPaymentController.voidPayment
   );
 

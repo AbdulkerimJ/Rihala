@@ -226,7 +226,7 @@ export const TaskTypesList = () => {
         emptyState={
           <EmptyState
             title="No task types found"
-            description="Create a task type to start categorizing tasks."
+            description="Create task types to organize and categorize your workshop tasks, such as production, finishing, painting, or other types you define."
             actionLabel={can("taskTypes.create") ? "New Task Type" : null}
             onAction={can("taskTypes.create") ? () => { setEditingTaskType(null); setIsOpen(true); } : undefined}
           />

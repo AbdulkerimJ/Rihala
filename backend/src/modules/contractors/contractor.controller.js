@@ -47,7 +47,7 @@ const updateContractor = catchAsync(async (req, res) => {
 });
 
 const deleteContractor = catchAsync(async (req, res) => {
-  const contractor = await contractorService.softDeleteContractorService(req.validatedParams.id, req.user._id);
+  const contractor = await contractorService.softDeleteContractorService(req.validatedParams.id, req.user.id);
 
   res.status(200).json({
     status: "success",
