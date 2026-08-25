@@ -38,4 +38,13 @@ const isWorkday = (date) => {
   return day >= 1 && day <= 6;
 };
 
-export { normalizeDateValue, isWorkday };
+/**
+ * Returns true if the normalized date is strictly in the future compared to today.
+ */
+const isFutureDate = (date) => {
+  const today = normalizeDateValue(new Date());
+  const normalizedDate = normalizeDateValue(date);
+  return normalizedDate && today && normalizedDate > today;
+};
+
+export { normalizeDateValue, isWorkday, isFutureDate };

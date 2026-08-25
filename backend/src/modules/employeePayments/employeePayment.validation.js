@@ -57,15 +57,16 @@ const employeePaymentQuerySchema = z
       .date({ error: "The to date must be a valid date." })
       .optional(),
     search: z.string().trim().optional(),
+    paymentReference: z.string().trim().optional(),
     type: z.enum(["regular", "overtime", "bonus", "advance", "other"]).optional(),
-    status: z.enum(["active", "voided"]).optional(),
+    status: z.enum(["active", "voided", "all"]).optional(),
     sort: z.string().trim().optional(),
     page: z.coerce.number().int().positive().optional(),
     limit: z.coerce.number().int().positive().optional(),
   })
   .strict({
     error:
-      "Only employee, from, to, search, type, status, sort, page, and limit are allowed.",
+      "Only employee, from, to, search, paymentReference, type, status, sort, page, and limit are allowed.",
   });
 
 export {

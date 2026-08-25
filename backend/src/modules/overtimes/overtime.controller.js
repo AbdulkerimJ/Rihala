@@ -4,6 +4,7 @@ import {
   getOvertimesService,
   getOvertimeByIdService,
   updateOvertimeService,
+  deleteOvertimeService,
 } from "./overtime.service.js";
 
 const getAllOvertimesController = catchAsync(async (req, res) => {
@@ -46,9 +47,16 @@ const updateOvertimeController = catchAsync(async (req, res) => {
   });
 });
 
+const deleteOvertimeController = catchAsync(async (req, res) => {
+  await deleteOvertimeService(req.validatedParams.id);
+
+  res.status(204).send();
+});
+
 export {
   getAllOvertimesController,
   createOvertimeController,
   getOvertimeByIdController,
   updateOvertimeController,
+  deleteOvertimeController,
 };

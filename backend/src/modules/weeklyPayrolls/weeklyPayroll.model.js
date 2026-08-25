@@ -57,6 +57,69 @@ const weeklyPayrollSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+
+    dailyBreakdown: [
+      {
+        workDate: {
+          type: Date,
+          required: true,
+        },
+        morningStatus: {
+          type: String,
+          required: true,
+          enum: ["PRESENT", "ABSENT", "PERMISSION"],
+        },
+        afternoonStatus: {
+          type: String,
+          required: true,
+          enum: ["PRESENT", "ABSENT", "PERMISSION"],
+        },
+        portion: {
+          type: Number,
+          required: true,
+          min: 0,
+          max: 1,
+        },
+        dailyRate: {
+          type: Number,
+          required: true,
+          min: 0,
+        },
+        earnings: {
+          type: Number,
+          required: true,
+          min: 0,
+        },
+      },
+    ],
+
+    overtimeBreakdown: [
+      {
+        workDate: {
+          type: Date,
+          required: true,
+        },
+        duration: {
+          type: String,
+          required: true,
+          enum: ["HALF_DAY", "FULL_DAY"],
+        },
+        multiplier: {
+          type: Number,
+          required: true,
+        },
+        dailyRate: {
+          type: Number,
+          required: true,
+          min: 0,
+        },
+        earnings: {
+          type: Number,
+          required: true,
+          min: 0,
+        },
+      },
+    ],
   },
   {
     timestamps: true,

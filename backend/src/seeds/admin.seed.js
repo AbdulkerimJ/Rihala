@@ -50,16 +50,19 @@ const ALL_PERMISSIONS = [
   { name: "employeeRates.read", description: "View employee rates" },
   { name: "employeeRates.create", description: "Create employee rates" },
   { name: "employeeRates.update", description: "Update employee rates" },
+  { name: "employeeRates.delete", description: "Delete employee rates" },
 
   // Attendance module permissions
   { name: "attendances.read", description: "View attendances" },
   { name: "attendances.create", description: "Create attendances" },
   { name: "attendances.update", description: "Update attendances" },
+  { name: "attendances.delete", description: "Delete attendances" },
 
   // Overtime module permissions
   { name: "overtimes.read", description: "View overtime" },
   { name: "overtimes.create", description: "Create overtime" },
   { name: "overtimes.update", description: "Update overtime" },
+  { name: "overtimes.delete", description: "Delete overtime" },
 
   // Weekly payroll permissions
   { name: "weeklyPayrolls.read", description: "View weekly payrolls" },

@@ -39,29 +39,29 @@ export const ConfirmDialog = ({
   const isDanger = variant === "danger";
 
   return (
-    <Modal
-      isOpen={isOpen}
-      title={title}
-      onClose={isSubmitting ? undefined : handleCancel}
-      maxWidth="max-w-md"
-    >
-      <div className="p-6 space-y-4">
-        <div className="flex gap-4">
-          <div
-            className={`mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${
-              isDanger
-                ? "bg-danger/10 text-danger"
-                : "bg-accent/10 text-accent"
-            }`}
-          >
-            {isDanger ? (
-              <AlertTriangle className="h-5 w-5" />
-            ) : (
-              <Info className="h-5 w-5" />
-            )}
-          </div>
-          <div className="space-y-3 flex-1">
-            <p className="text-sm text-secondary">{description}</p>
+      <Modal
+        isOpen={isOpen}
+        title={title}
+        onClose={isSubmitting ? undefined : handleCancel}
+        maxWidth="max-w-md"
+      >
+        <div className="p-6 space-y-4">
+          <div className="flex gap-4">
+            <div
+              className={`mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${
+                isDanger
+                  ? "bg-danger/10 text-danger"
+                  : "bg-accent/10 text-accent"
+              }`}
+            >
+              {isDanger ? (
+                <AlertTriangle className="h-5 w-5" />
+              ) : (
+                <Info className="h-5 w-5" />
+              )}
+            </div>
+            <div className="space-y-3 flex-1">
+              <p className="text-sm text-secondary">{description}</p>
             {requireReason && (
               <FormField label="Reason" required error={error} className="mt-4">
                 <Textarea

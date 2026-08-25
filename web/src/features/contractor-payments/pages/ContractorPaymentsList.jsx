@@ -142,9 +142,9 @@ export const ContractorPaymentsList = () => {
       <VoidReasonDialog
         isOpen={!!voidingPayment}
         title="Void Payment"
-        message={`Are you sure you want to void this payment of ${voidingPayment?.amount} ETB? This action cannot be undone.`}
+        description={`Are you sure you want to void this payment of ${voidingPayment?.amount} ETB? This action cannot be undone.`}
         confirmLabel="Void Payment"
-        isLoading={voidMutation.isPending}
+        isSubmitting={voidMutation.isPending}
         onConfirm={(reason) => voidMutation.mutateAsync({ id: voidingPayment._id, voidReason: reason })}
         onCancel={() => setVoidingPayment(null)}
       />

@@ -252,13 +252,13 @@ export const TaskTypesList = () => {
       <ConfirmDialog
         isOpen={!!deletingTaskType}
         title="Delete Task Type"
-        message={`Are you sure you want to delete "${deletingTaskType?.name}"? This action cannot be undone. You can only delete task types that are not in use by any tasks.`}
+        description={`Are you sure you want to delete "${deletingTaskType?.name}"? This action cannot be undone. You can only delete task types that are not in use by any tasks.`}
         confirmLabel="Delete"
         cancelLabel="Cancel"
         onConfirm={() => deleteMutation.mutateAsync(deletingTaskType._id)}
         onCancel={() => setDeletingTaskType(null)}
-        isDestructive
-        isLoading={deleteMutation.isPending}
+        variant="danger"
+        isSubmitting={deleteMutation.isPending}
       />
     </div>
   );

@@ -8,9 +8,10 @@ import { SummaryCard } from "../../../components/ui/SummaryCard";
 import { DetailSection } from "../../../components/ui/DetailSection";
 import { SystemInfoSection } from "../../../components/ui/SystemInfoSection";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { getApiErrorMessage, unwrapEntityResponse } from "../../../utils/apiResponse";
-import { formatDate } from "../../../utils/formatters";
-import { Calendar, Wallet, Clock, User, ArrowLeft } from "lucide-react";
+import { formatDate, formatCurrency } from "../../../utils/formatters";
+import { Calendar, Wallet, Clock, User, ArrowLeft, DollarSign } from "lucide-react";
 
 export const WeeklyPayrollDetail = () => {
   const { id } = useParams();
@@ -29,6 +30,8 @@ export const WeeklyPayrollDetail = () => {
     return <ErrorState description={getApiErrorMessage(payrollQuery.error, "Failed to load payroll details.")} />;
   }
 
+  const daysWorked = payroll.dailyBreakdown?.reduce((acc, curr) => acc + (curr.portion || 0), 0) ?? 0;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-4">
@@ -44,8 +47,11 @@ export const WeeklyPayrollDetail = () => {
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-bold text-primary font-display tracking-tight">Payroll Record</h1>
+              <StatusBadge status={payroll.status || "CLOSED"} />
             </div>
-            <p className="text-sm text-secondary">Period: {formatDate(payroll.periodStart)} - {formatDate(payroll.periodEnd)}</p>
+            <p className="text-sm text-secondary">
+              Period: {formatDate(payroll.startDate)} - {formatDate(payroll.endDate)} &bull; Processed: {payroll.dailyBreakdown?.length === 1 ? "1 Day" : `${payroll.dailyBreakdown?.length || 0} Days`}
+            </p>
           </div>
         </div>
       </div>
@@ -57,18 +63,18 @@ export const WeeklyPayrollDetail = () => {
           icon={User}
         />
         <SummaryCard 
-          title="Net Pay" 
-          value={<MoneyDisplay amount={payroll.netPay} variant="accent" />} 
+          title="Total Earnings" 
+          value={<MoneyDisplay amount={payroll.totalEarnings} variant="accent" />} 
           icon={Wallet}
         />
         <SummaryCard 
-          title="Days Present" 
-          value={payroll.totalDaysPresent} 
-          icon={Calendar}
+          title="Normal Earnings" 
+          value={<MoneyDisplay amount={payroll.normalEarnings} />} 
+          icon={DollarSign}
         />
         <SummaryCard 
-          title="Overtime Hours" 
-          value={payroll.totalOvertimeHours} 
+          title="Overtime Earnings" 
+          value={<MoneyDisplay amount={payroll.overtimeEarnings} />} 
           icon={Clock}
         />
       </div>
@@ -78,42 +84,91 @@ export const WeeklyPayrollDetail = () => {
           <DetailSection title="Calculation Breakdown" className="p-0 overflow-hidden">
             <div className="bg-surface divide-y divide-border/50">
               <div className="p-4 flex justify-between items-center">
-                <span className="text-secondary font-medium">Base Pay ({payroll.totalDaysPresent} days × {payroll.dailyRate} ETB/day)</span>
-                <span className="text-primary"><MoneyDisplay amount={payroll.totalBasePay} /></span>
+                <span className="text-secondary font-medium">Normal Earnings ({daysWorked === 1 ? "1 day" : `${daysWorked} days`} equivalent)</span>
+                <span className="text-primary"><MoneyDisplay amount={payroll.normalEarnings} /></span>
               </div>
               <div className="p-4 flex justify-between items-center">
-                <span className="text-secondary font-medium">Overtime Pay ({payroll.totalOvertimeHours} hours)</span>
-                <span className="text-primary"><MoneyDisplay amount={payroll.totalOvertimePay} /></span>
+                <span className="text-secondary font-medium">Overtime Earnings</span>
+                <span className="text-primary"><MoneyDisplay amount={payroll.overtimeEarnings} /></span>
               </div>
-              <div className="p-4 flex justify-between items-center bg-danger/5">
-                <span className="text-danger font-medium">Advances / Deductions</span>
-                <span className="text-danger">- <MoneyDisplay amount={payroll.advancesDeducted} /></span>
-              </div>
-              <div className="p-4 flex justify-between items-center bg-brand/5 border-t-2 border-brand/20">
-                <span className="text-primary font-bold text-lg">Net Payable</span>
-                <span className="text-brand font-bold text-xl"><MoneyDisplay amount={payroll.netPay} /></span>
+              <div className="p-4 flex justify-between items-center bg-accent/5 border-t-2 border-accent/20">
+                <span className="text-primary font-bold text-lg">Total Payable</span>
+                <MoneyDisplay amount={payroll.totalEarnings} variant="accent" className="text-xl" />
               </div>
             </div>
           </DetailSection>
           
-          <DetailSection title="Included Attendance Records" className="p-0">
+          <DetailSection title={`Daily Rate & Attendance Snapshot (${payroll.dailyBreakdown?.length === 1 ? "1 Day" : `${payroll.dailyBreakdown?.length || 0} Days`})`} className="p-0">
              <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-border">
                 <thead className="bg-main/50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs uppercase tracking-wider text-secondary">Date</th>
-                    <th className="px-6 py-3 text-left text-xs uppercase tracking-wider text-secondary">Status</th>
+                    <th className="px-4 py-3 text-left text-xs uppercase tracking-wider text-secondary">Date</th>
+                    <th className="px-4 py-3 text-left text-xs uppercase tracking-wider text-secondary">Morning</th>
+                    <th className="px-4 py-3 text-left text-xs uppercase tracking-wider text-secondary">Afternoon</th>
+                    <th className="px-4 py-3 text-left text-xs uppercase tracking-wider text-secondary">Portion</th>
+                    <th className="px-4 py-3 text-left text-xs uppercase tracking-wider text-secondary">Applied Rate</th>
+                    <th className="px-4 py-3 text-right text-xs uppercase tracking-wider text-secondary">Earnings</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border bg-surface">
-                  {payroll.attendanceRecords?.length > 0 ? payroll.attendanceRecords.map((att, index) => (
-                    <tr key={att._id || index}>
-                      <td className="px-6 py-4 text-sm text-primary">{formatDate(att.date)}</td>
-                      <td className="px-6 py-4 text-sm capitalize">{att.status?.replace('_', ' ')}</td>
+                  {payroll.dailyBreakdown?.length > 0 ? payroll.dailyBreakdown.map((item, index) => (
+                    <tr key={item._id || index}>
+                      <td className="px-4 py-3 text-sm text-primary font-medium">{formatDate(item.workDate)}</td>
+                      <td className="px-4 py-3 text-sm">
+                        <StatusBadge status={item.morningStatus} />
+                      </td>
+                      <td className="px-4 py-3 text-sm">
+                        <StatusBadge status={item.afternoonStatus} />
+                      </td>
+                      <td className="px-4 py-3 text-sm text-secondary">
+                        {item.portion === 1 ? "1.0 (Full)" : item.portion === 0.5 ? "0.5 (Half)" : "0.0 (Absent)"}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-primary">
+                        <MoneyDisplay amount={item.dailyRate} />
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right">
+                        <MoneyDisplay amount={item.earnings} />
+                      </td>
                     </tr>
                   )) : (
                     <tr>
-                      <td colSpan={2} className="px-6 py-4 text-sm text-secondary text-center">No attendance records included.</td>
+                      <td colSpan={6} className="px-6 py-4 text-sm text-secondary text-center">No daily snapshot records available for this payroll.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </DetailSection>
+
+          <DetailSection title={`Overtime Snapshot (${payroll.overtimeBreakdown?.length === 1 ? "1 Day" : `${payroll.overtimeBreakdown?.length || 0} Days`})`} className="p-0">
+             <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-border">
+                <thead className="bg-main/50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs uppercase tracking-wider text-secondary">Date</th>
+                    <th className="px-4 py-3 text-left text-xs uppercase tracking-wider text-secondary">Duration</th>
+                    <th className="px-4 py-3 text-left text-xs uppercase tracking-wider text-secondary">Applied Rate</th>
+                    <th className="px-4 py-3 text-right text-xs uppercase tracking-wider text-secondary">Earnings</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border bg-surface">
+                  {payroll.overtimeBreakdown?.length > 0 ? payroll.overtimeBreakdown.map((item, index) => (
+                    <tr key={item._id || index}>
+                      <td className="px-4 py-3 text-sm text-primary font-medium">{formatDate(item.workDate)}</td>
+                      <td className="px-4 py-3 text-sm text-secondary">
+                        {item.duration === 'FULL_DAY' ? "Full Day" : "Half Day"}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-primary">
+                        <MoneyDisplay amount={item.dailyRate} />
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right">
+                        <MoneyDisplay amount={item.earnings} />
+                      </td>
+                    </tr>
+                  )) : (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-4 text-sm text-secondary text-center">No overtime recorded for this period.</td>
                     </tr>
                   )}
                 </tbody>
@@ -128,7 +183,8 @@ export const WeeklyPayrollDetail = () => {
             idLabel="Payroll ID"
             createdAt={payroll.createdAt}
             extraItems={[
-              { label: "Generated By", value: payroll.generatedBy?.name || "Unknown" },
+              { label: "Status", value: payroll.status || "CLOSED" },
+              { label: "Closed At", value: payroll.closedAt ? formatDate(payroll.closedAt) : "N/A" },
             ]}
           />
         </div>
@@ -136,3 +192,4 @@ export const WeeklyPayrollDetail = () => {
     </div>
   );
 };
+

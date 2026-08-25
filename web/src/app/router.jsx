@@ -35,6 +35,7 @@ import { AttendancesList } from "../features/attendances/pages/AttendancesList";
 import { OvertimesList } from "../features/overtimes/pages/OvertimesList";
 import { WeeklyPayrollsList } from "../features/weekly-payrolls/pages/WeeklyPayrollsList";
 import { WeeklyPayrollDetail } from "../features/weekly-payrolls/pages/WeeklyPayrollDetail";
+import { EmployeeRatesList } from "../features/employee-rates/pages/EmployeeRatesList";
 
 // New Contractor Management Imports
 import { TaskTypesList } from "../features/task-types/pages/TaskTypesList";
@@ -250,6 +251,14 @@ export const router = createBrowserRouter([
         element: (
           <RequirePermission permission="employeePayments.read">
             <EmployeePaymentsList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "employee-rates",
+        element: (
+          <RequirePermission permission="employeeRates.read">
+            <EmployeeRatesList />
           </RequirePermission>
         ),
       },

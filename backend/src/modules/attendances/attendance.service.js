@@ -6,7 +6,7 @@ import ConflictError from "../../core/errors/ConflictError.js";
 import NotFoundError from "../../core/errors/NotFoundError.js";
 import ValidationError from "../../core/errors/ValidationError.js";
 import { getPaginatedQueryResult } from "../../core/utils/query.js";
-import { normalizeDateValue, isWorkday } from "../../core/utils/date.js";
+import { normalizeDateValue, isWorkday, isFutureDate } from "../../core/utils/date.js";
 
 const ATTENDANCE_STATUSES = ["PRESENT", "ABSENT", "PERMISSION"];
 
@@ -29,19 +29,24 @@ const ensureAttendanceDateIsValid = (employee, workDate) => {
   const normalizedWorkDate = normalizeDateValue(workDate);
   const normalizedStartDate = normalizeDateValue(employee.employmentStartDate);
   const normalizedEndDate = normalizeDateValue(employee.employmentEndDate);
+  if (isFutureDate(normalizedWorkDate)) {
+    const msg = "Attendance cannot be recorded for future dates.";
+    throw new ValidationError(msg, [{ field: "workDate", message: msg }]);
+  }
 
   if (!isWorkday(normalizedWorkDate)) {
-    throw new ValidationError(
-      "Attendance can only be recorded for Monday through Saturday.",
-    );
+    const msg = "Attendance can only be recorded for Monday through Saturday.";
+    throw new ValidationError(msg, [{ field: "workDate", message: msg }]);
   }
 
   if (normalizedWorkDate < normalizedStartDate) {
-    throw new ValidationError("Work date is before the employee's start date.");
+    const msg = "Work date is before the employee's start date.";
+    throw new ValidationError(msg, [{ field: "workDate", message: msg }]);
   }
 
   if (normalizedEndDate && normalizedWorkDate > normalizedEndDate) {
-    throw new ValidationError("Work date is after the employee's end date.");
+    const msg = "Work date is after the employee's end date.";
+    throw new ValidationError(msg, [{ field: "workDate", message: msg }]);
   }
 };
 
@@ -55,7 +60,8 @@ const ensureNotClosedInPayroll = async (employeeId, workDate) => {
   });
 
   if (closedPayroll) {
-    throw new ValidationError("Cannot modify attendance for a closed payroll period.");
+    const msg = "Cannot modify attendance for a closed payroll period.";
+    throw new ValidationError(msg, [{ field: "workDate", message: msg }]);
   }
 };
 
@@ -138,6 +144,18 @@ const updateAttendanceService = async (attendanceId, updateData) => {
   }
 };
 
+const deleteAttendanceService = async (attendanceId) => {
+  const attendance = await Attendance.findById(attendanceId);
+
+  if (!attendance) {
+    throw new NotFoundError("Attendance not found.");
+  }
+
+  await ensureNotClosedInPayroll(attendance.employee, attendance.workDate);
+
+  await Attendance.findByIdAndDelete(attendanceId);
+};
+
 export {
   ATTENDANCE_STATUSES,
   isWorkday,
@@ -146,4 +164,5 @@ export {
   getAttendancesService,
   getAttendanceByIdService,
   updateAttendanceService,
+  deleteAttendanceService,
 };

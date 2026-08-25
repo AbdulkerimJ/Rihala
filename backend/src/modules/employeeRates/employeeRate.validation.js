@@ -34,8 +34,25 @@ const employeeRateQuerySchema = z
     error: "Only employee, search, sort, page, and limit are allowed.",
   });
 
+const updateEmployeeRateSchema = z
+  .object({
+    dailyRate: z
+      .number({ error: "Daily rate must be a number." })
+      .positive("Daily rate must be greater than 0.")
+      .optional(),
+    effectiveDate: z.coerce.date({
+      error: "Effective date must be a valid date.",
+    }).optional(),
+    note: z.string().trim().optional(),
+  })
+  .strict({
+    error:
+      "Only dailyRate, effectiveDate, and note can be submitted.",
+  });
+
 export {
   createEmployeeRateSchema,
+  updateEmployeeRateSchema,
   employeeRateIdSchema,
   employeeRateQuerySchema,
 };

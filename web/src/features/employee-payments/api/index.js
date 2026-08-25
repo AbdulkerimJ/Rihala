@@ -16,6 +16,6 @@ export const createEmployeePayment = async (data) => {
 };
 
 export const voidEmployeePayment = async ({ id, voidReason }) => {
-  const response = await api.post(`/employee-payments/${id}/void`, { voidReason });
+  const response = await api.patch(`/employee-payments/${id}/void`, { voidReason });
   return response.data;
 };

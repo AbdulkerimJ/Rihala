@@ -1,4 +1,7 @@
+import mongoose from "mongoose";
 import Employee from "./employee.model.js";
+import WeeklyPayroll from "../weeklyPayrolls/weeklyPayroll.model.js";
+import EmployeePayment from "../employeePayments/employeePayment.model.js";
 import employeeQueryConfig from "./employee.query.js";
 import ConflictError from "../../core/errors/ConflictError.js";
 import NotFoundError from "../../core/errors/NotFoundError.js";
@@ -118,10 +121,34 @@ const updateEmployeeService = async (employeeId, updateData) => {
   return employee;
 };
 
+const getEmployeeStatsService = async (employeeId) => {
+  await ensureEmployeeExists(employeeId);
+
+  const objectId = new mongoose.Types.ObjectId(employeeId);
+
+  const [payrollResult, paymentResult] = await Promise.all([
+    WeeklyPayroll.aggregate([
+      { $match: { employee: objectId, status: "CLOSED" } },
+      { $group: { _id: null, totalEarned: { $sum: "$totalEarnings" } } },
+    ]),
+    EmployeePayment.aggregate([
+      { $match: { employee: objectId, status: "active" } },
+      { $group: { _id: null, totalPaid: { $sum: "$amount" } } },
+    ]),
+  ]);
+
+  const totalEarned = payrollResult[0]?.totalEarned ?? 0;
+  const totalPaid = paymentResult[0]?.totalPaid ?? 0;
+  const currentBalance = totalEarned - totalPaid;
+
+  return { totalEarned, totalPaid, currentBalance };
+};
+
 export {
   ensureEmployeeExists,
   createEmployeeService,
   getEmployeesService,
   getEmployeeByIdService,
   updateEmployeeService,
+  getEmployeeStatsService,
 };

@@ -6,25 +6,25 @@ import ConflictError from "../../core/errors/ConflictError.js";
 import NotFoundError from "../../core/errors/NotFoundError.js";
 import ValidationError from "../../core/errors/ValidationError.js";
 import { getPaginatedQueryResult } from "../../core/utils/query.js";
-import { getApplicableRateService } from "../employeeRates/employeeRate.service.js";
-import { normalizeDateValue } from "../../core/utils/date.js";
-
-const calculateOvertimeAmount = (dailyRate, duration) => {
-  const durationFactor = duration === "HALF_DAY" ? 0.5 : 1;
-  return dailyRate * 2 * durationFactor;
-};
+import { normalizeDateValue, isFutureDate } from "../../core/utils/date.js";
 
 const ensureEmploymentPeriodIsValid = (employee, workDate) => {
   const normalizedWorkDate = normalizeDateValue(workDate);
   const normalizedStartDate = normalizeDateValue(employee.employmentStartDate);
   const normalizedEndDate = normalizeDateValue(employee.employmentEndDate);
+  if (isFutureDate(normalizedWorkDate)) {
+    const msg = "Overtime cannot be recorded for future dates.";
+    throw new ValidationError(msg, [{ field: "workDate", message: msg }]);
+  }
 
   if (normalizedWorkDate < normalizedStartDate) {
-    throw new ValidationError("Work date is before the employee's start date.");
+    const msg = "Work date is before the employee's start date.";
+    throw new ValidationError(msg, [{ field: "workDate", message: msg }]);
   }
 
   if (normalizedEndDate && normalizedWorkDate > normalizedEndDate) {
-    throw new ValidationError("Work date is after the employee's end date.");
+    const msg = "Work date is after the employee's end date.";
+    throw new ValidationError(msg, [{ field: "workDate", message: msg }]);
   }
 };
 
@@ -38,7 +38,8 @@ const ensureNotClosedInPayroll = async (employeeId, workDate) => {
   });
 
   if (closedPayroll) {
-    throw new ValidationError("Cannot modify overtime for a closed payroll period.");
+    const msg = "Cannot modify overtime for a closed payroll period.";
+    throw new ValidationError(msg, [{ field: "workDate", message: msg }]);
   }
 };
 
@@ -67,22 +68,8 @@ const createOvertimeService = async (data) => {
     throw new ConflictError(msg, [{ field: "workDate", message: msg }]);
   }
 
-  const applicableRate = await getApplicableRateService(
-    normalizedData.employee,
-    normalizedData.workDate,
-  );
-
-  const amount = calculateOvertimeAmount(
-    applicableRate.dailyRate,
-    normalizedData.duration,
-  );
-
   try {
-    return await Overtime.create({
-      ...normalizedData,
-      dailyRate: applicableRate.dailyRate,
-      amount,
-    });
+    return await Overtime.create(normalizedData);
   } catch (error) {
     if (error?.code === 11000) {
       const msg = "Overtime already exists for this employee and work date.";
@@ -109,6 +96,18 @@ const getOvertimeByIdService = async (overtimeId) => {
   return overtime;
 };
 
+const deleteOvertimeService = async (overtimeId) => {
+  const overtime = await Overtime.findById(overtimeId);
+
+  if (!overtime) {
+    throw new NotFoundError("Overtime not found.");
+  }
+
+  await ensureNotClosedInPayroll(overtime.employee, overtime.workDate);
+
+  await Overtime.findByIdAndDelete(overtimeId);
+};
+
 const updateOvertimeService = async (overtimeId, updateData) => {
   const overtime = await Overtime.findById(overtimeId);
 
@@ -118,17 +117,8 @@ const updateOvertimeService = async (overtimeId, updateData) => {
 
   await ensureNotClosedInPayroll(overtime.employee, overtime.workDate);
 
-  const normalizedUpdateData = { ...updateData };
-
-  if (normalizedUpdateData.duration !== undefined) {
-    normalizedUpdateData.amount = calculateOvertimeAmount(
-      overtime.dailyRate,
-      normalizedUpdateData.duration,
-    );
-  }
-
   try {
-    Object.assign(overtime, normalizedUpdateData);
+    Object.assign(overtime, updateData);
     await overtime.save();
     return overtime.populate("employee");
   } catch (error) {
@@ -142,9 +132,9 @@ const updateOvertimeService = async (overtimeId, updateData) => {
 };
 
 export {
-  calculateOvertimeAmount,
   createOvertimeService,
   getOvertimesService,
   getOvertimeByIdService,
   updateOvertimeService,
+  deleteOvertimeService,
 };

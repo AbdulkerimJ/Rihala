@@ -15,6 +15,14 @@ const employeePaymentSchema = new mongoose.Schema(
       trim: true,
     },
 
+    paymentReference: {
+      type: String,
+      required: [true, "Payment reference is required"],
+      unique: true,
+      trim: true,
+      index: true,
+    },
+
     amount: {
       type: Number,
       required: [true, "Payment amount is required"],

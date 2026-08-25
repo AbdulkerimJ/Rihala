@@ -1,7 +1,7 @@
 import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { getEmployeeById } from "../api";
+import { getEmployeeById, getEmployeeStats } from "../api";
 import { DetailSkeleton } from "../../../components/ui/skeletons";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
@@ -11,10 +11,12 @@ import { SystemInfoSection } from "../../../components/ui/SystemInfoSection";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { getApiErrorMessage, unwrapEntityResponse } from "../../../utils/apiResponse";
 import { formatDate } from "../../../utils/formatters";
-import { User, Briefcase, Calendar, Wallet, ArrowLeft } from "lucide-react";
+import { usePermission } from "../../../hooks/usePermission";
+import { User, Briefcase, Calendar, ArrowLeft, TrendingUp, TrendingDown, Wallet } from "lucide-react";
 
 export const EmployeeDetail = () => {
   const { id } = useParams();
+  const { can } = usePermission();
   
   const employeeQuery = useQuery({
     queryKey: ["employees", id],
@@ -22,7 +24,14 @@ export const EmployeeDetail = () => {
     enabled: !!id,
   });
 
+  const statsQuery = useQuery({
+    queryKey: ["employees", id, "stats"],
+    queryFn: () => getEmployeeStats(id),
+    enabled: !!id && can("employees.read"),
+  });
+
   const employee = unwrapEntityResponse(employeeQuery.data);
+  const stats = statsQuery.data?.data ?? null;
 
   if (employeeQuery.isLoading) return <DetailSkeleton />;
   
@@ -69,6 +78,59 @@ export const EmployeeDetail = () => {
           icon={Briefcase}
         />
       </div>
+
+      {/* Financial Ledger */}
+      <DetailSection title="Financial Ledger">
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div className="bg-main/50 rounded-lg p-4 border border-border/50 space-y-1">
+            <div className="flex items-center gap-2 text-secondary text-xs font-medium uppercase tracking-wider mb-2">
+              <TrendingUp className="w-3.5 h-3.5" />
+              Lifetime Earned
+            </div>
+            {statsQuery.isLoading ? (
+              <div className="h-7 w-32 bg-main animate-pulse rounded" />
+            ) : (
+              <MoneyDisplay amount={stats?.totalEarned ?? 0} className="text-xl font-bold text-primary" />
+            )}
+            <p className="text-xs text-secondary">From all closed payrolls</p>
+          </div>
+          <div className="bg-main/50 rounded-lg p-4 border border-border/50 space-y-1">
+            <div className="flex items-center gap-2 text-secondary text-xs font-medium uppercase tracking-wider mb-2">
+              <TrendingDown className="w-3.5 h-3.5" />
+              Total Paid
+            </div>
+            {statsQuery.isLoading ? (
+              <div className="h-7 w-32 bg-main animate-pulse rounded" />
+            ) : (
+              <MoneyDisplay amount={stats?.totalPaid ?? 0} className="text-xl font-bold text-primary" />
+            )}
+            <p className="text-xs text-secondary">Cash disbursed to employee</p>
+          </div>
+          <div className={`rounded-lg p-4 border space-y-1 ${
+            !stats ? "bg-main/50 border-border/50" :
+            stats.currentBalance >= 0 ? "bg-success/10 border-success/30" : "bg-danger/10 border-danger/30"
+          }`}>
+            <div className="flex items-center gap-2 text-secondary text-xs font-medium uppercase tracking-wider mb-2">
+              <Wallet className="w-3.5 h-3.5" />
+              Current Balance
+            </div>
+            {statsQuery.isLoading ? (
+              <div className="h-7 w-32 bg-main animate-pulse rounded" />
+            ) : (
+              <MoneyDisplay
+                amount={Math.abs(stats?.currentBalance ?? 0)}
+                className={`text-xl font-bold ${
+                  !stats || stats.currentBalance >= 0 ? "text-success" : "text-danger"
+                }`}
+                prefix={stats?.currentBalance < 0 ? "-" : ""}
+              />
+            )}
+            <p className="text-xs text-secondary">
+              {!stats || stats.currentBalance >= 0 ? "Owed to employee" : "Employee advance balance"}
+            </p>
+          </div>
+        </div>
+      </DetailSection>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
