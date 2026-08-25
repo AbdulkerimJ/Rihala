@@ -3,7 +3,7 @@ import { usePermission } from "../../../hooks/usePermission";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { createEmployee, getEmployees, updateEmployee } from "../api";
+import { createEmployee, getEmployees, updateEmployee, deleteEmployee } from "../api";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
 import { Can } from "../../../components/Can";
@@ -11,6 +11,7 @@ import { Can } from "../../../components/Can";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { Modal } from "../../../components/ui/Modal";
+import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { DataTable } from "../../../components/ui/DataTable";
 import { FilterBar } from "../../../components/ui/FilterBar";
@@ -140,6 +141,7 @@ export const EmployeesList = () => {
   const [filters, setFilters] = useState({ search: "", status: "" });
   const [isOpen, setIsOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
+  const [deletingEmployee, setDeletingEmployee] = useState(null);
 
   const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
 
@@ -176,6 +178,18 @@ export const EmployeesList = () => {
       setIsOpen(false);
     },
     meta: { suppressToast: true },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteEmployee,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
+      toast.success("Employee deleted successfully");
+      setDeletingEmployee(null);
+    },
+    onError: () => {
+      setDeletingEmployee(null);
+    },
   });
 
   const columns = [
@@ -218,6 +232,18 @@ export const EmployeesList = () => {
               }}
             >
               Edit
+            </Button>
+          </Can>
+          <Can permission="employees.delete">
+            <Button
+              variant="ghostDanger"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeletingEmployee(row);
+              }}
+            >
+              Delete
             </Button>
           </Can>
         </div>
@@ -287,6 +313,18 @@ export const EmployeesList = () => {
           }}
         />
       </Modal>
+
+      <ConfirmDialog
+        isOpen={!!deletingEmployee}
+        title="Delete Employee"
+        description={`Are you sure you want to delete "${deletingEmployee?.name}"? This action cannot be undone. You can only delete employees with no outstanding balance.`}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        onConfirm={() => deleteMutation.mutateAsync(deletingEmployee._id)}
+        onCancel={() => setDeletingEmployee(null)}
+        variant="danger"
+        isSubmitting={deleteMutation.isPending}
+      />
     </div>
   );
 };

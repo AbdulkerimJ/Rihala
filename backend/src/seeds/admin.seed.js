@@ -45,6 +45,7 @@ const ALL_PERMISSIONS = [
   { name: "employees.read", description: "View employees" },
   { name: "employees.create", description: "Create employees" },
   { name: "employees.update", description: "Update employees" },
+  { name: "employees.delete", description: "Delete employees" },
 
   // Employee rate module permissions
   { name: "employeeRates.read", description: "View employee rates" },
@@ -78,6 +79,7 @@ const ALL_PERMISSIONS = [
   { name: "suppliers.read", description: "View suppliers" },
   { name: "suppliers.create", description: "Create suppliers" },
   { name: "suppliers.update", description: "Update suppliers" },
+  { name: "suppliers.delete", description: "Delete suppliers" },
 
   // Material module permissions
   { name: "materials.read", description: "View materials" },

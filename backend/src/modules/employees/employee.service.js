@@ -11,7 +11,7 @@ import { normalizePhone } from "../../core/utils/phone.js";
 import { normalizeDateValue } from "../../core/utils/date.js";
 
 const ensureEmployeeExists = async (employeeId) => {
-  const employee = await Employee.findById(employeeId);
+  const employee = await Employee.findOne({ _id: employeeId, deletedAt: null });
 
   if (!employee) {
     throw new NotFoundError("Employee not found.");
@@ -66,6 +66,23 @@ const createEmployeeService = async (data) => {
     });
 
     if (existingPhoneEmployee) {
+      if (existingPhoneEmployee.deletedAt !== null) {
+        // Restore deleted employee
+        existingPhoneEmployee.name = normalizedData.name;
+        if (normalizedData.employmentStartDate) {
+          existingPhoneEmployee.employmentStartDate = normalizedData.employmentStartDate;
+        }
+        if (normalizedData.employmentEndDate !== undefined) {
+          existingPhoneEmployee.employmentEndDate = normalizedData.employmentEndDate;
+        }
+        existingPhoneEmployee.status = normalizedData.status || "active";
+        existingPhoneEmployee.deletedAt = null;
+        existingPhoneEmployee.deletedBy = null;
+        
+        await existingPhoneEmployee.save();
+        return existingPhoneEmployee;
+      }
+
       const msg = "An employee with this phone already exists.";
       throw new ConflictError(msg, [{ field: "phone", message: msg }]);
     }
@@ -80,7 +97,9 @@ const createEmployeeService = async (data) => {
 };
 
 const getEmployeesService = async (filters = {}) => {
-  return getPaginatedQueryResult(Employee, filters, employeeQueryConfig);
+  return getPaginatedQueryResult(Employee, filters, employeeQueryConfig, {
+    query: { deletedAt: null }
+  });
 };
 
 const getEmployeeByIdService = async (employeeId) => {
@@ -88,7 +107,7 @@ const getEmployeeByIdService = async (employeeId) => {
 };
 
 const updateEmployeeService = async (employeeId, updateData) => {
-  const employee = await Employee.findById(employeeId);
+  const employee = await Employee.findOne({ _id: employeeId, deletedAt: null });
 
   if (!employee) {
     throw new NotFoundError("Employee not found.");
@@ -144,6 +163,26 @@ const getEmployeeStatsService = async (employeeId) => {
   return { totalEarned, totalPaid, currentBalance };
 };
 
+const softDeleteEmployeeService = async (employeeId, deletedByUserId) => {
+  const employee = await Employee.findOne({ _id: employeeId, deletedAt: null });
+
+  if (!employee) {
+    throw new NotFoundError("Employee not found.");
+  }
+
+  const { currentBalance } = await getEmployeeStatsService(employeeId);
+  if (currentBalance !== 0) {
+    throw new ValidationError("Employee has an outstanding balance. Settle it before deleting.");
+  }
+
+  employee.status = "inactive";
+  employee.deletedAt = new Date();
+  employee.deletedBy = deletedByUserId ?? null;
+
+  await employee.save();
+  return employee;
+};
+
 export {
   ensureEmployeeExists,
   createEmployeeService,
@@ -151,4 +190,5 @@ export {
   getEmployeeByIdService,
   updateEmployeeService,
   getEmployeeStatsService,
+  softDeleteEmployeeService,
 };

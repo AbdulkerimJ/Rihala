@@ -41,6 +41,7 @@ import { EmployeeRatesList } from "../features/employee-rates/pages/EmployeeRate
 import { TaskTypesList } from "../features/task-types/pages/TaskTypesList";
 import { TasksList } from "../features/tasks/pages/TasksList";
 import { ContractorsList } from "../features/contractors/pages/ContractorsList";
+import { ContractorDetail } from "../features/contractors/pages/ContractorDetail";
 import { ContractsList } from "../features/contracts/pages/ContractsList";
 import { ContractDetail } from "../features/contracts/pages/ContractDetail";
 import { ContractCompletionsList } from "../features/contract-completions/pages/ContractCompletionsList";
@@ -315,6 +316,14 @@ export const router = createBrowserRouter([
         element: (
           <RequirePermission permission="contractors.read">
             <ContractorsList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "contractors/:id",
+        element: (
+          <RequirePermission permission="contractors.read">
+            <ContractorDetail />
           </RequirePermission>
         ),
       },

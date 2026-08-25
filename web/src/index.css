@@ -113,3 +113,23 @@
     filter: blur(100px);
   }
 }
+
+@layer utilities {
+  .animate-sweep {
+    animation: sweep 2s infinite cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: left center;
+  }
+}
+
+@keyframes sweep {
+  0% {
+    transform: translateX(-100%) scaleX(0.3);
+  }
+  50% {
+    transform: translateX(0%) scaleX(0.8);
+  }
+  100% {
+    transform: translateX(200%) scaleX(0.3);
+  }
+}
+

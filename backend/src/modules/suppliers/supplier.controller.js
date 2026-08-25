@@ -4,6 +4,7 @@ import {
   getSuppliersService,
   getSupplierByIdService,
   updateSupplierService,
+  softDeleteSupplierService,
 } from "./supplier.service.js";
 
 const getAllSuppliersController = catchAsync(async (req, res) => {
@@ -46,9 +47,19 @@ const updateSupplierController = catchAsync(async (req, res) => {
   });
 });
 
+const softDeleteSupplierController = catchAsync(async (req, res) => {
+  const supplier = await softDeleteSupplierService(req.validatedParams.id, req.user._id);
+
+  res.status(200).json({
+    status: "success",
+    data: supplier,
+  });
+});
+
 export {
   getAllSuppliersController,
   createSupplierController,
   getSupplierByIdController,
   updateSupplierController,
+  softDeleteSupplierController,
 };

@@ -36,6 +36,17 @@ const employeeSchema = new mongoose.Schema(
       },
       default: "active",
     },
+
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
+
+    deletedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -44,6 +55,7 @@ const employeeSchema = new mongoose.Schema(
 
 employeeSchema.index({ status: 1 });
 employeeSchema.index({ employmentStartDate: 1, employmentEndDate: 1 });
+employeeSchema.index({ deletedAt: 1 });
 
 const Employee = mongoose.model("Employee", employeeSchema);
 
