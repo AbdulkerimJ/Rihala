@@ -29,6 +29,7 @@ import contractorRoutes from "./modules/contractors/contractor.routes.js";
 import contractRoutes from "./modules/contracts/contract.routes.js";
 import contractCompletionRoutes from "./modules/contractCompletions/contractCompletion.routes.js";
 import contractorPaymentRoutes from "./modules/contractorPayments/contractorPayment.routes.js";
+import analyticsRoutes from "./modules/analytics/analytics.routes.js";
 const app = express();
 
 const allowedOrigins = [
@@ -93,6 +94,7 @@ app.use("/api/v1/contractors", contractorRoutes);
 app.use("/api/v1/contracts", contractRoutes);
 app.use("/api/v1/contract-completions", contractCompletionRoutes);
 app.use("/api/v1/contractor-payments", contractorPaymentRoutes);
+app.use("/api/v1/analytics", analyticsRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

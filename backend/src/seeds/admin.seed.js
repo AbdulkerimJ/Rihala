@@ -26,6 +26,9 @@ const ALL_PERMISSIONS = [
 
   { name: "permissions.read", description: "View all permissions" },
 
+  { name: "dashboard.read", description: "View dashboard" },
+  { name: "analytics.read", description: "View analytics reports" },
+
   { name: "expenses.read", description: "View expenses" },
   { name: "expenses.create", description: "Create expenses" },
   { name: "expenses.update", description: "Update expenses" },
