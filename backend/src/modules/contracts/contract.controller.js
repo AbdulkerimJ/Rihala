@@ -4,7 +4,7 @@ import * as contractService from "./contract.service.js";
 const createContract = catchAsync(async (req, res) => {
   const contract = await contractService.createContractService(
     req.validatedBody,
-    req.user._id
+    req.user.id
   );
 
   res.status(201).json({
@@ -39,7 +39,7 @@ const cancelContract = catchAsync(async (req, res) => {
   const contract = await contractService.cancelContractService(
     req.validatedParams.id,
     req.validatedBody.cancellationReason,
-    req.user._id
+    req.user.id
   );
 
   res.status(200).json({

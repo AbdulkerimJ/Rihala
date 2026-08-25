@@ -46,7 +46,7 @@ const createContractService = async (data, userId) => {
     throw new ValidationError("Inactive contractor cannot receive a new contract.");
   }
 
-  const task = await Task.findById(data.task);
+  const task = await Task.findById(data.task).populate("taskType");
   if (!task) {
     throw new NotFoundError("Task not found.");
   }
@@ -61,6 +61,7 @@ const createContractService = async (data, userId) => {
     contractNumber,
     contractorName: contractor.name,
     taskName: task.name,
+    taskTypeName: task.taskType?.name || "Unknown",
     unitPrice: data.unitPrice !== undefined ? data.unitPrice : task.defaultUnitPrice,
     contractDate: normalizeDateValue(data.contractDate),
     expectedCompletionDate: normalizeDateValue(data.expectedCompletionDate),

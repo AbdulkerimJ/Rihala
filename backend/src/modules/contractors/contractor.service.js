@@ -5,6 +5,7 @@ import NotFoundError from "../../core/errors/NotFoundError.js";
 import ValidationError from "../../core/errors/ValidationError.js";
 import { getPaginatedQueryResult } from "../../core/utils/query.js";
 import { normalizePhone } from "../../core/utils/phone.js";
+import { getContractStatsService } from "../contracts/contract.service.js";
 import mongoose from "mongoose";
 import ContractorPayment from "../contractorPayments/contractorPayment.model.js";
 
@@ -120,23 +121,23 @@ const getContractorStatsService = async (contractorId) => {
     status: { $ne: "CANCELLED" },
   }).select("quantity unitPrice status");
 
-  const totalContractValue = contracts.reduce(
-    (sum, c) => sum + c.quantity * c.unitPrice,
-    0
-  );
+  let totalContractValue = 0;
+  let totalCompletedWorkValue = 0;
+  let totalPaid = 0;
 
-  const contractIds = contracts.map((c) => c._id);
+  for (const contract of contracts) {
+    totalContractValue += (contract.quantity * contract.unitPrice);
+    
+    // Get actual completed work and paid amount per contract
+    const stats = await getContractStatsService(contract._id);
+    totalCompletedWorkValue += (stats.completedQuantity * contract.unitPrice);
+    totalPaid += stats.totalPaid;
+  }
 
-  // Sum all active payments across those contracts
-  const paymentResult = await ContractorPayment.aggregate([
-    { $match: { contract: { $in: contractIds }, status: "active" } },
-    { $group: { _id: null, totalPaid: { $sum: "$amount" } } },
-  ]);
+  // The true balance is based ONLY on completed work
+  const currentBalance = totalCompletedWorkValue - totalPaid;
 
-  const totalPaid = paymentResult[0]?.totalPaid ?? 0;
-  const currentBalance = totalContractValue - totalPaid;
-
-  return { totalContractValue, totalPaid, currentBalance };
+  return { totalContractValue, totalCompletedWorkValue, totalPaid, currentBalance };
 };
 
 export {

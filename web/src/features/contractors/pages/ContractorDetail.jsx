@@ -99,7 +99,7 @@ export const ContractorDetail = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-4">
         <SummaryCard
           title="Total Contract Value"
           value={
@@ -112,7 +112,21 @@ export const ContractorDetail = () => {
           icon={TrendingUp}
           variant="blue"
           iconVariant="blue"
-          subtitle="From all non-cancelled contracts"
+          subtitle="Total expected value"
+        />
+        <SummaryCard
+          title="Completed Work"
+          value={
+            statsQuery.isLoading ? (
+              <div className="h-6 w-24 bg-main animate-pulse rounded" />
+            ) : (
+              <MoneyDisplay amount={stats?.totalCompletedWorkValue ?? 0} className="text-xl font-bold text-primary" />
+            )
+          }
+          icon={TrendingUp}
+          variant="brand"
+          iconVariant="brand"
+          subtitle="Earned so far"
         />
         <SummaryCard
           title="Total Paid"
@@ -125,16 +139,16 @@ export const ContractorDetail = () => {
           }
           icon={TrendingDown}
           variant="default"
-          subtitle="Cash disbursed to contractor"
+          subtitle="Amount already paid"
         />
         <SummaryCard
-          title="Outstanding Balance"
+          title="Owed Balance"
           value={
             statsQuery.isLoading ? (
               <div className="h-6 w-24 bg-main animate-pulse rounded" />
             ) : (
               <MoneyDisplay
-                amount={Math.abs(stats?.currentBalance ?? 0)}
+                amount={Math.max(stats?.currentBalance ?? 0, 0)}
                 className={`text-xl font-bold ${!stats || stats.currentBalance <= 0 ? "text-success" : "text-danger"}`}
               />
             )
@@ -142,7 +156,7 @@ export const ContractorDetail = () => {
           icon={Wallet}
           variant={!stats || stats.currentBalance <= 0 ? "success" : "danger"}
           iconVariant={!stats || stats.currentBalance <= 0 ? "success" : "danger"}
-          subtitle={!stats || stats.currentBalance <= 0 ? "Fully settled" : "Owed to contractor"}
+          subtitle={!stats || stats.currentBalance <= 0 ? "Fully paid off" : "Amount left to pay"}
         />
       </div>
 

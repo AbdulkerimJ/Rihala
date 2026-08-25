@@ -18,12 +18,12 @@ router
   .route("/")
   .get(
     authorize("contracts.read"),
-    validate(contractQuerySchema, "query"),
+    validate(contractQuerySchema, "Invalid query parameters", "query"),
     contractController.getContracts
   )
   .post(
     authorize("contracts.create"),
-    validate(createContractSchema, "body"),
+    validate(createContractSchema, "Please correct the highlighted fields", "body"),
     contractController.createContract
   );
 
@@ -31,7 +31,7 @@ router
   .route("/:id")
   .get(
     authorize("contracts.read"),
-    validate(contractIdSchema, "params"),
+    validate(contractIdSchema, "Invalid request parameters", "params"),
     contractController.getContractById
   );
 
@@ -39,8 +39,8 @@ router
   .route("/:id/cancel")
   .patch(
     authorize("contracts.cancel"),
-    validate(contractIdSchema, "params"),
-    validate(cancelContractSchema, "body"),
+    validate(contractIdSchema, "Invalid request parameters", "params"),
+    validate(cancelContractSchema, "Please correct the highlighted fields", "body"),
     contractController.cancelContract
   );
 

@@ -33,6 +33,12 @@ const contractSchema = new mongoose.Schema(
       trim: true,
       immutable: true,
     },
+    taskTypeName: {
+      type: String,
+      required: [true, "Task type name snapshot is required"],
+      trim: true,
+      immutable: true,
+    },
     quantity: {
       type: Number,
       required: [true, "Quantity is required"],
