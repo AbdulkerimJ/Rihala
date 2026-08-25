@@ -53,6 +53,8 @@ const createPaymentService = async (data, userId) => {
       const paymentData = {
         ...data,
         paymentReference,
+        contractorName: contract.contractorName,
+        contractNumber: contract.contractNumber,
         paymentDate: normalizeDateValue(data.paymentDate),
         createdBy: userId,
       };

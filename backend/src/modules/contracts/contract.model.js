@@ -14,11 +14,23 @@ const contractSchema = new mongoose.Schema(
       index: true,
       immutable: true,
     },
+    contractorName: {
+      type: String,
+      required: [true, "Contractor name snapshot is required"],
+      trim: true,
+      immutable: true,
+    },
     task: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Task",
       required: [true, "Task is required"],
       index: true,
+      immutable: true,
+    },
+    taskName: {
+      type: String,
+      required: [true, "Task name snapshot is required"],
+      trim: true,
       immutable: true,
     },
     quantity: {

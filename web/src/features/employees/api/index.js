@@ -24,3 +24,8 @@ export const getEmployeeStats = async (id) => {
   const response = await api.get(`/employees/${id}/stats`);
   return response.data;
 };
+
+export const deleteEmployee = async (id) => {
+  const response = await api.delete(`/employees/${id}`);
+  return response.data;
+};

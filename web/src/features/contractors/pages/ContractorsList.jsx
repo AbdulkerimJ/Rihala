@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { usePermission } from "../../../hooks/usePermission";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { getContractors, createContractor, updateContractor, deleteContractor } from "../api";
@@ -33,12 +34,10 @@ const contractorSchema = z.object({
     .min(2, "Name must be at least 2 characters")
     .max(100, "Name cannot exceed 100 characters"),
   phone: z
-    .string()
+    .string({ error: "Phone number is required." })
     .trim()
-    .min(5, "Phone must be at least 5 characters")
-    .max(20, "Phone cannot exceed 20 characters")
-    .optional()
-    .or(z.literal("")),
+    .min(1, "Phone number is required.")
+    .max(20, "Phone cannot exceed 20 characters"),
   notes: z
     .string()
     .trim()
@@ -48,7 +47,7 @@ const contractorSchema = z.object({
   status: z.enum(["active", "inactive"]).default("active"),
 });
 
-const ContractorForm = ({ initialData, onSubmit, onClose }) => {
+export const ContractorForm = ({ initialData, onSubmit, onClose }) => {
   const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(contractorSchema),
     defaultValues: initialData || {
@@ -78,7 +77,7 @@ const ContractorForm = ({ initialData, onSubmit, onClose }) => {
         />
       </FormField>
 
-      <FormField label="Phone (Optional)" error={errors.phone?.message}>
+      <FormField label="Phone" required error={errors.phone?.message}>
         <Input
           {...register("phone")}
           error={errors.phone?.message}
@@ -118,6 +117,7 @@ const ContractorForm = ({ initialData, onSubmit, onClose }) => {
 export const ContractorsList = () => {
   const { can } = usePermission();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({ search: "", status: "" });
   const [isOpen, setIsOpen] = useState(false);
@@ -245,6 +245,7 @@ export const ContractorsList = () => {
         columns={columns}
         data={contractors}
         keyExtractor={(row) => row._id}
+        onRowClick={(row) => navigate(`/contractors/${row._id}`)}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
         isLoading={isLoading}

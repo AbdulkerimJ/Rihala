@@ -59,6 +59,8 @@ const createContractService = async (data, userId) => {
   const contractData = {
     ...data,
     contractNumber,
+    contractorName: contractor.name,
+    taskName: task.name,
     unitPrice: data.unitPrice !== undefined ? data.unitPrice : task.defaultUnitPrice,
     contractDate: normalizeDateValue(data.contractDate),
     expectedCompletionDate: normalizeDateValue(data.expectedCompletionDate),

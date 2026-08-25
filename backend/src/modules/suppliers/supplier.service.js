@@ -59,6 +59,20 @@ const createSupplierService = async (data) => {
     });
 
     if (existingPhoneSupplier) {
+      if (existingPhoneSupplier.deletedAt !== null) {
+        // Restore deleted supplier
+        existingPhoneSupplier.name = normalizedData.name;
+        if (normalizedData.address !== undefined) existingPhoneSupplier.address = normalizedData.address;
+        if (normalizedData.note !== undefined) existingPhoneSupplier.note = normalizedData.note;
+        existingPhoneSupplier.status = normalizedData.status || "active";
+        existingPhoneSupplier.balance = 0; // reset balance
+        existingPhoneSupplier.deletedAt = null;
+        existingPhoneSupplier.deletedBy = null;
+        
+        await existingPhoneSupplier.save();
+        return existingPhoneSupplier;
+      }
+
       const msg = "A supplier with this phone already exists.";
       throw new ConflictError(msg, [{ field: "phone", message: msg }]);
     }
@@ -80,11 +94,13 @@ const getSuppliersService = async (filters = {}) => {
   // Wait, the requirements state: "The system should be able to calculate... Supplier: total purchases, total payments, outstanding amount, available credit."
   // This can be done via a separate `/suppliers/:id/stats` endpoint or injected into `getSuppliersService` when listing.
   // We'll keep listing lightweight using query.js, and maybe provide an aggregation service later.
-  return getPaginatedQueryResult(Supplier, filters, supplierQueryConfig);
+  return getPaginatedQueryResult(Supplier, filters, supplierQueryConfig, {
+    query: { deletedAt: null }
+  });
 };
 
 const getSupplierByIdService = async (supplierId) => {
-  const supplier = await Supplier.findById(supplierId);
+  const supplier = await Supplier.findOne({ _id: supplierId, deletedAt: null });
 
   if (!supplier) {
     throw new NotFoundError("Supplier not found.");
@@ -94,7 +110,7 @@ const getSupplierByIdService = async (supplierId) => {
 };
 
 const updateSupplierService = async (supplierId, updateData) => {
-  const supplier = await Supplier.findById(supplierId);
+  const supplier = await Supplier.findOne({ _id: supplierId, deletedAt: null });
 
   if (!supplier) {
     throw new NotFoundError("Supplier not found.");
@@ -128,9 +144,33 @@ const updateSupplierService = async (supplierId, updateData) => {
 // We will implement `getSupplierStatsService` later in the Purchases/Payments module 
 // and potentially attach it to the supplier response, or keep it as a separate endpoint.
 
+import ValidationError from "../../core/errors/ValidationError.js";
+
+const softDeleteSupplierService = async (supplierId, deletedByUserId) => {
+  const supplier = await Supplier.findOne({ _id: supplierId, deletedAt: null });
+
+  if (!supplier) {
+    throw new NotFoundError("Supplier not found.");
+  }
+
+  if (supplier.balance !== 0) {
+    throw new ValidationError(
+      "Supplier has an outstanding balance. Settle it before deleting."
+    );
+  }
+
+  supplier.status = "inactive";
+  supplier.deletedAt = new Date();
+  supplier.deletedBy = deletedByUserId ?? null;
+
+  await supplier.save();
+  return supplier;
+};
+
 export {
   createSupplierService,
   getSuppliersService,
   getSupplierByIdService,
   updateSupplierService,
+  softDeleteSupplierService,
 };

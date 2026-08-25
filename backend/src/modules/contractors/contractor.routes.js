@@ -18,31 +18,38 @@ router
   .route("/")
   .get(
     authorize("contractors.read"),
-    validate(contractorQuerySchema, "query"),
+    validate(contractorQuerySchema, "Please check the contractor filters.", "query"),
     contractorController.getContractors
   )
   .post(
     authorize("contractors.create"),
-    validate(createContractorSchema, "body"),
+    validate(createContractorSchema, "Please check the contractor information.", "body"),
     contractorController.createContractor
   );
+
+router.get(
+  "/:id/stats",
+  authorize("contractors.read"),
+  validate(contractorIdSchema, "Invalid contractor ID.", "params"),
+  contractorController.getContractorStats
+);
 
 router
   .route("/:id")
   .get(
     authorize("contractors.read"),
-    validate(contractorIdSchema, "params"),
+    validate(contractorIdSchema, "Invalid contractor ID.", "params"),
     contractorController.getContractorById
   )
   .patch(
     authorize("contractors.update"),
-    validate(contractorIdSchema, "params"),
-    validate(updateContractorSchema, "body"),
+    validate(contractorIdSchema, "Invalid contractor ID.", "params"),
+    validate(updateContractorSchema, "Invalid contractor data.", "body"),
     contractorController.updateContractor
   )
   .delete(
     authorize("contractors.delete"),
-    validate(contractorIdSchema, "params"),
+    validate(contractorIdSchema, "Invalid contractor ID.", "params"),
     contractorController.deleteContractor
   );
 

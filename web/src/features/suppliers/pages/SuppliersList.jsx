@@ -3,7 +3,7 @@ import { usePermission } from "../../../hooks/usePermission";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { createSupplier, getSuppliers, updateSupplier } from "../api";
+import { createSupplier, getSuppliers, updateSupplier, deleteSupplier } from "../api";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
 import { Can } from "../../../components/Can";
@@ -11,6 +11,7 @@ import { Can } from "../../../components/Can";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { Modal } from "../../../components/ui/Modal";
+import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { DataTable } from "../../../components/ui/DataTable";
@@ -100,6 +101,7 @@ export const SuppliersList = () => {
   const [filters, setFilters] = useState({ search: "", status: "" });
   const [isOpen, setIsOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState(null);
+  const [deletingSupplier, setDeletingSupplier] = useState(null);
 
   const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
 
@@ -137,6 +139,18 @@ export const SuppliersList = () => {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: deleteSupplier,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["suppliers"] });
+      toast.success("Supplier deleted successfully");
+      setDeletingSupplier(null);
+    },
+    onError: () => {
+      setDeletingSupplier(null);
+    },
+  });
+
   const columns = [
     { header: "Name", accessor: "name", className: "font-medium" },
     { header: "Phone", accessor: "phone", className: "text-secondary" },
@@ -150,6 +164,49 @@ export const SuppliersList = () => {
     },
     { header: "Status", accessor: (row) => <StatusBadge status={row.status} /> },
     { header: "Created", accessor: (row) => formatDateTime(row.createdAt), className: "text-secondary hidden lg:table-cell", hiddenOnMobile: true },
+    {
+      header: "Actions",
+      isActions: true,
+      accessor: (row) => (
+        <div className="flex gap-2 justify-end">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/suppliers/${row._id}`);
+            }}
+          >
+            View
+          </Button>
+          <Can permission="suppliers.update">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditingSupplier(row);
+                setIsOpen(true);
+              }}
+            >
+              Edit
+            </Button>
+          </Can>
+          <Can permission="suppliers.delete">
+            <Button
+              variant="ghostDanger"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeletingSupplier(row);
+              }}
+            >
+              Delete
+            </Button>
+          </Can>
+        </div>
+      ),
+    },
   ];
 
   if (isError) return <ErrorState description={getApiErrorMessage(error, "Failed to load suppliers.")} />;
@@ -205,6 +262,18 @@ export const SuppliersList = () => {
           onSubmit={(data) => editingSupplier ? updateMutation.mutateAsync({ id: editingSupplier._id, data }) : createMutation.mutateAsync(data)}
         />
       </Modal>
+
+      <ConfirmDialog
+        isOpen={!!deletingSupplier}
+        title="Delete Supplier"
+        description={`Are you sure you want to delete "${deletingSupplier?.name}"? You can only delete suppliers with a zero balance.`}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        onConfirm={() => deleteMutation.mutateAsync(deletingSupplier._id)}
+        onCancel={() => setDeletingSupplier(null)}
+        variant="danger"
+        isSubmitting={deleteMutation.isPending}
+      />
     </div>
   );
 };

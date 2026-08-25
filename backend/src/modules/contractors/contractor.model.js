@@ -11,6 +11,7 @@ const contractorSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
+      required: [true, "Phone number is required"],
       trim: true,
     },
     notes: {
@@ -26,16 +27,23 @@ const contractorSchema = new mongoose.Schema(
       default: "active",
       index: true,
     },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
+    deletedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-contractorSchema.index(
-  { phone: 1 },
-  { unique: true, sparse: true, partialFilterExpression: { phone: { $type: "string" } } }
-);
+contractorSchema.index({ phone: 1 }, { unique: true });
+contractorSchema.index({ deletedAt: 1 });
 
 const Contractor = mongoose.model("Contractor", contractorSchema);
 

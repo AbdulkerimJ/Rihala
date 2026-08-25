@@ -19,3 +19,8 @@ export const updateSupplier = async ({ id, data }) => {
   const response = await api.patch(`/suppliers/${id}`, data);
   return response.data;
 };
+
+export const deleteSupplier = async (id) => {
+  const response = await api.delete(`/suppliers/${id}`);
+  return response.data;
+};

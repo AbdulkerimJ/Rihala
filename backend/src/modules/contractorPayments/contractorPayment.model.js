@@ -14,6 +14,18 @@ const contractorPaymentSchema = new mongoose.Schema(
       index: true,
       immutable: true,
     },
+    contractNumber: {
+      type: String,
+      required: [true, "Contract number snapshot is required"],
+      trim: true,
+      immutable: true,
+    },
+    contractorName: {
+      type: String,
+      required: [true, "Contractor name snapshot is required"],
+      trim: true,
+      immutable: true,
+    },
     amount: {
       type: Number,
       required: [true, "Payment amount is required"],

@@ -5,6 +5,7 @@ import {
   getEmployeeByIdService,
   updateEmployeeService,
   getEmployeeStatsService,
+  softDeleteEmployeeService,
 } from "./employee.service.js";
 
 const getAllEmployeesController = catchAsync(async (req, res) => {
@@ -56,10 +57,20 @@ const getEmployeeStatsController = catchAsync(async (req, res) => {
   });
 });
 
+const softDeleteEmployeeController = catchAsync(async (req, res) => {
+  const employee = await softDeleteEmployeeService(req.validatedParams.id, req.user._id);
+
+  res.status(200).json({
+    status: "success",
+    data: employee,
+  });
+});
+
 export {
   getAllEmployeesController,
   createEmployeeController,
   getEmployeeByIdController,
   updateEmployeeController,
   getEmployeeStatsController,
+  softDeleteEmployeeController,
 };

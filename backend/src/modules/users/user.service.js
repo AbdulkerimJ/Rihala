@@ -68,10 +68,57 @@ const populateUserRoles = async (user) =>
 
 // Create a new invited user (no password required).
 // Generates a secure invitation token and logs the invite link to the console.
+// If the email belongs to a soft-deleted user, the account is restored and re-invited
+// instead of creating a duplicate document.
 const createUserService = async ({ name, email, roles }) => {
   const existingUser = await User.findOne({ email });
 
   if (existingUser) {
+    // Deleted user with same email → restore the document and re-invite
+    if (existingUser.deletedAt !== null) {
+      existingUser.name = name;
+      existingUser.roles = roles || [];
+      existingUser.status = "invited";
+      existingUser.emailVerified = false;
+      existingUser.deletedAt = null;
+      existingUser.deletedBy = null;
+      await existingUser.save();
+
+      // Purge any stale tokens for this user before issuing a fresh one
+      await VerificationToken.deleteMany({
+        user: existingUser._id,
+        type: "invitation",
+      });
+
+      const rawToken = generateRandomToken();
+      const tokenHash = hashToken(rawToken);
+      const expiresAt = getInvitationExpiresAt();
+      const rawCode = generateInvitationCode();
+      const codeHash = hashToken(rawCode);
+
+      await VerificationToken.create({
+        user: existingUser._id,
+        type: "invitation",
+        tokenHash,
+        expiresAt,
+        codeHash,
+        codeExpiresAt: expiresAt,
+        codeAttempts: 0,
+      });
+
+      const clientUrl = process.env.CLIENT_URL;
+      const invitationLink = `${clientUrl}/accept-invitation/${rawToken}`;
+
+      await sendInvitationEmail(email, invitationLink);
+
+      console.log(
+        `[INVITATION] Restored deleted user and re-sent invitation to ${email}:\n  Link: ${invitationLink}\n  Code: ${rawCode}\n  Expires: ${expiresAt.toISOString()}`,
+      );
+
+      return { user: await populateUserRoles(existingUser), invitationCode: rawCode };
+    }
+
+    // Active or inactive user → real conflict
     const msg = "Email already exists.";
     throw new ConflictError(msg, [{ field: "email", message: msg }]);
   }

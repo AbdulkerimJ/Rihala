@@ -8,6 +8,7 @@ import {
   createSupplierController,
   getSupplierByIdController,
   updateSupplierController,
+  softDeleteSupplierController,
 } from "./supplier.controller.js";
 import {
   createSupplierSchema,
@@ -47,6 +48,13 @@ router.patch(
   validate(supplierIdSchema, "Please check the supplier id.", "params"),
   validate(updateSupplierSchema, "Please check the supplier information."),
   updateSupplierController,
+);
+
+router.delete(
+  "/:id",
+  authorize("suppliers.delete"),
+  validate(supplierIdSchema, "Please check the supplier id.", "params"),
+  softDeleteSupplierController,
 );
 
 export default router;

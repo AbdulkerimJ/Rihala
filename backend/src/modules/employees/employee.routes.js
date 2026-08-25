@@ -9,6 +9,7 @@ import {
   getEmployeeByIdController,
   updateEmployeeController,
   getEmployeeStatsController,
+  softDeleteEmployeeController,
 } from "./employee.controller.js";
 import {
   createEmployeeSchema,
@@ -55,6 +56,13 @@ router.patch(
   validate(employeeIdSchema, "Please check the employee id.", "params"),
   validate(updateEmployeeSchema, "Please check the employee information."),
   updateEmployeeController,
+);
+
+router.delete(
+  "/:id",
+  authorize("employees.delete"),
+  validate(employeeIdSchema, "Please check the employee id.", "params"),
+  softDeleteEmployeeController,
 );
 
 export default router;

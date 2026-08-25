@@ -26,16 +26,16 @@ export const unwrapListResponse = (payload) => {
 
 export const unwrapEntityResponse = (payload) => {
   const data = payload?.data;
+  if (!data || typeof data !== "object") return data ?? null;
 
-  if (data?.user) {
-    return data.user;
+  const keys = Object.keys(data);
+  // If the wrapper contains exactly one key (e.g. { contractor: {...} }) 
+  // and the value is a nested object (the actual Mongoose document), unwrap it.
+  if (keys.length === 1 && typeof data[keys[0]] === "object" && !Array.isArray(data[keys[0]]) && data[keys[0]] !== null) {
+    return data[keys[0]];
   }
 
-  if (data?.role) {
-    return data.role;
-  }
-
-  return data ?? null;
+  return data;
 };
 
 export const getApiErrorMessage = (

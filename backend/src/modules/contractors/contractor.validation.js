@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { emptyToUndefined } from "../../core/utils/zod.js";
-
+import { isValidEthiopianPhone } from "../../core/utils/phone.js";
 
 
 const createContractorSchema = z.object({
@@ -9,7 +9,13 @@ const createContractorSchema = z.object({
     .trim()
     .min(2, "Name must be at least 2 characters")
     .max(100, "Name cannot exceed 100 characters"),
-  phone: emptyToUndefined(z.string().trim().min(5, "Phone must be at least 5 characters").optional().nullable()),
+  phone: z
+    .string({ error: "Phone number is required." })
+    .trim()
+    .min(1, "Phone number is required.")
+    .refine((value) => isValidEthiopianPhone(value), {
+      message: "Please enter a valid Ethiopian phone number.",
+    }),
   notes: emptyToUndefined(z.string().trim().max(1000, "Notes cannot exceed 1000 characters").optional().nullable()),
   status: z.enum(["active", "inactive"]).optional().default("active"),
 }).strict();
@@ -21,7 +27,16 @@ const updateContractorSchema = z.object({
     .min(2, "Name must be at least 2 characters")
     .max(100, "Name cannot exceed 100 characters")
     .optional(),
-  phone: emptyToUndefined(z.string().trim().min(5, "Phone must be at least 5 characters").optional().nullable()),
+  phone: emptyToUndefined(
+    z
+      .string()
+      .trim()
+      .min(1, "Phone number is required.")
+      .refine((value) => isValidEthiopianPhone(value), {
+        message: "Please enter a valid Ethiopian phone number.",
+      })
+      .optional()
+  ),
   notes: emptyToUndefined(z.string().trim().max(1000, "Notes cannot exceed 1000 characters").optional().nullable()),
   status: z.enum(["active", "inactive"]).optional(),
 }).strict().refine((data) => Object.keys(data).length > 0, {
