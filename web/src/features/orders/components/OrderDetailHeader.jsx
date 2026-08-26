@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Edit3, Plus, Check } from "lucide-react";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { Button } from "../../../components/ui/Button";
@@ -15,18 +15,21 @@ export const OrderDetailHeader = ({
 }) => {
   const isCompleted = order?.status === "completed";
   const isCancelled = order?.status === "cancelled";
+  const navigate = useNavigate();
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-surface p-5 shadow-sm sm:flex sm:items-center justify-between gap-4">
       <div className="flex items-center gap-4 relative z-10">
-        <Link
-          to="/orders"
-          className="inline-flex items-center justify-center h-10 w-10 rounded-xl border border-border/60 bg-surface/50 text-secondary hover:text-primary hover:bg-main hover:shadow-sm transition-all shrink-0 backdrop-blur-sm"
-          title="Back to orders"
-          aria-label="Back to orders"
+        <Button
+          variant="secondary"
+          size="icon"
+          onClick={() => navigate(-1)}
+          title="Go back"
+          aria-label="Go back"
+          className="shrink-0 rounded-xl"
         >
           <ArrowLeft className="h-4 w-4" />
-        </Link>
+        </Button>
         <div className="space-y-1">
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-2xl sm:text-3xl font-bold text-primary font-display tracking-tight flex items-center gap-2">

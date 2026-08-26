@@ -192,9 +192,68 @@ export const EmployeesList = () => {
     },
   });
 
+  const getInitials = (name) => {
+    if (!name) return "?";
+    return name.trim().charAt(0).toUpperCase();
+  };
+
+  const mobileRenderer = (row) => (
+    <div className="p-4 sm:p-5 flex flex-col gap-3">
+      <div className="flex justify-between items-start">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-accent to-accent/60 text-white font-bold text-lg shadow-sm shrink-0">
+            {getInitials(row.name)}
+          </div>
+          <div>
+            <h4 className="font-bold text-primary leading-tight text-base">{row.name}</h4>
+            <span className="text-sm text-secondary mt-0.5 inline-flex items-center gap-1">
+               {row.phone || "No phone"}
+            </span>
+          </div>
+        </div>
+        <StatusBadge status={row.status} />
+      </div>
+      
+      <div className="flex items-center justify-between mt-2 pt-3 border-t border-border/50">
+        <div className="text-xs text-secondary font-medium">
+          Started: <span className="text-primary font-semibold">{formatDate(row.employmentStartDate)}</span>
+        </div>
+        <div className="flex gap-2">
+          <Can permission="employees.update">
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditingEmployee(row);
+                setIsOpen(true);
+              }}
+            >
+              <span className="sr-only">Edit</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-edit-3"><path d="M12 20h9"/><path d="M16.376 3.622a2.123 2.123 0 1 1 3.004 3.004L7.142 18.86a2 2 0 0 1-1.238.56l-3.32.72 1.48-2.96a2 2 0 0 1 .56-1.238Z"/></svg>
+            </Button>
+          </Can>
+          <Can permission="employees.delete">
+            <Button
+              variant="ghostDanger"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeletingEmployee(row);
+              }}
+            >
+              <span className="sr-only">Delete</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </Button>
+          </Can>
+        </div>
+      </div>
+    </div>
+  );
+
   const columns = [
-    { header: "Name", accessor: "name", className: "font-medium" },
-    { header: "Phone", accessor: "phone", className: "text-secondary" },
+    { header: "Name", accessor: "name", className: "font-bold text-primary" },
+    { header: "Phone", accessor: "phone", className: "text-secondary font-medium" },
     {
       header: "Start Date",
       accessor: (row) => formatDate(row.employmentStartDate),
@@ -286,6 +345,7 @@ export const EmployeesList = () => {
         data={employees}
         keyExtractor={(row) => row._id}
         onRowClick={(row) => navigate(`/employees/${row._id}`)}
+        mobileRenderer={mobileRenderer}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
         isLoading={isLoading}
