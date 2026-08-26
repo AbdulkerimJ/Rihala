@@ -38,6 +38,8 @@ import {
 
 import { NavGroup } from "./NavGroup";
 import { SidebarBrand } from "./SidebarBrand";
+import { BottomNav } from "./BottomNav";
+import { MobileDrawer } from "./MobileDrawer";
 
 export const DashboardLayout = () => {
   const { currentUser, logout } = useAuth();
@@ -45,6 +47,7 @@ export const DashboardLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [isDrawerOpen, setDrawerOpen] = useState(false);
 
   const sectionTitle = useMemo(() => {
     const sectionMap = {
@@ -150,7 +153,7 @@ export const DashboardLayout = () => {
 
   return (
     <div className="flex h-screen text-primary relative z-0 bg-main">
-      {/* Mobile sidebar backdrop */}
+      {/* Desktop sidebar backdrop (mobile uses MobileDrawer instead) */}
       {isSidebarOpen && (
         <div
           className="fixed inset-0 z-20 bg-black/50 lg:hidden backdrop-blur-sm transition-opacity"
@@ -158,11 +161,11 @@ export const DashboardLayout = () => {
         ></div>
       )}
 
-      {/* Sidebar */}
+      {/* Desktop Sidebar — hidden on mobile, shown on lg+ */}
       <aside
         className={`fixed inset-y-0 left-0 z-30 flex w-[260px] transform flex-col bg-main transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        } hidden lg:flex`}
       >
         {/* Brand Area */}
         <SidebarBrand setSidebarOpen={setSidebarOpen} />
@@ -192,13 +195,23 @@ export const DashboardLayout = () => {
           onMobileMenuToggle={() => setSidebarOpen(true)}
         />
 
-        {/* Main section */}
-        <main className="flex-1 overflow-y-auto bg-surface rounded-tl-2xl sm:rounded-tl-3xl p-4 sm:p-6 lg:p-8 border-t border-l border-border/70 shadow-xs relative">
+        {/* Main section — pb-20 on mobile to clear the bottom nav */}
+        <main className="flex-1 overflow-y-auto bg-surface rounded-tl-2xl sm:rounded-tl-3xl p-4 sm:p-6 lg:p-8 border-t border-l border-border/70 shadow-xs relative pb-20 lg:pb-8">
           <ErrorBoundary key={location.pathname}>
             <Outlet />
           </ErrorBoundary>
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation — only on < lg */}
+      <BottomNav onMoreClick={() => setDrawerOpen(true)} />
+
+      {/* Mobile Drawer — slide-up "More" sheet */}
+      <MobileDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        navGroups={navGroups}
+      />
     </div>
   );
 };
