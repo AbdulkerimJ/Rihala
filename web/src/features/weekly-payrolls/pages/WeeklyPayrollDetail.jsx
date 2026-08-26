@@ -98,82 +98,62 @@ export const WeeklyPayrollDetail = () => {
             </div>
           </DetailSection>
           
-          <DetailSection title={`Daily Rate & Attendance Snapshot (${payroll.dailyBreakdown?.length === 1 ? "1 Day" : `${payroll.dailyBreakdown?.length || 0} Days`})`} className="p-0">
-             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-border">
-                <thead className="bg-main/50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs uppercase tracking-wider text-secondary">Date</th>
-                    <th className="px-4 py-3 text-left text-xs uppercase tracking-wider text-secondary">Morning</th>
-                    <th className="px-4 py-3 text-left text-xs uppercase tracking-wider text-secondary">Afternoon</th>
-                    <th className="px-4 py-3 text-left text-xs uppercase tracking-wider text-secondary">Portion</th>
-                    <th className="px-4 py-3 text-left text-xs uppercase tracking-wider text-secondary">Applied Rate</th>
-                    <th className="px-4 py-3 text-right text-xs uppercase tracking-wider text-secondary">Earnings</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border bg-surface">
-                  {payroll.dailyBreakdown?.length > 0 ? payroll.dailyBreakdown.map((item, index) => (
-                    <tr key={item._id || index}>
-                      <td className="px-4 py-3 text-sm text-primary font-medium">{formatDate(item.workDate)}</td>
-                      <td className="px-4 py-3 text-sm">
-                        <StatusBadge status={item.morningStatus} />
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <StatusBadge status={item.afternoonStatus} />
-                      </td>
-                      <td className="px-4 py-3 text-sm text-secondary">
-                        {item.portion === 1 ? "1.0 (Full)" : item.portion === 0.5 ? "0.5 (Half)" : "0.0 (Absent)"}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-primary">
-                        <MoneyDisplay amount={item.dailyRate} />
-                      </td>
-                      <td className="px-4 py-3 text-sm text-right">
+          <DetailSection title={`Daily Rate & Attendance Snapshot (${payroll.dailyBreakdown?.length === 1 ? "1 Day" : `${payroll.dailyBreakdown?.length || 0} Days`})`} className="p-0 bg-transparent border-0 shadow-none">
+            {payroll.dailyBreakdown?.length > 0 ? (
+              <div className="flex flex-col gap-3 mt-4">
+                {payroll.dailyBreakdown.map((item, index) => (
+                  <div key={item._id || index} className="p-4 rounded-xl border border-border/80 bg-surface shadow-sm hover:shadow-md transition-all">
+                    <div className="flex justify-between items-start mb-3 pb-3 border-b border-border/50">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-primary">{formatDate(item.workDate)}</span>
+                        <span className="text-xs text-secondary mt-0.5">
+                          {item.portion === 1 ? "Full Day" : item.portion === 0.5 ? "Half Day" : "Absent"} • Rate: {formatCurrency(item.dailyRate)}
+                        </span>
+                      </div>
+                      <span className="text-base font-black text-primary tracking-tight">
                         <MoneyDisplay amount={item.earnings} />
-                      </td>
-                    </tr>
-                  )) : (
-                    <tr>
-                      <td colSpan={6} className="px-6 py-4 text-sm text-secondary text-center">No daily snapshot records available for this payroll.</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <StatusBadge status={item.morningStatus} className="text-[10px] px-2 py-0.5" />
+                      <StatusBadge status={item.afternoonStatus} className="text-[10px] px-2 py-0.5" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 mt-4 text-center rounded-xl border border-dashed border-border/80 bg-surface/50">
+                <Calendar className="h-8 w-8 mx-auto text-muted mb-2" />
+                <p className="text-sm font-medium text-secondary">No daily snapshot records available.</p>
+              </div>
+            )}
           </DetailSection>
 
-          <DetailSection title={`Overtime Snapshot (${payroll.overtimeBreakdown?.length === 1 ? "1 Day" : `${payroll.overtimeBreakdown?.length || 0} Days`})`} className="p-0">
-             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-border">
-                <thead className="bg-main/50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs uppercase tracking-wider text-secondary">Date</th>
-                    <th className="px-4 py-3 text-left text-xs uppercase tracking-wider text-secondary">Duration</th>
-                    <th className="px-4 py-3 text-left text-xs uppercase tracking-wider text-secondary">Applied Rate</th>
-                    <th className="px-4 py-3 text-right text-xs uppercase tracking-wider text-secondary">Earnings</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border bg-surface">
-                  {payroll.overtimeBreakdown?.length > 0 ? payroll.overtimeBreakdown.map((item, index) => (
-                    <tr key={item._id || index}>
-                      <td className="px-4 py-3 text-sm text-primary font-medium">{formatDate(item.workDate)}</td>
-                      <td className="px-4 py-3 text-sm text-secondary">
-                        {item.duration === 'FULL_DAY' ? "Full Day" : "Half Day"}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-primary">
-                        <MoneyDisplay amount={item.dailyRate} />
-                      </td>
-                      <td className="px-4 py-3 text-sm text-right">
+          <DetailSection title={`Overtime Snapshot (${payroll.overtimeBreakdown?.length === 1 ? "1 Day" : `${payroll.overtimeBreakdown?.length || 0} Days`})`} className="p-0 bg-transparent border-0 shadow-none mt-6">
+            {payroll.overtimeBreakdown?.length > 0 ? (
+              <div className="flex flex-col gap-3 mt-4">
+                {payroll.overtimeBreakdown.map((item, index) => (
+                  <div key={item._id || index} className="p-4 rounded-xl border border-border/80 bg-surface shadow-sm">
+                    <div className="flex justify-between items-start mb-3 pb-3 border-b border-border/50">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-primary">{formatDate(item.workDate)}</span>
+                        <span className="text-xs text-secondary mt-0.5">
+                          {item.duration === 'FULL_DAY' ? "Full Day Overtime" : "Half Day Overtime"} • Rate: {formatCurrency(item.dailyRate)}
+                        </span>
+                      </div>
+                      <span className="text-base font-black text-primary tracking-tight">
                         <MoneyDisplay amount={item.earnings} />
-                      </td>
-                    </tr>
-                  )) : (
-                    <tr>
-                      <td colSpan={4} className="px-6 py-4 text-sm text-secondary text-center">No overtime recorded for this period.</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 mt-4 text-center rounded-xl border border-dashed border-border/80 bg-surface/50">
+                <Clock className="h-8 w-8 mx-auto text-muted mb-2" />
+                <p className="text-sm font-medium text-secondary">No overtime recorded for this period.</p>
+              </div>
+            )}
           </DetailSection>
         </div>
 
