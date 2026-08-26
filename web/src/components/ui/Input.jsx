@@ -17,9 +17,9 @@ export const Input = forwardRef(
     ref
   ) => {
     const sizeClasses = {
-      sm: "px-2.5 py-1.5 text-xs rounded-md",
-      md: "px-3 py-2 text-sm rounded-md",
-      lg: "px-4 py-2.5 text-sm rounded-xl",
+      sm: "px-2.5 py-1.5 text-xs rounded-md h-9",
+      md: "px-3 py-2 text-sm rounded-md h-11",
+      lg: "px-4 py-2.5 text-sm rounded-xl h-12",
     };
 
     const baseClasses =

@@ -18,9 +18,9 @@ export const Select = forwardRef(
     ref
   ) => {
     const sizeClasses = {
-      sm: "pl-2.5 pr-8 py-1.5 text-xs rounded-md",
-      md: "pl-3 pr-10 py-2 text-sm rounded-lg",
-      lg: "pl-4 pr-10 py-2.5 text-sm rounded-xl",
+      sm: "pl-2.5 pr-8 py-1.5 text-xs rounded-md h-9",
+      md: "pl-3 pr-10 py-2 text-sm rounded-lg h-11",
+      lg: "pl-4 pr-10 py-2.5 text-sm rounded-xl h-12",
     };
 
     const baseClasses =
