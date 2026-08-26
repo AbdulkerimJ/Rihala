@@ -1,8 +1,7 @@
 import React from "react";
-import { Button } from "./Button";
 import { TableSkeleton } from "./skeletons";
-import { Loader2 } from "lucide-react";
 import { LoadingBar } from "./LoadingBar";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export const DataTable = ({
   columns,
@@ -19,7 +18,6 @@ export const DataTable = ({
   if (isLoading) {
     return (
       <div className="w-full">
-        {/* We can import TableSkeleton directly or build it. Wait, I should import it at the top! */}
         <TableSkeleton columns={columns.length} rows={pagination?.limit || 5} />
       </div>
     );
@@ -37,7 +35,7 @@ export const DataTable = ({
     <div className="w-full relative">
       <LoadingBar isLoading={isFetching && !isLoading} />
 
-      {/* Desktop Table View (hidden on small screens) */}
+      {/* ── Desktop Table View ── */}
       <div className="hidden lg:block overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
         <table className="min-w-full divide-y divide-border">
           <thead className="bg-main/50">
@@ -45,7 +43,7 @@ export const DataTable = ({
               {columns.map((col, index) => (
                 <th
                   key={index}
-                  className={`px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-secondary ${
+                  className={`px-5 py-3.5 text-left text-xs font-bold uppercase tracking-wider text-secondary ${
                     col.headerClassName || ""
                   }`}
                 >
@@ -59,7 +57,7 @@ export const DataTable = ({
               <tr
                 key={keyExtractor(row)}
                 onClick={() => onRowClick && onRowClick(row)}
-                className={`hover:bg-main/50 ${
+                className={`hover:bg-main/50 transition-colors ${
                   onRowClick ? "cursor-pointer" : ""
                 }`}
               >
@@ -71,7 +69,7 @@ export const DataTable = ({
                   return (
                     <td
                       key={colIndex}
-                      className={`px-5 py-3 text-sm ${
+                      className={`px-5 py-3.5 text-sm ${
                         col.className || "text-primary"
                       }`}
                     >
@@ -85,67 +83,87 @@ export const DataTable = ({
         </table>
       </div>
 
-      {/* Mobile Card View (hidden on large screens) */}
-      <div className="grid grid-cols-1 gap-4 lg:hidden">
+      {/* ── Mobile Card View ── */}
+      <div className="flex flex-col gap-3 lg:hidden">
         {data.map((row) => (
           <div
             key={keyExtractor(row)}
             onClick={() => onRowClick && onRowClick(row)}
-            className={`rounded-xl border border-border bg-surface p-4 shadow-sm hover:bg-main/50 ${
-              onRowClick ? "cursor-pointer" : ""
-            }`}
+            className={`
+              relative rounded-xl border border-border bg-surface shadow-sm overflow-hidden
+              transition-colors duration-150
+              hover:bg-main/40 active:bg-main/60
+              ${onRowClick ? "cursor-pointer" : ""}
+            `}
           >
             {mobileRenderer ? (
               mobileRenderer(row)
             ) : (
-              <div className="space-y-3">
-                {columns.map((col, index) => {
-                  if (col.hiddenOnMobile) return null;
-                  const content =
-                    typeof col.accessor === "function"
-                      ? col.accessor(row)
-                      : row[col.accessor];
-                  
-                  // If it's an actions column, render it differently
-                  if (col.header === "Actions" || col.isActions) {
+              <div className="p-4">
+                <div className="space-y-2.5">
+                  {columns.map((col, index) => {
+                    if (col.hiddenOnMobile) return null;
+                    const content =
+                      typeof col.accessor === "function"
+                        ? col.accessor(row)
+                        : row[col.accessor];
+
+                    // Actions column — full-width buttons at the bottom
+                    if (col.header === "Actions" || col.isActions) {
+                      return (
+                        <div
+                          key={index}
+                          className="pt-3 mt-1 border-t border-border/60 flex justify-end gap-2"
+                        >
+                          {content}
+                        </div>
+                      );
+                    }
+
+                    // First non-action column = primary field → bigger text
+                    const isPrimary = index === 0;
+
                     return (
-                      <div key={index} className="pt-2 border-t border-border mt-2 flex justify-end">
-                        {content}
+                      <div key={index} className="flex items-center justify-between gap-3">
+                        <span className="text-xs font-semibold text-secondary shrink-0">
+                          {col.header}
+                        </span>
+                        <div
+                          className={`text-right min-w-0 ${
+                            isPrimary
+                              ? "text-sm font-bold text-primary truncate"
+                              : "text-sm text-primary"
+                          }`}
+                        >
+                          {content}
+                        </div>
                       </div>
                     );
-                  }
-
-                  return (
-                    <div key={index} className="flex justify-between items-center gap-2">
-                      <span className="text-xs font-medium text-secondary">{col.header}</span>
-                      <div className="text-sm text-primary text-right">{content}</div>
-                    </div>
-                  );
-                })}
+                  })}
+                </div>
               </div>
             )}
           </div>
         ))}
       </div>
 
-      {/* Pagination */}
+      {/* ── Pagination ── */}
       {pagination && (
-        <div className="mt-4 flex items-center justify-between text-sm text-secondary px-2">
-          <div>
-            Page {pagination.page} of {pagination.totalPages || 1}
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
+        <div className="mt-4 flex items-center justify-between text-sm text-secondary px-1">
+          <span className="text-xs text-secondary">
+            Page <span className="font-bold text-primary">{pagination.page}</span> of{" "}
+            <span className="font-bold text-primary">{pagination.totalPages || 1}</span>
+          </span>
+          <div className="flex items-center gap-1.5">
+            <button
               onClick={() => onPageChange(Math.max(1, pagination.page - 1))}
               disabled={pagination.page <= 1}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface text-secondary hover:text-primary hover:bg-main disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              aria-label="Previous page"
             >
-              Previous
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
               onClick={() =>
                 onPageChange(
                   pagination.totalPages
@@ -156,9 +174,11 @@ export const DataTable = ({
               disabled={
                 pagination.totalPages ? pagination.page >= pagination.totalPages : false
               }
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface text-secondary hover:text-primary hover:bg-main disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              aria-label="Next page"
             >
-              Next
-            </Button>
+              <ChevronRight className="h-4 w-4" />
+            </button>
           </div>
         </div>
       )}
