@@ -74,7 +74,7 @@ export const MobileDrawer = ({ isOpen, onClose, navGroups }) => {
         </div>
 
         {/* Nav content — scrollable */}
-        <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-5">
+        <nav className="flex-1 overflow-y-auto px-4 py-4 pb-safe space-y-6">
           {navGroups.map((group, idx) => {
             const accessibleItems = group.items.filter(
               (item) => !item.permission || can(item.permission)
@@ -86,57 +86,88 @@ export const MobileDrawer = ({ isOpen, onClose, navGroups }) => {
             return (
               <div key={idx}>
                 {/* Group header */}
-                {group.title && !group.isFlat && (
-                  <div className="flex items-center gap-2 mb-2 px-1">
-                    {GroupIcon && (
-                      <div className="flex h-6 w-6 items-center justify-center rounded-md bg-accent/10">
-                        <GroupIcon className="h-3.5 w-3.5 text-accent" />
-                      </div>
-                    )}
-                    <span className="text-xs font-bold uppercase tracking-widest text-secondary">
-                      {group.title}
-                    </span>
+                {group.title && !group.isFlat ? (
+                  <div className="flex items-center gap-2.5 mb-3 px-0.5">
+                    <div className="flex-1 h-px bg-border/60" />
+                    <div className="flex items-center gap-1.5">
+                      {GroupIcon && (
+                        <div className="flex h-5 w-5 items-center justify-center rounded-md bg-accent/10">
+                          <GroupIcon className="h-3 w-3 text-accent" />
+                        </div>
+                      )}
+                      <span className="text-[10px] font-black uppercase tracking-widest text-secondary">
+                        {group.title}
+                      </span>
+                    </div>
+                    <div className="flex-1 h-px bg-border/60" />
                   </div>
-                )}
+                ) : null}
 
-                {/* Items grid */}
-                <div className="grid grid-cols-3 gap-2">
-                  {accessibleItems.map((item) => {
-                    const ItemIcon = item.icon;
-                    const isActive = location.pathname.startsWith(item.path);
-                    return (
-                      <NavLink
-                        key={item.path}
-                        to={item.path}
-                        className={`flex flex-col items-center justify-center gap-1.5 rounded-xl p-3 text-center transition-colors duration-150 min-h-[72px] ${
-                          isActive
-                            ? "bg-accent/10 text-accent border border-accent/20"
-                            : "bg-surface text-secondary hover:bg-main hover:text-primary border border-border/50"
-                        }`}
-                      >
-                        <ItemIcon
-                          className={`h-5 w-5 shrink-0 ${
-                            isActive ? "text-accent" : "text-secondary"
-                          }`}
-                          strokeWidth={isActive ? 2.5 : 2}
-                        />
-                        <span
-                          className={`text-[10px] font-semibold leading-tight text-center line-clamp-2 ${
-                            isActive ? "text-accent" : "text-secondary"
+                {/* Items — flat (Main) section gets larger 2-col tiles */}
+                {group.isFlat ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    {accessibleItems.map((item) => {
+                      const ItemIcon = item.icon;
+                      const isActive = location.pathname.startsWith(item.path);
+                      return (
+                        <NavLink
+                          key={item.path}
+                          to={item.path}
+                          className={`flex items-center gap-3 rounded-xl px-4 py-3.5 transition-colors duration-150 border ${
+                            isActive
+                              ? "bg-accent/10 text-accent border-accent/25 shadow-sm"
+                              : "bg-surface text-secondary hover:bg-main hover:text-primary border-border/60"
                           }`}
                         >
-                          {item.name}
-                        </span>
-                      </NavLink>
-                    );
-                  })}
-                </div>
+                          <ItemIcon
+                            className={`h-5 w-5 shrink-0 ${isActive ? "text-accent" : "text-secondary"}`}
+                            strokeWidth={isActive ? 2.5 : 2}
+                          />
+                          <span className={`text-sm font-bold leading-tight ${isActive ? "text-accent" : "text-secondary"}`}>
+                            {item.name}
+                          </span>
+                        </NavLink>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  /* Regular groups — 3-column icon tiles */
+                  <div className="grid grid-cols-3 gap-2">
+                    {accessibleItems.map((item) => {
+                      const ItemIcon = item.icon;
+                      const isActive = location.pathname.startsWith(item.path);
+                      return (
+                        <NavLink
+                          key={item.path}
+                          to={item.path}
+                          className={`flex flex-col items-center justify-center gap-1.5 rounded-xl p-3 text-center transition-colors duration-150 min-h-[68px] border ${
+                            isActive
+                              ? "bg-accent/10 text-accent border-accent/20 shadow-sm"
+                              : "bg-surface text-secondary hover:bg-main hover:text-primary border-border/50"
+                          }`}
+                        >
+                          <ItemIcon
+                            className={`h-5 w-5 shrink-0 ${isActive ? "text-accent" : "text-secondary"}`}
+                            strokeWidth={isActive ? 2.5 : 2}
+                          />
+                          <span
+                            className={`text-[10px] font-semibold leading-tight text-center line-clamp-2 ${
+                              isActive ? "text-accent" : "text-secondary"
+                            }`}
+                          >
+                            {item.name}
+                          </span>
+                        </NavLink>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}
 
           {/* Bottom safe area spacer */}
-          <div className="h-4" />
+          <div className="h-6" />
         </nav>
       </div>
     </>,

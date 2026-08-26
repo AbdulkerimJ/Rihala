@@ -74,8 +74,7 @@ export const BottomNav = ({ onMoreClick }) => {
 
   return (
     <nav
-      className="fixed bottom-0 inset-x-0 z-40 lg:hidden bg-main border-t border-border/80 shadow-2xl"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      className="fixed bottom-0 inset-x-0 z-40 lg:hidden bg-main border-t border-border/80 shadow-2xl pb-safe"
     >
       <div className="flex items-stretch justify-around h-16">
         {visibleTabs.map((tab) => {

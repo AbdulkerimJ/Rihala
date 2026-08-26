@@ -120,7 +120,7 @@ export const Modal = ({
           </div>
         )}
 
-        <div className="overflow-y-auto flex-1" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+        <div className="overflow-y-auto flex-1 pb-safe">
           {children}
         </div>
       </div>
