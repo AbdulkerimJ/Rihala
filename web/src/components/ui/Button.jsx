@@ -12,10 +12,11 @@ const variantStyles = {
 
 const sizeStyles = {
   xs: "px-2 py-1 text-xs gap-1",
-  sm: "px-3 py-1.5 text-sm gap-1.5",
-  md: "px-4 py-2 text-sm gap-2",
-  lg: "px-6 py-3 text-base gap-2.5",
-  icon: "p-1.5",
+  sm: "px-3 py-1.5 text-sm gap-1.5 h-8",
+  md: "px-4 py-2 text-sm gap-2 min-h-[40px]",
+  lg: "px-6 py-3 text-base gap-2.5 min-h-[48px]",
+  touch: "px-6 py-3 text-base gap-2 min-h-[48px] w-full sm:w-auto",
+  icon: "p-2 min-h-[40px] min-w-[40px]",
   none: "",
 };
 

@@ -1,22 +1,25 @@
-import React from "react";
-import { useParams, Link } from "react-router-dom";
+import React, { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getEmployeeById, getEmployeeStats } from "../api";
 import { DetailSkeleton } from "../../../components/ui/skeletons";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { SummaryCard } from "../../../components/ui/SummaryCard";
-import { DetailSection } from "../../../components/ui/DetailSection";
+import { DetailSection, DetailItem } from "../../../components/ui/DetailSection";
 import { SystemInfoSection } from "../../../components/ui/SystemInfoSection";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
+import { Button } from "../../../components/ui/Button";
 import { getApiErrorMessage, unwrapEntityResponse } from "../../../utils/apiResponse";
 import { formatDate } from "../../../utils/formatters";
 import { usePermission } from "../../../hooks/usePermission";
-import { User, Briefcase, Calendar, ArrowLeft, TrendingUp, TrendingDown, Wallet } from "lucide-react";
+import { ArrowLeft, TrendingUp, TrendingDown, Wallet, Phone, Calendar, Clock, Banknote } from "lucide-react";
 
 export const EmployeeDetail = () => {
   const { id } = useParams();
   const { can } = usePermission();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'financials'
   
   const employeeQuery = useQuery({
     queryKey: ["employees", id],
@@ -39,117 +42,140 @@ export const EmployeeDetail = () => {
     return <ErrorState description={getApiErrorMessage(employeeQuery.error, "Failed to load employee details.")} />;
   }
 
+  const getInitials = (name) => {
+    if (!name) return "?";
+    return name.trim().charAt(0).toUpperCase();
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-4">
-        <div className="flex items-center gap-3">
-          <Link
-            to="/employees"
-            className="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-border bg-surface text-secondary hover:text-primary hover:bg-main transition-colors shrink-0"
-            title="Back to employees"
-            aria-label="Back to employees"
+    <div className="space-y-6 sm:space-y-8 animate-[fadeSlideUp_0.3s_ease_both]">
+      {/* ── Profile Header ── */}
+      <div className="relative rounded-2xl border border-border/60 bg-surface shadow-sm p-5 sm:p-6 mt-4">
+        {/* Back Button */}
+        <div className="mb-4">
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={() => navigate(-1)}
+            className="rounded-xl border-border/60 shadow-sm bg-surface/50 hover:bg-main"
           >
             <ArrowLeft className="h-4 w-4" />
-          </Link>
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl font-bold text-primary font-display tracking-tight">{employee.name}</h1>
-              <StatusBadge status={employee.status} />
+          </Button>
+        </div>
+
+        {/* Profile Info */}
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-5">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-5 text-center sm:text-left">
+            {/* Avatar */}
+            <div className="flex h-20 w-20 sm:h-24 sm:w-24 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-accent to-accent/70 text-white font-black text-3xl shadow-lg ring-4 ring-surface">
+              {getInitials(employee.name)}
             </div>
-            <p className="text-sm text-secondary">{employee.phone || "No phone provided"}</p>
+            
+            <div className="space-y-1.5 mb-1">
+              <h1 className="text-2xl sm:text-3xl font-black text-primary font-display tracking-tight leading-none">{employee.name}</h1>
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 text-sm font-medium text-secondary">
+                <span className="flex items-center gap-1.5 bg-main/50 px-2 py-1 rounded-md border border-border/50">
+                  <Phone className="h-3.5 w-3.5" />
+                  {employee.phone || "No phone"}
+                </span>
+                <span className="flex items-center gap-1.5 bg-main/50 px-2 py-1 rounded-md border border-border/50">
+                   <Clock className="h-3.5 w-3.5" />
+                   Started {formatDate(employee.employmentStartDate)}
+                </span>
+              </div>
+            </div>
           </div>
+
+          <div className="flex justify-center sm:justify-end shrink-0">
+            <StatusBadge status={employee.status} className="text-sm px-4 py-1.5 shadow-sm" showDot />
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex bg-main/50 p-1 rounded-xl border border-border/50 mt-6 max-w-sm mx-auto sm:mx-0">
+          <button
+            onClick={() => setActiveTab("overview")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-bold rounded-lg transition-all duration-200 ${
+              activeTab === "overview" ? "bg-surface text-primary shadow-sm border border-border/50" : "text-secondary hover:text-primary"
+            }`}
+          >
+            Overview
+          </button>
+          <button
+            onClick={() => setActiveTab("financials")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-bold rounded-lg transition-all duration-200 ${
+              activeTab === "financials" ? "bg-surface text-primary shadow-sm border border-border/50" : "text-secondary hover:text-primary"
+            }`}
+          >
+            Financials
+          </button>
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <SummaryCard 
-          title="Phone" 
-          value={employee.phone || "Not specified"} 
-          icon={User}
-        />
-        <SummaryCard 
-          title="Employment Start" 
-          value={formatDate(employee.employmentStartDate)} 
-          icon={Calendar}
-        />
-        <SummaryCard 
-          title="Employment End" 
-          value={employee.employmentEndDate ? formatDate(employee.employmentEndDate) : "Ongoing"} 
-          icon={Briefcase}
-        />
-      </div>
+      {/* ── Tab Content: Overview ── */}
+      {activeTab === "overview" && (
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-6">
+            <DetailSection title="Employment Details">
+              <DetailItem label="Full Name" value={employee.name} />
+              <DetailItem label="Phone Number" value={employee.phone || "Not specified"} />
+              <DetailItem label="Start Date" value={formatDate(employee.employmentStartDate)} />
+              <DetailItem label="End Date" value={employee.employmentEndDate ? formatDate(employee.employmentEndDate) : "Ongoing (Active)"} />
+              <DetailItem label="Current Status" value={<StatusBadge status={employee.status} />} />
+            </DetailSection>
+          </div>
 
-      {/* Financial Ledger */}
-      <DetailSection title="Financial Ledger">
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className="bg-main/50 rounded-lg p-4 border border-border/50 space-y-1">
-            <div className="flex items-center gap-2 text-secondary text-xs font-medium uppercase tracking-wider mb-2">
-              <TrendingUp className="w-3.5 h-3.5" />
-              Lifetime Earned
-            </div>
-            {statsQuery.isLoading ? (
-              <div className="h-7 w-32 bg-main animate-pulse rounded" />
-            ) : (
-              <MoneyDisplay amount={stats?.totalEarned ?? 0} className="text-xl font-bold text-primary" />
-            )}
-            <p className="text-xs text-secondary">From all closed payrolls</p>
-          </div>
-          <div className="bg-main/50 rounded-lg p-4 border border-border/50 space-y-1">
-            <div className="flex items-center gap-2 text-secondary text-xs font-medium uppercase tracking-wider mb-2">
-              <TrendingDown className="w-3.5 h-3.5" />
-              Total Paid
-            </div>
-            {statsQuery.isLoading ? (
-              <div className="h-7 w-32 bg-main animate-pulse rounded" />
-            ) : (
-              <MoneyDisplay amount={stats?.totalPaid ?? 0} className="text-xl font-bold text-primary" />
-            )}
-            <p className="text-xs text-secondary">Cash disbursed to employee</p>
-          </div>
-          <div className={`rounded-lg p-4 border space-y-1 ${
-            !stats ? "bg-main/50 border-border/50" :
-            stats.currentBalance >= 0 ? "bg-success/10 border-success/30" : "bg-danger/10 border-danger/30"
-          }`}>
-            <div className="flex items-center gap-2 text-secondary text-xs font-medium uppercase tracking-wider mb-2">
-              <Wallet className="w-3.5 h-3.5" />
-              Current Balance
-            </div>
-            {statsQuery.isLoading ? (
-              <div className="h-7 w-32 bg-main animate-pulse rounded" />
-            ) : (
-              <MoneyDisplay
-                amount={Math.abs(stats?.currentBalance ?? 0)}
-                className={`text-xl font-bold ${
-                  !stats || stats.currentBalance >= 0 ? "text-success" : "text-danger"
-                }`}
-                prefix={stats?.currentBalance < 0 ? "-" : ""}
-              />
-            )}
-            <p className="text-xs text-secondary">
-              {!stats || stats.currentBalance >= 0 ? "Owed to employee" : "Employee advance balance"}
-            </p>
+          <div className="space-y-6">
+            <SystemInfoSection
+              id={employee._id}
+              idLabel="Employee ID"
+              createdAt={employee.createdAt}
+              updatedAt={employee.updatedAt}
+            />
           </div>
         </div>
-      </DetailSection>
+      )}
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-6">
-          <DetailSection title="Employment Status">
-            <p className="text-primary bg-main/50 p-4 rounded-lg">
-              Staff member is currently marked as <strong className="capitalize">{employee.status}</strong>.
-            </p>
-          </DetailSection>
-        </div>
-
+      {/* ── Tab Content: Financials ── */}
+      {activeTab === "financials" && (
         <div className="space-y-6">
-          <SystemInfoSection
-            id={employee._id}
-            idLabel="Employee ID"
-            createdAt={employee.createdAt}
-            updatedAt={employee.updatedAt}
-          />
+          <div className="grid gap-4 sm:grid-cols-3">
+            <SummaryCard 
+              title="Lifetime Earned" 
+              value={statsQuery.isLoading ? "-" : <MoneyDisplay amount={stats?.totalEarned ?? 0} />} 
+              subtitle="From all closed payrolls"
+              icon={TrendingUp}
+              iconVariant="success"
+              variant="success"
+            />
+            <SummaryCard 
+              title="Total Paid" 
+              value={statsQuery.isLoading ? "-" : <MoneyDisplay amount={stats?.totalPaid ?? 0} />} 
+              subtitle="Cash disbursed to employee"
+              icon={TrendingDown}
+              iconVariant="brand"
+              variant="brand"
+            />
+            <SummaryCard 
+              title="Current Balance" 
+              value={statsQuery.isLoading ? "-" : <MoneyDisplay amount={Math.abs(stats?.currentBalance ?? 0)} prefix={stats?.currentBalance < 0 ? "-" : ""} />} 
+              subtitle={!stats || stats.currentBalance >= 0 ? "Owed to employee" : "Employee advance balance"}
+              icon={Wallet}
+              iconVariant={!stats || stats.currentBalance >= 0 ? "accent" : "danger"}
+              variant={!stats || stats.currentBalance >= 0 ? "accent" : "danger"}
+              valueClassName={!stats || stats.currentBalance >= 0 ? "text-accent" : "text-danger"}
+            />
+          </div>
+          
+          <div className="p-8 text-center rounded-xl border border-dashed border-border/80 bg-surface/50">
+            <Banknote className="h-8 w-8 mx-auto text-muted mb-2" />
+            <h3 className="text-lg font-bold text-primary tracking-tight">Payment History</h3>
+            <p className="text-sm font-medium text-secondary max-w-md mx-auto mt-1">
+              Detailed breakdown of payments and payroll slips will be integrated here in future phases.
+            </p>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

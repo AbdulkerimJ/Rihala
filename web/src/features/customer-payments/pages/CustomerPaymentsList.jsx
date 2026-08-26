@@ -78,8 +78,8 @@ export const CustomerPaymentsList = () => {
 
   const columns = [
     { header: "Order #", accessor: (row) => <span className="font-mono text-xs font-semibold text-primary">{row.orderNumber || (row.order?.orderNumber) || "-"}</span> },
-    { header: "Customer", accessor: (row) => row.customerName || row.order?.customerName || row.order?.customer?.name || row.customer?.name || "Unknown", className: "font-medium" },
-    { header: "Date", accessor: (row) => formatDate(row.paymentDate), className: "text-secondary" },
+    { header: "Customer", accessor: (row) => row.customerName || row.order?.customerName || row.order?.customer?.name || row.customer?.name || "Unknown", className: "font-bold text-primary" },
+    { header: "Date", accessor: (row) => formatDate(row.paymentDate), className: "text-secondary font-medium" },
     { header: "Amount", accessor: (row) => <MoneyDisplay amount={row.amount} className={row.status === 'voided' ? 'line-through opacity-50' : ''} /> },
     { 
       header: "Status", 

@@ -31,6 +31,23 @@ const CARD_VARIANT_STYLES = {
   teal: "border-finance-in/20 bg-finance-in/[0.03] hover:border-finance-in/40",
 };
 
+// Left border accent per variant (the "glanceable" stripe)
+const LEFT_BORDER_STYLES = {
+  default: "border-l-border",
+  brand: "border-l-accent/40",
+  blue: "border-l-status-processing/50",
+  accent: "border-l-accent/60",
+  emerald: "border-l-status-delivered/60",
+  success: "border-l-success/60",
+  amber: "border-l-status-pending/60",
+  warning: "border-l-warning/60",
+  purple: "border-l-status-shipped/60",
+  indigo: "border-l-brand/40",
+  rose: "border-l-status-cancelled/60",
+  danger: "border-l-danger/60",
+  teal: "border-l-finance-in/60",
+};
+
 export const SummaryCard = ({
   title,
   value,
@@ -56,15 +73,21 @@ export const SummaryCard = ({
 
   return (
     <div
-      className={`group relative flex h-full min-w-0 flex-col justify-between overflow-hidden rounded-xl border p-4 sm:p-5 shadow-xs transition-shadow duration-200 hover:shadow-sm ${
-        CARD_VARIANT_STYLES[resolvedVariant] || CARD_VARIANT_STYLES.default
-      } ${className}`}
+      className={`
+        group relative flex h-full min-w-0 flex-col justify-between
+        overflow-hidden rounded-xl border border-l-4 p-4 sm:p-5
+        shadow-xs transition-all duration-200 hover:shadow-sm
+        animate-[fadeSlideUp_0.35s_ease_both]
+        ${CARD_VARIANT_STYLES[resolvedVariant] || CARD_VARIANT_STYLES.default}
+        ${LEFT_BORDER_STYLES[resolvedVariant] || LEFT_BORDER_STYLES.default}
+        ${className}
+      `}
     >
       <div className="flex min-w-0 items-start justify-between gap-3.5">
         <div className="flex min-w-0 flex-1 flex-col justify-center overflow-hidden">
           <div className="flex items-center gap-2">
             <span
-              className="text-xs font-semibold tracking-wider text-secondary uppercase truncate block"
+              className="text-[11px] font-bold tracking-widest text-secondary uppercase truncate block"
               title={titleString}
             >
               {title}
@@ -74,14 +97,14 @@ export const SummaryCard = ({
             )}
           </div>
           <div
-            className={`mt-1.5 truncate text-base font-bold tracking-tight sm:text-lg md:text-xl tabular-nums leading-tight ${valueClassName}`}
+            className={`mt-2 truncate text-2xl sm:text-3xl font-black tracking-tight tabular-nums leading-none ${valueClassName}`}
             title={valueString}
           >
             {value}
           </div>
           {subtitle && (
             <p
-              className="mt-1 text-xs text-muted truncate block"
+              className="mt-1.5 text-xs text-muted truncate block"
               title={subtitleString}
             >
               {subtitle}
@@ -91,12 +114,12 @@ export const SummaryCard = ({
 
         {Icon && (
           <div
-            className={`flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105 ${
+            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-110 ${
               ICON_VARIANT_STYLES[resolvedIconVariant] ||
               ICON_VARIANT_STYLES.brand
             }`}
           >
-            <Icon className="h-5 w-5 sm:h-5.5 sm:w-5.5" />
+            <Icon className="h-5 w-5" />
           </div>
         )}
       </div>

@@ -4,9 +4,9 @@ import { useAuth } from "../hooks/useAuth";
 import { ThemeToggle } from "./ui/ThemeToggle";
 import { Button } from "./ui/Button";
 import { SearchInput } from "./ui/SearchInput";
-import { Menu, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 
-export const Header = ({ currentUser, onMobileMenuToggle }) => {
+export const Header = ({ currentUser, onMobileMenuToggle, sectionTitle }) => {
   // Helper to extract user initials for avatar
   const getInitials = (name) => {
     if (!name) return "RM";
@@ -29,17 +29,14 @@ export const Header = ({ currentUser, onMobileMenuToggle }) => {
 
   return (
     <header className="sticky top-0 z-20 flex h-16 w-full items-center justify-between bg-main px-4 sm:px-6">
-      {/* Left section: Mobile menu button */}
+      {/* Left section: Page title on mobile, spacer on desktop */}
       <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="lg:hidden p-2 rounded-lg text-secondary hover:bg-main hover:text-primary border border-border/50 transition-all"
-          onClick={onMobileMenuToggle}
-          aria-label="Open navigation menu"
-        >
-          <Menu className="h-5 w-5" />
-        </Button>
+        {/* Section title — visible on mobile, hidden on desktop (sidebar shows nav) */}
+        {sectionTitle && (
+          <span className="lg:hidden text-sm font-bold text-primary tracking-tight truncate max-w-[120px]">
+            {sectionTitle}
+          </span>
+        )}
       </div>
 
       {/* Middle section: Reusable Search Input Component */}
