@@ -245,6 +245,30 @@ export const SuppliersList = () => {
         onPageChange={setPage}
         isLoading={isLoading}
         isFetching={isFetching}
+        mobileRenderer={(row) => (
+          <div className="flex flex-col gap-3 p-4" onClick={() => navigate(`/suppliers/${row._id}`)}>
+            <div className="flex items-center justify-between gap-3">
+              <span className="font-semibold text-primary">{row.name}</span>
+              <StatusBadge status={row.status} />
+            </div>
+            
+            <div className="flex items-center justify-between gap-4 pt-2 border-t border-border/50">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-1">Phone</span>
+                <span className="text-sm text-secondary font-medium">{row.phone || "No phone"}</span>
+              </div>
+              
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-1">Balance</span>
+                <MoneyDisplay 
+                  amount={row.balance || 0} 
+                  variant={(row.balance || 0) > 0 ? "financeOut" : (row.balance || 0) < 0 ? "financeIn" : "default"} 
+                  className="text-sm font-bold" 
+                />
+              </div>
+            </div>
+          </div>
+        )}
         emptyState={
           <EmptyState
             title="No suppliers found"

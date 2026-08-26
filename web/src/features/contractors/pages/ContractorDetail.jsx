@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getContractorById, getContractorStats, updateContractor } from "../api";
 import { DetailSkeleton } from "../../../components/ui/skeletons";
@@ -15,11 +15,12 @@ import { Can } from "../../../components/Can";
 import { ContractorForm } from "./ContractorsList";
 import { getApiErrorMessage, unwrapEntityResponse } from "../../../utils/apiResponse";
 import { usePermission } from "../../../hooks/usePermission";
-import { Phone, ArrowLeft, TrendingUp, TrendingDown, Wallet } from "lucide-react";
+import { Phone, ArrowLeft } from "lucide-react";
 import toast from "react-hot-toast";
 
 export const ContractorDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { can } = usePermission();
   const queryClient = useQueryClient();
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -73,14 +74,14 @@ export const ContractorDetail = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-4">
         <div className="flex items-center gap-3">
-          <Link
-            to="/contractors"
+          <button
+            onClick={() => navigate(-1)}
             className="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-border bg-surface text-secondary hover:text-primary hover:bg-main transition-colors shrink-0"
-            title="Back to contractors"
-            aria-label="Back to contractors"
+            title="Back"
+            aria-label="Go back"
           >
             <ArrowLeft className="h-4 w-4" />
-          </Link>
+          </button>
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-bold text-primary font-display tracking-tight">
@@ -110,8 +111,8 @@ export const ContractorDetail = () => {
             )
           }
           icon={TrendingUp}
-          variant="blue"
-          iconVariant="blue"
+          variant="brand"
+          iconVariant="brand"
           subtitle="Total expected value"
         />
         <SummaryCard

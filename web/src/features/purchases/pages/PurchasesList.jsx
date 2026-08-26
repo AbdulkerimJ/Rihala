@@ -345,6 +345,29 @@ export const PurchasesList = () => {
         onPageChange={setPage}
         isLoading={isLoading}
         isFetching={isFetching}
+        mobileRenderer={(row) => (
+          <div className="flex flex-col gap-3 p-4" onClick={() => navigate(`/purchases/${row._id}`)}>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-xs font-semibold text-primary/70">{row.purchaseNumber || "-"}</span>
+                <span className="font-semibold text-primary truncate max-w-[120px]">{row.supplier?.name || "Unknown"}</span>
+              </div>
+              <StatusBadge status={row.paymentStatus} />
+            </div>
+            
+            <div className="flex items-center justify-between gap-4 pt-3 border-t border-border/50">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-1">Total Amount</span>
+                <MoneyDisplay amount={row.totalAmount} variant="financeOut" className="text-sm font-bold" />
+              </div>
+              
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-1">Date</span>
+                <span className="text-sm text-secondary font-medium">{formatDate(row.date)}</span>
+              </div>
+            </div>
+          </div>
+        )}
         emptyState={
           <EmptyState
             title="No purchases found"

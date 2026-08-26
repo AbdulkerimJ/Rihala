@@ -73,7 +73,6 @@ export const DashboardLayout = () => {
       "/tasks": "Tasks",
       "/contractors": "Contractors",
       "/contracts": "Contracts",
-      "/contract-completions": "Contract Completions",
       "/contractor-payments": "Contractor Payments",
       "/analytics": "Analytics",
     };
@@ -106,7 +105,8 @@ export const DashboardLayout = () => {
         { name: "Contracts", path: "/contracts", icon: FileText, permission: "contracts.read" },
         { name: "Weekly Payroll", path: "/weekly-payrolls", icon: Receipt, permission: "weeklyPayrolls.read" },
         { name: "Orders", path: "/orders", icon: ShoppingCart, permission: "orders.read" },
-        { name: "Completions", path: "/contract-completions", icon: ClipboardCheck, permission: "contractCompletions.read" },
+        { name: "Tasks", path: "/tasks", icon: Hammer, permission: "tasks.read" },
+        { name: "Task Types", path: "/task-types", icon: ListTree, permission: "taskTypes.read" },
       ]
     },
     {
@@ -142,8 +142,6 @@ export const DashboardLayout = () => {
       title: "Administration",
       icon: Settings,
       items: [
-        { name: "Tasks", path: "/tasks", icon: Hammer, permission: "tasks.read" },
-        { name: "Task Types", path: "/task-types", icon: ListTree, permission: "taskTypes.read" },
         { name: "Users", path: "/users", icon: Users, permission: "users.read" },
         { name: "Roles", path: "/roles", icon: ShieldCheck, permission: "roles.read" },
         { name: "Permissions", path: "/permissions", icon: Key, permission: "permissions.read" },

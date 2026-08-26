@@ -216,6 +216,33 @@ export const OrdersList = () => {
         onPageChange={setPage}
         isLoading={ordersQuery.isLoading}
         isFetching={ordersQuery.isFetching}
+        mobileRenderer={(row) => (
+          <div className="flex flex-col gap-3 p-4" onClick={() => navigate(`/orders/${row._id}`)}>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-xs font-semibold text-primary/70">{row.orderNumber || "-"}</span>
+                <span className="font-semibold text-primary truncate max-w-[120px]">{row.customer?.name || "Unknown"}</span>
+              </div>
+              <StatusBadge status={row.status} />
+            </div>
+            
+            {row.description && (
+              <p className="text-sm text-secondary line-clamp-1">{row.description}</p>
+            )}
+            
+            <div className="flex items-center justify-between gap-4 pt-3 border-t border-border/50">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-1">Amount</span>
+                <MoneyDisplay amount={row.agreedAmount} className="text-sm font-bold text-primary" />
+              </div>
+              
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-1">Expected</span>
+                <span className="text-sm text-secondary font-medium">{formatDate(row.expectedCompletionDate)}</span>
+              </div>
+            </div>
+          </div>
+        )}
         emptyState={
           <EmptyState
             title="No orders found"

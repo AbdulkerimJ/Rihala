@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getPurchaseById, updatePurchase } from "../api";
 import { createSupplierPayment, getSupplierPayments } from "../../supplier-payments/api";
@@ -23,6 +23,7 @@ import { PurchaseForm } from "./PurchasesList";
 
 export const PurchaseDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { can } = usePermission();
   const [isPaymentModalOpen, setPaymentModalOpen] = useState(false);
@@ -137,14 +138,14 @@ export const PurchaseDetail = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-4">
         <div className="flex items-center gap-3">
-          <Link
-            to="/purchases"
+          <button
+            onClick={() => navigate(-1)}
             className="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-border bg-surface text-secondary hover:text-primary hover:bg-main transition-colors shrink-0"
-            title="Back to purchases"
-            aria-label="Back to purchases"
+            title="Back"
+            aria-label="Go back"
           >
             <ArrowLeft className="h-4 w-4" />
-          </Link>
+          </button>
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-bold text-primary font-display tracking-tight">Purchase #{purchase.purchaseNumber}</h1>

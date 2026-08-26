@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, User, FileText, Ban } from "lucide-react";
 import toast from "react-hot-toast";
@@ -21,6 +21,7 @@ import { formatDate } from "../../../utils/formatters";
 
 export const CustomerPaymentDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { can } = usePermission();
 
@@ -56,13 +57,14 @@ export const CustomerPaymentDetail = () => {
       {/* Header */}
       <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-surface p-5 shadow-sm sm:flex sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4 relative z-10">
-          <Link
-            to="/customer-payments"
+          <button
+            onClick={() => navigate(-1)}
             className="inline-flex items-center justify-center h-10 w-10 rounded-xl border border-border/60 bg-surface/50 text-secondary hover:text-primary hover:bg-main hover:shadow-sm transition-all shrink-0 backdrop-blur-sm"
-            title="Back to payments"
+            title="Back"
+            aria-label="Go back"
           >
             <ArrowLeft className="h-4 w-4" />
-          </Link>
+          </button>
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-2xl sm:text-3xl font-bold text-primary font-display tracking-tight flex items-center gap-2">

@@ -274,6 +274,45 @@ export const OvertimesList = () => {
         onPageChange={setPage}
         isLoading={isLoading}
         isFetching={isFetching}
+        mobileRenderer={(row) => (
+          <div className="flex flex-col gap-2.5 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm uppercase">
+                  {(row.employee?.name || "U").charAt(0)}
+                </div>
+                <span className="font-semibold text-primary">{row.employee?.name || "Unknown"}</span>
+              </div>
+              <Badge variant={row.duration === 'FULL_DAY' ? 'default' : 'secondary'} className="text-[10px]">
+                {row.duration === 'FULL_DAY' ? 'Full Day' : 'Half Day'}
+              </Badge>
+            </div>
+            
+            {(row.note || row.notes) && (
+              <p className="text-sm text-secondary line-clamp-2 mt-1">{row.note || row.notes}</p>
+            )}
+            
+            <div className="flex items-center justify-between gap-4 pt-2 border-t border-border/50">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-1">Date</span>
+                <span className="text-sm text-secondary font-medium">{formatDate(row.workDate || row.date)}</span>
+              </div>
+              
+              <div className="flex gap-2 justify-end mt-2">
+                <Can permission="overtimes.update">
+                  <Button variant="secondary" size="sm" onClick={() => { setEditingRecord(row); setIsOpen(true); }}>
+                    Edit
+                  </Button>
+                </Can>
+                <Can permission="overtimes.delete">
+                  <Button variant="ghostDanger" size="sm" onClick={() => setRecordToDelete(row)}>
+                    Delete
+                  </Button>
+                </Can>
+              </div>
+            </div>
+          </div>
+        )}
         emptyState={
           <EmptyState
             title="No records found"

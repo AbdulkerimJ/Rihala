@@ -34,6 +34,7 @@ import {
   getApiErrorMessage,
   unwrapListResponse,
 } from "../../../utils/apiResponse";
+import { ExpenseDetailModal } from "../components/ExpenseDetailModal";
 
 const expenseSchema = z.object({
   category: z.enum(EXPENSE_CATEGORIES, {
@@ -143,6 +144,7 @@ export const ExpensesList = () => {
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState(initialFilters);
   const [editingExpense, setEditingExpense] = useState(null);
+  const [viewingExpense, setViewingExpense] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
 
   const params = useMemo(
@@ -331,10 +333,48 @@ export const ExpensesList = () => {
         columns={columns}
         data={expenses}
         keyExtractor={(row) => row._id}
+        onRowClick={(row) => setViewingExpense(row)}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
         isLoading={isLoading}
         isFetching={isFetching}
+        mobileRenderer={(row) => (
+          <div className="flex flex-col gap-2.5 p-4" onClick={() => setViewingExpense(row)}>
+            <div className="flex items-center justify-between gap-3">
+              <StatusBadge status={row.category} label={row.category} />
+              <MoneyDisplay amount={row.amount} variant="danger" className="text-sm font-bold" />
+            </div>
+            
+            {row.description && (
+              <p className="text-sm text-secondary mt-1">{row.description}</p>
+            )}
+            
+            <div className="flex items-center justify-between gap-4 pt-2 border-t border-border/50">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-1">Date</span>
+                <span className="text-sm text-secondary font-medium">{formatDate(row.date)}</span>
+              </div>
+              
+              <div className="flex gap-2 justify-end mt-2">
+                <Can permission="expenses.update">
+                  <Button variant="secondary" size="sm" onClick={(e) => { e.stopPropagation(); setEditingExpense(row); setIsOpen(true); }}>
+                    Edit
+                  </Button>
+                </Can>
+                <Can permission="expenses.delete">
+                  <Button 
+                    variant="ghostDanger" 
+                    size="sm" 
+                    onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(row._id); }}
+                    isLoading={deleteMutation.isPending && deleteMutation.variables === row._id}
+                  >
+                    Delete
+                  </Button>
+                </Can>
+              </div>
+            </div>
+          </div>
+        )}
         emptyState={
           <EmptyState
             title="No expenses found"
@@ -345,21 +385,24 @@ export const ExpensesList = () => {
         }
       />
 
-      <Modal
-        isOpen={isOpen}
-        title={editingExpense ? "Edit Expense" : "New Expense"}
-        onClose={() => setIsOpen(false)}
-      >
+      <Modal isOpen={isOpen} title={editingExpense ? "Edit Expense" : "Record Expense"} onClose={() => setIsOpen(false)}>
         <ExpenseForm
           initialData={editingExpense}
-          onSubmit={(data) =>
-            editingExpense
-              ? updateMutation.mutateAsync({ id: editingExpense._id, data })
-              : createMutation.mutateAsync(data)
-          }
           onClose={() => setIsOpen(false)}
+          onSubmit={(data) => {
+            if (editingExpense) {
+              return updateMutation.mutateAsync({ id: editingExpense._id, data });
+            }
+            return createMutation.mutateAsync(data);
+          }}
         />
       </Modal>
+
+      <ExpenseDetailModal 
+        isOpen={!!viewingExpense} 
+        onClose={() => setViewingExpense(null)} 
+        expense={viewingExpense} 
+      />
     </div>
   );
 };

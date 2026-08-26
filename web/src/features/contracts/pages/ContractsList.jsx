@@ -306,6 +306,33 @@ export const ContractsList = () => {
         isLoading={isLoading}
         isFetching={isFetching}
         onRowClick={(row) => navigate(`/contracts/${row._id}`)}
+        mobileRenderer={(row) => (
+          <div className="flex flex-col gap-3 p-4" onClick={() => navigate(`/contracts/${row._id}`)}>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-xs font-semibold text-primary/70">{row.contractNumber || "-"}</span>
+                <span className="font-semibold text-primary truncate max-w-[120px]">{row.contractor?.name || "Unknown"}</span>
+              </div>
+              <StatusBadge status={row.status} />
+            </div>
+            
+            <p className="text-sm text-secondary truncate">
+              {row.taskTypeName} — {row.task?.name}
+            </p>
+            
+            <div className="flex items-center justify-between gap-4 pt-3 border-t border-border/50">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-1">Value</span>
+                <MoneyDisplay amount={row.quantity * row.unitPrice} className="text-sm font-bold text-primary" />
+              </div>
+              
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-1">Date</span>
+                <span className="text-sm text-secondary font-medium">{formatDate(row.contractDate)}</span>
+              </div>
+            </div>
+          </div>
+        )}
         emptyState={
           <EmptyState
             title="No contracts found"

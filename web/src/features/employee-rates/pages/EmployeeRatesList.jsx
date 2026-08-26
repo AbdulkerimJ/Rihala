@@ -285,6 +285,47 @@ export const EmployeeRatesList = () => {
         onPageChange={setPage}
         isLoading={isLoading}
         isFetching={isFetching}
+        mobileRenderer={(row) => (
+          <div className="flex flex-col gap-2.5 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 shrink-0 rounded-full bg-brand/10 text-brand flex items-center justify-center font-bold text-sm uppercase">
+                  {(row.employee?.name || "U").charAt(0)}
+                </div>
+                <span className="font-semibold text-primary">{row.employee?.name || "Unknown"}</span>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between gap-4 pt-2 border-t border-border/50">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-1">Effective Date</span>
+                <span className="text-sm text-secondary font-medium">{formatDate(row.effectiveDate)}</span>
+              </div>
+              
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-1">Daily Rate</span>
+                <MoneyDisplay amount={row.dailyRate} className="text-sm font-bold text-primary" />
+              </div>
+            </div>
+            
+            {row.note && (
+              <p className="text-xs text-secondary mt-1">{row.note}</p>
+            )}
+            
+            <div className="flex justify-end gap-2 mt-2 pt-2 border-t border-border/20">
+              <Can permission="employeeRates.update">
+                <Button variant="secondary" size="sm" onClick={() => { setEditingRate(row); setIsOpen(true); }}>
+                  Edit
+                </Button>
+              </Can>
+              <Can permission="employeeRates.delete">
+                <Button variant="ghostDanger" size="sm" onClick={() => setDeletingRate(row)}>
+                  Delete
+                </Button>
+              </Can>
+            </div>
+          </div>
+        )}
         emptyState={
           <EmptyState
             title="No rates found"

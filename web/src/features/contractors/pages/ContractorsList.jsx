@@ -250,6 +250,26 @@ export const ContractorsList = () => {
         onPageChange={setPage}
         isLoading={isLoading}
         isFetching={isFetching}
+        mobileRenderer={(row) => (
+          <div className="flex flex-col gap-2.5 p-4" onClick={() => navigate(`/contractors/${row._id}`)}>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 shrink-0 rounded-full bg-brand/10 text-brand flex items-center justify-center font-bold text-sm uppercase">
+                  {row.name.charAt(0)}
+                </div>
+                <span className="font-semibold text-primary">{row.name}</span>
+              </div>
+              <StatusBadge status={row.status} />
+            </div>
+            
+            <div className="flex items-center justify-between gap-4 pt-2 border-t border-border/50">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-1">Phone</span>
+                <span className="text-sm text-secondary font-medium">{row.phone || "No phone"}</span>
+              </div>
+            </div>
+          </div>
+        )}
         emptyState={
           <EmptyState
             title="No contractors found"

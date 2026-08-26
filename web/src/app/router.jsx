@@ -18,6 +18,7 @@ import { RolesList } from "../features/roles/pages/RolesList";
 import { PermissionsList } from "../features/permissions/pages/PermissionsList";
 import { ExpensesList } from "../features/expenses/pages/ExpensesList";
 import { CustomersList } from "../features/customers/pages/CustomersList";
+import { CustomerDetail } from "../features/customers/pages/CustomerDetail";
 import { OrdersList } from "../features/orders/pages/OrdersList";
 import { OrderDetail } from "../features/orders/pages/OrderDetail";
 import { SuppliersList } from "../features/suppliers/pages/SuppliersList";
@@ -44,7 +45,7 @@ import { ContractorsList } from "../features/contractors/pages/ContractorsList";
 import { ContractorDetail } from "../features/contractors/pages/ContractorDetail";
 import { ContractsList } from "../features/contracts/pages/ContractsList";
 import { ContractDetail } from "../features/contracts/pages/ContractDetail";
-import { ContractCompletionsList } from "../features/contract-completions/pages/ContractCompletionsList";
+
 import { ContractorPaymentsList } from "../features/contractor-payments/pages/ContractorPaymentsList";
 import { Analytics } from "../features/dashboard/pages/Analytics";
 
@@ -148,6 +149,14 @@ export const router = createBrowserRouter([
         element: (
           <RequirePermission permission="customers.read">
             <CustomersList />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "customers/:id",
+        element: (
+          <RequirePermission permission="customers.read">
+            <CustomerDetail />
           </RequirePermission>
         ),
       },
@@ -343,14 +352,7 @@ export const router = createBrowserRouter([
           </RequirePermission>
         ),
       },
-      {
-        path: "contract-completions",
-        element: (
-          <RequirePermission permission="contractCompletions.read">
-            <ContractCompletionsList />
-          </RequirePermission>
-        ),
-      },
+
       {
         path: "contractor-payments",
         element: (

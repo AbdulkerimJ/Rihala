@@ -151,6 +151,39 @@ export const SupplierPaymentsList = () => {
         onPageChange={setPage}
         isLoading={isLoading}
         isFetching={isFetching}
+        mobileRenderer={(row) => (
+          <div className="flex flex-col gap-2.5 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="font-semibold text-primary">{row.supplier?.name || "Unknown"}</span>
+              </div>
+              <StatusBadge status={row.status} />
+            </div>
+            
+            <div className="flex items-center justify-between gap-4 pt-2 border-t border-border/50">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-1">Receipt</span>
+                <span className="font-mono text-xs font-semibold text-primary/70">{row.paymentReference || "-"}</span>
+              </div>
+              
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-1">Date & Amount</span>
+                <div className="flex flex-col items-end">
+                  <span className="text-xs text-secondary font-medium">{formatDate(row.date)}</span>
+                  <MoneyDisplay amount={row.amount} className={`text-sm font-bold ${row.status === 'voided' ? 'line-through opacity-50' : ''}`} />
+                </div>
+              </div>
+            </div>
+            
+            {row.status !== 'voided' && can("supplierPayments.void") && (
+              <div className="flex justify-end mt-2 pt-2 border-t border-border/20">
+                <Button variant="ghostDanger" size="sm" onClick={() => setVoidingPayment(row)}>
+                  Void
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
         emptyState={
           <EmptyState
             title="No payments found"

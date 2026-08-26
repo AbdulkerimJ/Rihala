@@ -1,6 +1,7 @@
 import { usePermission } from "../../../hooks/usePermission";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import React, { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { createCustomer, getCustomers, updateCustomer } from "../api";
 import { PageHeader } from "../../../components/ui/PageHeader";
@@ -133,6 +134,7 @@ const CustomerForm = ({ initialData, onSubmit, onClose }) => {
 
 export const CustomersList = () => {
   const { can } = usePermission();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({ search: "", status: "" });
@@ -249,10 +251,26 @@ export const CustomersList = () => {
         columns={columns}
         data={customers}
         keyExtractor={(row) => row._id}
+        onRowClick={(row) => navigate(`/customers/${row._id}`)}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
         isLoading={isLoading}
         isFetching={isFetching}
+        mobileRenderer={(row) => (
+          <div className="flex flex-col gap-2.5 p-4" onClick={() => navigate(`/customers/${row._id}`)}>
+            <div className="flex items-center justify-between gap-3">
+              <span className="font-semibold text-primary">{row.name}</span>
+              <StatusBadge status={row.status} />
+            </div>
+            
+            <div className="flex items-center justify-between gap-4 pt-2 border-t border-border/50">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-1">Phone</span>
+                <span className="text-sm text-secondary font-medium">{row.phone || "No phone"}</span>
+              </div>
+            </div>
+          </div>
+        )}
         emptyState={
           <EmptyState
             title="No customers found"

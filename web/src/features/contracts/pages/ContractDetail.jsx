@@ -1,11 +1,10 @@
 import React, { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { usePermission } from "../../../hooks/usePermission";
 import { Can } from "../../../components/Can";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, HardHat, Hammer, ClipboardCheck, FileText, AlertCircle } from "lucide-react";
 import { getContractById, cancelContract } from "../api";
-import { recordCompletion, voidCompletion } from "../../contract-completions/api";
 import { createContractorPayment, voidContractorPayment } from "../../contractor-payments/api";
 import { DetailSkeleton } from "../../../components/ui/skeletons";
 import { ErrorState } from "../../../components/ui/ErrorState";
@@ -33,50 +32,6 @@ import { formatDate, formatDateTime } from "../../../utils/formatters";
 import { applyServerErrors, getApiErrorMessage, unwrapEntityResponse } from "../../../utils/apiResponse";
 
 // --- Forms ---
-const completionSchema = z.object({
-  quantity: z.coerce.number({ error: "Quantity is required" }).int("Quantity must be an integer").min(1, "Quantity must be at least 1"),
-  recordedAt: z.string().min(1, "Date is required"),
-  note: z.string().trim().optional().or(z.literal("")),
-});
-
-const CompletionForm = ({ contract, onSubmit, onClose }) => {
-  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm({
-    resolver: zodResolver(completionSchema),
-    defaultValues: { quantity: 1, recordedAt: new Date().toISOString().split("T")[0], note: "" }
-  });
-  const maxQty = contract.quantity - contract.stats.completedQuantity;
-
-  const handleFormSubmit = async (data) => {
-    try {
-      await onSubmit(data);
-    } catch (error) {
-      applyServerErrors(setError, error);
-    }
-  };
-
-  return (
-    <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
-      <FormRootError error={errors.root} />
-      <div className="bg-blue-50/50 p-3 rounded-md mb-4 border border-blue-100">
-        <p className="text-sm text-blue-800">Remaining to complete: <strong>{maxQty}</strong> units.</p>
-      </div>
-      <FormField label="Quantity Completed" required error={errors.quantity?.message}>
-        <Input type="number" max={maxQty} {...register("quantity")} error={errors.quantity?.message} />
-      </FormField>
-      <FormField label="Completion Date" required error={errors.recordedAt?.message}>
-        <Input type="date" {...register("recordedAt")} error={errors.recordedAt?.message} />
-      </FormField>
-      <FormField label="Note (Optional)" error={errors.note?.message}>
-        <Textarea {...register("note")} rows={2} error={errors.note?.message} />
-      </FormField>
-      <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
-        <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
-        <Button type="submit" isLoading={isSubmitting}>Record Completion</Button>
-      </div>
-    </form>
-  );
-};
-
 const paymentSchema = z.object({
   amount: z.coerce.number({ error: "Amount is required" }).positive("Amount must be greater than 0"),
   paymentDate: z.string().min(1, "Date is required"),
@@ -133,14 +88,13 @@ const PaymentForm = ({ contract, onSubmit, onClose }) => {
 
 export const ContractDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { can } = usePermission();
 
   // Modals state
-  const [isCompletionModalOpen, setCompletionModalOpen] = useState(false);
   const [isPaymentModalOpen, setPaymentModalOpen] = useState(false);
   const [isCancelModalOpen, setCancelModalOpen] = useState(false);
-  const [voidingCompletion, setVoidingCompletion] = useState(null);
   const [voidingPayment, setVoidingPayment] = useState(null);
 
   const contractQuery = useQuery({
@@ -152,15 +106,6 @@ export const ContractDetail = () => {
   const contract = unwrapEntityResponse(contractQuery.data);
 
   // Mutations
-  const recordCompletionMutation = useMutation({
-    mutationFn: (data) => recordCompletion({ contract: id, ...data }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["contracts"] });
-      queryClient.invalidateQueries({ queryKey: ["contractors"] });
-      toast.success("Completion recorded");
-      setCompletionModalOpen(false);
-    },
-  });
 
   const recordPaymentMutation = useMutation({
     mutationFn: (data) => createContractorPayment({ contract: id, ...data }),
@@ -172,16 +117,7 @@ export const ContractDetail = () => {
     },
   });
 
-  const voidCompletionMutation = useMutation({
-    mutationFn: ({ id, voidReason }) => voidCompletion({ id, voidReason }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["contracts"] });
-      queryClient.invalidateQueries({ queryKey: ["contractors"] });
-      toast.success("Completion voided");
-      setVoidingCompletion(null);
-      setVoidReason("");
-    },
-  });
+
 
   const voidPaymentMutation = useMutation({
     mutationFn: ({ id, voidReason }) => voidContractorPayment({ id, voidReason }),
@@ -212,22 +148,6 @@ export const ContractDetail = () => {
   const isOverdue = stats.isOverdue && contract.status === "ACTIVE";
 
   // Tables
-  const completionsColumns = [
-    { header: "Date", accessor: (row) => formatDate(row.recordedAt), className: "text-secondary" },
-    { header: "Quantity", accessor: "quantity" },
-    { header: "Status", accessor: (row) => <StatusBadge status={row.status} /> },
-    { 
-      header: "Actions", 
-      isActions: true,
-      accessor: (row) => (
-        <Can permission="contractCompletions.void">
-          {row.status === 'active' && contract.status === 'ACTIVE' && (
-            <Button variant="ghostDanger" size="sm" onClick={() => setVoidingCompletion(row)}>Void</Button>
-          )}
-        </Can>
-      ) 
-    }
-  ];
 
   const paymentsColumns = [
     { header: "Ref", accessor: "paymentReference", className: "font-mono text-xs" },
@@ -251,14 +171,14 @@ export const ContractDetail = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-4">
         <div className="flex items-center gap-3">
-          <Link
-            to="/contracts"
+          <button
+            onClick={() => navigate(-1)}
             className="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-border bg-surface text-secondary hover:text-primary hover:bg-main transition-colors shrink-0"
-            title="Back to contracts"
-            aria-label="Back to contracts"
+            title="Back"
+            aria-label="Go back"
           >
             <ArrowLeft className="h-4 w-4" />
-          </Link>
+          </button>
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-bold text-primary font-display tracking-tight">Contract {contract.contractNumber}</h1>
@@ -306,13 +226,6 @@ export const ContractDetail = () => {
             {/* Action Buttons */}
             {(contract.status === "ACTIVE" || contract.status === "COMPLETED") && (
               <div className="flex flex-wrap gap-3 mt-6">
-                {contract.status === "ACTIVE" && (
-                  <Can permission="contractCompletions.create">
-                    <Button onClick={() => setCompletionModalOpen(true)} disabled={stats.completedQuantity >= contract.quantity}>
-                      Record Completion
-                    </Button>
-                  </Can>
-                )}
                 <Can permission="contractorPayments.create">
                   <Button onClick={() => setPaymentModalOpen(true)} disabled={stats.payableAmount <= 0}>
                     Record Payment
@@ -329,14 +242,7 @@ export const ContractDetail = () => {
             )}
           </DetailSection>
 
-          <DetailSection title="Completions Log">
-            <DataTable 
-              columns={completionsColumns} 
-              data={contract.completions || []} 
-              keyExtractor={(row) => row._id} 
-              emptyState={<div className="text-sm text-secondary p-4 text-center">No completions recorded yet.</div>}
-            />
-          </DetailSection>
+
 
           <DetailSection title="Payments Log">
             <DataTable 
@@ -371,9 +277,6 @@ export const ContractDetail = () => {
       </div>
 
       {/* Modals */}
-      <Modal isOpen={isCompletionModalOpen} title="Record Task Completion" onClose={() => setCompletionModalOpen(false)}>
-        <CompletionForm contract={contract} onClose={() => setCompletionModalOpen(false)} onSubmit={(data) => recordCompletionMutation.mutateAsync(data)} />
-      </Modal>
 
       <Modal isOpen={isPaymentModalOpen} title="Record Payment" onClose={() => setPaymentModalOpen(false)}>
         <PaymentForm contract={contract} onClose={() => setPaymentModalOpen(false)} onSubmit={(data) => recordPaymentMutation.mutateAsync(data)} />
@@ -390,15 +293,7 @@ export const ContractDetail = () => {
         onCancel={() => setCancelModalOpen(false)}
       />
 
-      <VoidReasonDialog
-        isOpen={!!voidingCompletion}
-        title="Void Completion"
-        description="Are you sure you want to void this completion? This will decrease the total completed work value."
-        confirmLabel="Void Completion"
-        isSubmitting={voidCompletionMutation.isPending}
-        onConfirm={(reason) => voidCompletionMutation.mutateAsync({ id: voidingCompletion._id, voidReason: reason })}
-        onCancel={() => setVoidingCompletion(null)}
-      />
+
 
       <VoidReasonDialog
         isOpen={!!voidingPayment}

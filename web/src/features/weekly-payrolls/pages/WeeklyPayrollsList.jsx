@@ -125,6 +125,30 @@ export const WeeklyPayrollsList = () => {
         onPageChange={setPage}
         isLoading={isLoading}
         isFetching={isFetching}
+        mobileRenderer={(row) => (
+          <div className="flex flex-col gap-3 p-4" onClick={() => navigate(`/weekly-payrolls/${row._id}`)}>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 shrink-0 rounded-full bg-accent/10 text-accent flex items-center justify-center font-bold text-sm uppercase">
+                  {(row.employee?.name || "U").charAt(0)}
+                </div>
+                <span className="font-semibold text-primary">{row.employee?.name || "Unknown"}</span>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between gap-4 pt-2 border-t border-border/50">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-1">Period</span>
+                <span className="text-xs text-secondary font-medium">{formatDate(row.startDate)} - {formatDate(row.endDate)}</span>
+              </div>
+              
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-1">Total</span>
+                <MoneyDisplay amount={row.totalEarnings} variant="accent" className="text-sm font-bold" />
+              </div>
+            </div>
+          </div>
+        )}
         emptyState={
           <EmptyState
             title="No payroll records found"
