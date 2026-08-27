@@ -2,13 +2,14 @@ import React from "react";
 import { formatCurrency } from "../../utils/formatters";
 
 export const MoneyDisplay = ({
-  amount,
+  amount = 0,
   variant = "default",
   showSymbol = true,
   className = "",
 }) => {
-  const isNegative = amount < 0;
-  const absAmount = Math.abs(amount);
+  const num = Number(amount);
+  const isNegative = Number.isFinite(num) && num < 0;
+  const absAmount = Math.abs(Number.isFinite(num) ? num : 0);
 
   const variants = {
     default: "text-primary font-medium",
@@ -21,12 +22,18 @@ export const MoneyDisplay = ({
     financeOut: "text-finance-out font-bold",
   };
 
+  const rawFormatted = formatCurrency(absAmount, showSymbol);
+  const formatted =
+    typeof rawFormatted === "string"
+      ? rawFormatted.replace(/\u00a0|\u202f/g, " ")
+      : rawFormatted;
+
   return (
     <span
-      className={`inline-flex max-w-full items-baseline gap-0.5 whitespace-nowrap tabular-nums ${variants[variant]} ${className}`}
+      className={`inline-flex flex-wrap items-baseline gap-x-1 tabular-nums break-words ${variants[variant] || variants.default} ${className}`}
     >
       {isNegative && <span>-</span>}
-      <span className="truncate">{formatCurrency(absAmount, showSymbol)}</span>
+      <span>{formatted}</span>
     </span>
   );
 };

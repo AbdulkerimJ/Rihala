@@ -37,14 +37,13 @@ import { WeeklyPayrollsList } from "../features/weekly-payrolls/pages/WeeklyPayr
 import { WeeklyPayrollDetail } from "../features/weekly-payrolls/pages/WeeklyPayrollDetail";
 import { EmployeeRatesList } from "../features/employee-rates/pages/EmployeeRatesList";
 
-// New Contractor Management Imports
 import { TaskTypesList } from "../features/task-types/pages/TaskTypesList";
 import { TasksList } from "../features/tasks/pages/TasksList";
 import { ContractorsList } from "../features/contractors/pages/ContractorsList";
 import { ContractorDetail } from "../features/contractors/pages/ContractorDetail";
 import { ContractsList } from "../features/contracts/pages/ContractsList";
 import { ContractDetail } from "../features/contracts/pages/ContractDetail";
-import { ContractCompletionsList } from "../features/contract-completions/pages/ContractCompletionsList";
+
 import { ContractorPaymentsList } from "../features/contractor-payments/pages/ContractorPaymentsList";
 import { Analytics } from "../features/dashboard/pages/Analytics";
 
@@ -343,14 +342,7 @@ export const router = createBrowserRouter([
           </RequirePermission>
         ),
       },
-      {
-        path: "contract-completions",
-        element: (
-          <RequirePermission permission="contractCompletions.read">
-            <ContractCompletionsList />
-          </RequirePermission>
-        ),
-      },
+
       {
         path: "contractor-payments",
         element: (
