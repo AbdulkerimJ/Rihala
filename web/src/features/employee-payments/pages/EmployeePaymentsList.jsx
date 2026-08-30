@@ -7,6 +7,7 @@ import { getEmployees } from "../../employees/api";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
 import { Can } from "../../../components/Can";
+import { EmployeePaymentModal } from "../components/EmployeePaymentModal";
 
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { ErrorState } from "../../../components/ui/ErrorState";
@@ -29,106 +30,7 @@ import toast from "react-hot-toast";
 import { applyServerErrors, cleanFilterParams, getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
 import { formatDate } from "../../../utils/formatters";
 
-const paymentSchema = z.object({
-  employee: z.string().min(1, "Employee is required"),
-  amount: z.coerce.number({ error: "Amount is required" }).positive("Amount must be greater than 0"),
-  type: z.enum(["regular", "overtime", "bonus", "advance", "other"]).default("advance"),
-  paymentDate: z.string().min(1, "Payment date is required"),
-  note: z.string().trim().optional().or(z.literal("")),
-});
 
-const PaymentForm = ({ onSubmit, onClose }) => {
-  const { can } = usePermission();
-  const { data: employeesData } = useQuery({ 
-    queryKey: ["employees", "list"], 
-    queryFn: () => getEmployees({ limit: 1000, status: "active" }),
-    enabled: can("employees.read")
-  });
-  const employees = unwrapListResponse(employeesData).items || [];
-  
-  const { register, control, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm({
-    resolver: zodResolver(paymentSchema),
-    defaultValues: {
-      employee: "",
-      amount: "",
-      type: "advance",
-      paymentDate: new Date().toISOString().split("T")[0],
-      note: "",
-    },
-  });
-
-  const handleFormSubmit = async (data) => {
-    try {
-      const payload = {
-        employee: data.employee,
-        amount: data.amount,
-        type: data.type,
-        paymentDate: new Date(data.paymentDate).toISOString(),
-        note: data.note || undefined,
-      };
-
-      await onSubmit(payload);
-    } catch (error) {
-      applyServerErrors(setError, error);
-    }
-  };
-
-  return (
-    <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
-      <FormRootError error={errors.root} />
-      <FormField label="Employee" required error={errors.employee?.message}>
-        <Select
-          {...register("employee")}
-          placeholder="Select an employee"
-          options={employees.map(e => ({ value: e._id, label: e.name }))}
-          error={errors.employee?.message}
-        />
-      </FormField>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormField label="Payment Type" required error={errors.type?.message}>
-          <Select
-            {...register("type")}
-            options={[
-              { value: "advance", label: "Salary Advance" },
-              { value: "regular", label: "Regular Salary" },
-              { value: "overtime", label: "Overtime Payment" },
-              { value: "bonus", label: "Bonus" },
-              { value: "other", label: "Other" },
-            ]}
-            error={errors.type?.message}
-          />
-        </FormField>
-
-        <FormField label="Amount (ETB)" required error={errors.amount?.message}>
-          <Controller
-            name="amount"
-            control={control}
-            render={({ field }) => (
-              <CurrencyInput
-                {...field}
-                error={errors.amount?.message}
-              />
-            )}
-          />
-        </FormField>
-      </div>
-
-      <FormField label="Payment Date" required error={errors.paymentDate?.message}>
-        <Input type="date" {...register("paymentDate")} error={errors.paymentDate?.message} />
-      </FormField>
-
-      <FormField label="Notes (Optional)" error={errors.note?.message}>
-        <Textarea {...register("note")} rows={2} error={errors.note?.message} placeholder="Optional notes" />
-      </FormField>
-
-      <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
-        <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
-        <Button type="submit" isLoading={isSubmitting}>Record Payment</Button>
-      </div>
-    </form>
-  );
-};
 
 export const EmployeePaymentsList = () => {
   const { can } = usePermission();
@@ -200,7 +102,7 @@ export const EmployeePaymentsList = () => {
         <div className="flex justify-end gap-2">
           <Can permission="employeePayments.void">
             {row.status !== 'voided' && (
-              <Button variant="ghostDanger" size="sm" onClick={(e) => { e.stopPropagation(); setVoidingPayment(row); }}>
+              <Button variant="danger-ghost" size="sm" onClick={(e) => { e.stopPropagation(); setVoidingPayment(row); }}>
                 Void
               </Button>
             )}
@@ -278,12 +180,11 @@ export const EmployeePaymentsList = () => {
         }
       />
 
-      <Modal isOpen={isOpen} title="Record Payment to Employee" onClose={() => setIsOpen(false)}>
-        <PaymentForm
-          onClose={() => setIsOpen(false)}
-          onSubmit={(data) => createMutation.mutateAsync(data)}
-        />
-      </Modal>
+      <EmployeePaymentModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        onSubmit={createMutation.mutateAsync}
+      />
 
       <VoidReasonDialog
         isOpen={!!voidingPayment}

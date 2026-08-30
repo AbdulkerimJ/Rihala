@@ -16,10 +16,11 @@ import { Can } from "../../../components/Can";
 import { getApiErrorMessage, unwrapEntityResponse, unwrapListResponse } from "../../../utils/apiResponse";
 import { formatDate } from "../../../utils/formatters";
 import { usePermission } from "../../../hooks/usePermission";
-import { ShoppingBag, Calendar, Building2, ArrowLeft, Edit } from "lucide-react";
+import { ShoppingBag, Calendar, Building2, Edit, CreditCard } from "lucide-react";
+import { BackButton } from "../../../components/ui/BackButton";
 import toast from "react-hot-toast";
 import { SupplierPaymentModal } from "../../supplier-payments/components/SupplierPaymentModal";
-import { PurchaseForm } from "./PurchasesList";
+import { PurchaseForm } from "../components/PurchaseForm";
 
 export const PurchaseDetail = () => {
   const { id } = useParams();
@@ -137,14 +138,7 @@ export const PurchaseDetail = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-4">
         <div className="flex items-center gap-3">
-          <Link
-            to="/purchases"
-            className="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-border bg-surface text-secondary hover:text-primary hover:bg-main transition-colors shrink-0"
-            title="Back to purchases"
-            aria-label="Back to purchases"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
+          <BackButton />
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-bold text-primary font-display tracking-tight">Purchase #{purchase.purchaseNumber}</h1>
@@ -156,13 +150,15 @@ export const PurchaseDetail = () => {
         
         <div className="flex items-center gap-3">
           <Can permission="purchases.update">
-            <Button variant="outline" onClick={() => setEditModalOpen(true)}>
-              <Edit className="h-4 w-4 mr-2" /> Edit Purchase
+            <Button variant="outline" leftIcon={Edit} onClick={() => setEditModalOpen(true)}>
+              Edit Purchase
             </Button>
           </Can>
           <Can permission="supplierPayments.create">
              {purchase.paymentStatus !== "PAID" && (
-                <Button onClick={() => setPaymentModalOpen(true)}>Record Payment</Button>
+                <Button variant="secondary" leftIcon={CreditCard} onClick={() => setPaymentModalOpen(true)}>
+                  Record Payment
+                </Button>
              )}
           </Can>
         </div>
@@ -225,14 +221,22 @@ export const PurchaseDetail = () => {
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-finance-out font-semibold">Paid: <MoneyDisplay amount={purchase.allocatedAmount || 0} /></span>
-                <span className={purchase.remainingAmount > 0 ? 'text-warning font-semibold' : 'text-success font-semibold'}>
-                  Remaining: <MoneyDisplay amount={purchase.remainingAmount || 0} />
-                </span>
+                {purchase.remainingAmount > 0 ? (
+                  <span className="text-warning font-semibold">
+                    Remaining: <MoneyDisplay amount={purchase.remainingAmount} />
+                  </span>
+                ) : (
+                  <span className="text-success font-semibold">
+                    Fully Paid
+                  </span>
+                )}
               </div>
               {/* Progress Bar */}
               <div className="h-2.5 w-full bg-main rounded-full overflow-hidden shadow-inner">
                 <div 
-                  className="h-full bg-finance-out transition-all duration-500 rounded-full"
+                  className={`h-full transition-all duration-500 rounded-full ${
+                    purchase.paymentStatus === 'PAID' ? 'bg-success' : purchase.paymentStatus === 'PARTIALLY_PAID' ? 'bg-warning' : 'bg-finance-out'
+                  }`}
                   style={{ width: `${purchase.totalAmount > 0 ? Math.min(100, Math.round(((purchase.allocatedAmount || 0) / purchase.totalAmount) * 100)) : 0}%` }}
                 />
               </div>

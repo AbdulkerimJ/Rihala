@@ -1,9 +1,11 @@
 import React, { useMemo, useState } from "react";
+import { Save, X, Plus } from "lucide-react";
 import { usePermission } from "../../../hooks/usePermission";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { employeeRatesApi } from "../api";
-import { getEmployees } from "../../employees/api";
+import { getEmployees, createEmployee } from "../../employees/api";
+import { EmployeeForm } from "../../employees/components/EmployeeForm";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
 import { Can } from "../../../components/Can";
@@ -19,6 +21,7 @@ import { Input } from "../../../components/ui/Input";
 import { CurrencyInput } from "../../../components/ui/CurrencyInput";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { Select } from "../../../components/ui/Select";
+import { CreatableSelect } from "../../../components/ui/CreatableSelect";
 import { Textarea } from "../../../components/ui/Textarea";
 import { FormRootError } from "../../../components/ui/FormRootError";
 import { useForm, Controller } from "react-hook-form";
@@ -44,7 +47,7 @@ const EmployeeRateForm = ({ initialData, onSubmit, onClose }) => {
   });
   const employees = unwrapListResponse(employeesData).items || [];
   
-  const { register, control, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm({
+  const { register, control, handleSubmit, setError, setValue, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(employeeRateSchema),
     defaultValues: initialData ? {
       employee: initialData.employee?._id || initialData.employee,
@@ -79,15 +82,21 @@ const EmployeeRateForm = ({ initialData, onSubmit, onClose }) => {
   return (
     <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
       <FormRootError error={errors.root} />
-      <FormField label="Employee" required error={errors.employee?.message}>
-        <Select
-          {...register("employee")}
-          placeholder="Select an employee"
-          options={employees.map(e => ({ value: e._id, label: e.name }))}
-          error={errors.employee?.message}
-          disabled={!!initialData}
-        />
-      </FormField>
+      <CreatableSelect
+        label="Employee"
+        required
+        name="employee"
+        register={register}
+        setValue={setValue}
+        error={errors.employee?.message}
+        options={employees.map(e => ({ value: e._id, label: e.name }))}
+        placeholder="Select an employee"
+        disabled={!!initialData}
+        createTitle="New Employee"
+        FormComponent={EmployeeForm}
+        createMutationFn={createEmployee}
+        queryKey={["employees"]}
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Daily Rate (ETB)" required error={errors.dailyRate?.message}>
@@ -122,8 +131,8 @@ const EmployeeRateForm = ({ initialData, onSubmit, onClose }) => {
       </FormField>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
-        <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
-        <Button type="submit" isLoading={isSubmitting}>Save Rate</Button>
+        <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting} leftIcon={X}>Cancel</Button>
+        <Button type="submit" isLoading={isSubmitting} leftIcon={Save}>Save Rate</Button>
       </div>
     </form>
   );
@@ -232,7 +241,7 @@ export const EmployeeRatesList = () => {
           </Can>
           <Can permission="employeeRates.delete">
             <Button
-              variant="ghostDanger"
+              variant="danger-ghost"
               size="sm"
               onClick={(e) => {
                 e.stopPropagation();

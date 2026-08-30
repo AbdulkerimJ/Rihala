@@ -5,16 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { validateInvitation, acceptInvitation } from "../api";
 import { useAuth } from "../../../hooks/useAuth";
-import {
-  ShieldCheck,
-  Eye,
-  EyeOff,
-  CheckCircle2,
-  AlertCircle,
-  Loader2,
-  ArrowLeft,
-  KeyRound,
-} from "lucide-react";
+import { ShieldCheck, Eye, EyeOff, CheckCircle2, AlertCircle, Loader2, ArrowLeft, KeyRound,  } from "lucide-react";
 import { applyServerErrors, getApiErrorMessage } from "../../../utils/apiResponse";
 import { FormField } from "../../../components/ui/FormField";
 import { Input } from "../../../components/ui/Input";

@@ -1,61 +1,35 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import {
-  LayoutDashboard,
-  Briefcase,
-  CreditCard,
-  Users,
-  MoreHorizontal,
-} from "lucide-react";
+import { LayoutDashboard, CalendarDays, ShoppingCart, ClipboardList, MoreHorizontal,  } from "lucide-react";
 import { usePermission } from "../hooks/usePermission";
 
-const BOTTOM_TABS = [
+// 4 pinned individual-page tabs. Keep to ≤4 so the "More" slot always fits.
+// matchPaths: additional routes that should light this tab up as active.
+const PINNED_TABS = [
   {
     label: "Dashboard",
     icon: LayoutDashboard,
     path: "/dashboard",
+    matchPaths: ["/dashboard", "/analytics"],
     permission: "dashboard.read",
   },
   {
-    label: "Operations",
-    icon: Briefcase,
+    label: "Attendance",
+    icon: CalendarDays,
     path: "/attendances",
-    // match any of these paths as "active"
-    matchPaths: [
-      "/attendances",
-      "/overtimes",
-      "/purchases",
-      "/contracts",
-      "/weekly-payrolls",
-      "/orders",
-      "/contract-completions",
-    ],
     permission: "attendances.read",
   },
   {
-    label: "Payments",
-    icon: CreditCard,
-    path: "/employee-payments",
-    matchPaths: [
-      "/employee-payments",
-      "/contractor-payments",
-      "/supplier-payments",
-      "/customer-payments",
-      "/expenses",
-    ],
-    permission: "employeePayments.read",
+    label: "Orders",
+    icon: ShoppingCart,
+    path: "/orders",
+    permission: "orders.read",
   },
   {
-    label: "People",
-    icon: Users,
-    path: "/employees",
-    matchPaths: [
-      "/employees",
-      "/employee-rates",
-      "/contractors",
-      "/customers",
-    ],
-    permission: "employees.read",
+    label: "Purchases",
+    icon: ClipboardList,
+    path: "/purchases",
+    permission: "purchases.read",
   },
 ];
 
@@ -68,7 +42,7 @@ export const BottomNav = ({ onMoreClick }) => {
     return paths.some((p) => location.pathname.startsWith(p));
   };
 
-  const visibleTabs = BOTTOM_TABS.filter(
+  const visibleTabs = PINNED_TABS.filter(
     (tab) => !tab.permission || can(tab.permission)
   );
 

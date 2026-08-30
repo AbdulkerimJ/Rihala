@@ -1,4 +1,5 @@
 import { usePermission } from "../../../hooks/usePermission";
+import { Plus } from "lucide-react";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import React, { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
@@ -82,6 +83,7 @@ export const OrdersList = () => {
     mutationFn: createOrder,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
       toast.success("Order created successfully");
       setIsOpen(false);
     },
@@ -91,6 +93,7 @@ export const OrdersList = () => {
     mutationFn: updateOrder,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
       toast.success("Order updated successfully");
       setIsOpen(false);
     },
@@ -161,7 +164,7 @@ export const OrdersList = () => {
         description="Track agreed furniture orders and progress through the workshop."
         actions={
           <Can permission="orders.create">
-            <Button
+            <Button leftIcon={Plus}
               onClick={() => {
                 setEditingOrder(null);
                 setIsOpen(true);

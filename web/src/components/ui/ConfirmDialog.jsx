@@ -3,7 +3,7 @@ import { Modal } from "./Modal";
 import { Button } from "./Button";
 import { Textarea } from "./Textarea";
 import { FormField } from "./FormField";
-import { AlertTriangle, Info } from "lucide-react";
+import { AlertTriangle, Info, X } from "lucide-react";
 
 export const ConfirmDialog = ({
   isOpen,
@@ -83,7 +83,7 @@ export const ConfirmDialog = ({
             variant="secondary"
             onClick={handleCancel}
             disabled={isSubmitting}
-          >
+           leftIcon={X}>
             {cancelLabel}
           </Button>
           <Button

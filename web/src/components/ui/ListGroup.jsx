@@ -51,7 +51,7 @@ export const ListItem = ({
   };
 
   const interactiveStyles = isInteractive
-    ? "hover:bg-main/40 transition-colors duration-150 active:scale-[0.99] text-left cursor-pointer"
+    ? "group hover:bg-accent/5 transition-all duration-200 active:bg-main/60 text-left cursor-pointer"
     : "";
 
   return (
@@ -74,7 +74,7 @@ export const ListItem = ({
             )}
             <div className="min-w-0 flex-1 flex flex-col gap-0.5">
               {title && (
-                <span className="text-xs sm:text-sm font-bold text-primary truncate block leading-tight">
+                <span className="text-xs sm:text-sm font-medium text-primary truncate block leading-tight">
                   {title}
                 </span>
               )}
@@ -90,7 +90,7 @@ export const ListItem = ({
             <div className="flex items-center gap-2 shrink-0">
               {right}
               {showChevron && (
-                <ChevronRight className="h-4 w-4 text-muted/70 shrink-0" />
+                <ChevronRight className="h-4 w-4 text-secondary/30 group-hover:text-accent group-hover:translate-x-1 transition-all shrink-0" />
               )}
             </div>
           )}

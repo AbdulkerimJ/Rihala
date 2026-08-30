@@ -1,4 +1,6 @@
 import React, { useMemo, useState } from "react";
+import { Plus, Edit, Trash2, X } from "lucide-react";
+import { SupplierForm } from "../components/SupplierForm";
 import { usePermission } from "../../../hooks/usePermission";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
@@ -30,68 +32,7 @@ import { formatDateTime } from "../../../utils/formatters";
 import { ethiopianPhone } from "../../../utils/validation";
 import { ACTIVE_INACTIVE_OPTIONS, STATUS_FILTER_OPTIONS } from "../../../constants/options";
 
-const supplierSchema = z.object({
-  name: z.string().trim().min(2, "Name must be at least 2 characters").max(100, "Name cannot exceed 100 characters"),
-  phone: ethiopianPhone,
-  address: z.string().trim().max(255, "Address cannot exceed 255 characters").optional().or(z.literal("")),
-  notes: z.string().trim().max(1000, "Notes cannot exceed 1000 characters").optional().or(z.literal("")),
-  status: z.enum(["active", "inactive"]).default("active"),
-});
 
-export const SupplierForm = ({ initialData, onSubmit, onClose }) => {
-  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm({
-    resolver: zodResolver(supplierSchema),
-    defaultValues: initialData || {
-      name: "",
-      phone: "",
-      address: "",
-      notes: "",
-      status: "active",
-    },
-  });
-
-  const handleFormSubmit = async (data) => {
-    try {
-      await onSubmit(data);
-    } catch (error) {
-      applyServerErrors(setError, error);
-    }
-  };
-
-  return (
-    <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
-      <FormRootError error={errors.root} />
-      <FormField label="Name" required error={errors.name?.message}>
-        <Input {...register("name")} error={errors.name?.message} />
-      </FormField>
-
-      <FormField label="Phone" required error={errors.phone?.message}>
-        <Input {...register("phone")} error={errors.phone?.message} placeholder="e.g. 0911234567 or +251911234567" />
-      </FormField>
-
-      <FormField label="Address" error={errors.address?.message}>
-        <Input {...register("address")} error={errors.address?.message} />
-      </FormField>
-
-      <FormField label="Notes" error={errors.notes?.message}>
-        <Textarea {...register("notes")} rows={2} error={errors.notes?.message} />
-      </FormField>
-
-      <FormField label="Status" error={errors.status?.message}>
-        <Select
-          {...register("status")}
-          options={ACTIVE_INACTIVE_OPTIONS}
-          error={errors.status?.message}
-        />
-      </FormField>
-
-      <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
-        <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
-        <Button type="submit" isLoading={isSubmitting}>Save Supplier</Button>
-      </div>
-    </form>
-  );
-};
 
 export const SuppliersList = () => {
   const { can } = usePermission();
@@ -168,41 +109,29 @@ export const SuppliersList = () => {
       header: "Actions",
       isActions: true,
       accessor: (row) => (
-        <div className="flex gap-2 justify-end">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/suppliers/${row._id}`);
-            }}
-          >
-            View
-          </Button>
+        <div className="flex gap-1 justify-end">
           <Can permission="suppliers.update">
             <Button
-              variant="secondary"
-              size="sm"
+              variant="ghost"
+              size="icon"
+              leftIcon={Edit}
               onClick={(e) => {
                 e.stopPropagation();
                 setEditingSupplier(row);
                 setIsOpen(true);
               }}
-            >
-              Edit
-            </Button>
+            />
           </Can>
           <Can permission="suppliers.delete">
             <Button
-              variant="ghostDanger"
-              size="sm"
+              variant="danger-ghost"
+              size="icon"
+              leftIcon={Trash2}
               onClick={(e) => {
                 e.stopPropagation();
                 setDeletingSupplier(row);
               }}
-            >
-              Delete
-            </Button>
+            />
           </Can>
         </div>
       ),
@@ -218,7 +147,7 @@ export const SuppliersList = () => {
         description="Manage workshop suppliers and material vendors."
         actions={
           <Can permission="suppliers.create">
-            <Button onClick={() => { setEditingSupplier(null); setIsOpen(true); }}>New Supplier</Button>
+            <Button variant="primary" leftIcon={Plus} onClick={() => { setEditingSupplier(null); setIsOpen(true); }}>New Supplier</Button>
           </Can>
         }
       />

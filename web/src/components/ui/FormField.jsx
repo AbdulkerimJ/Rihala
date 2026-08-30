@@ -2,6 +2,7 @@ import React from "react";
 
 export const FormField = ({
   label,
+  labelRight,
   error,
   required,
   description,
@@ -11,9 +12,12 @@ export const FormField = ({
   return (
     <div className={`space-y-1.5 ${className}`}>
       {label && (
-        <label className="block text-sm font-medium text-primary">
-          {label} {required && <span className="text-danger">*</span>}
-        </label>
+        <div className="flex items-center justify-between">
+          <label className="block text-sm font-medium text-primary">
+            {label} {required && <span className="text-danger">*</span>}
+          </label>
+          {labelRight && <div className="text-xs">{labelRight}</div>}
+        </div>
       )}
       {children}
       {description && !error && (

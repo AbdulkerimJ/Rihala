@@ -5,36 +5,7 @@ import { usePermission } from "../hooks/usePermission";
 import { Button } from "../components/ui/Button";
 import { Header } from "../components/Header";
 import { ErrorBoundary } from "../components/ErrorBoundary";
-import {
-  LayoutDashboard,
-  Users,
-  ShieldCheck,
-  Key,
-  Receipt,
-  Contact,
-  ClipboardList,
-  LogOut,
-  Package,
-  ShoppingCart,
-  CreditCard,
-  Briefcase,
-  Clock,
-  CalendarDays,
-  Wallet,
-  Settings,
-  UserSquare2,
-  BarChart2,
-  FileText,
-  ClipboardCheck,
-  Hammer,
-  ListTree,
-  Banknote,
-  HandCoins,
-  Building2,
-  BadgeDollarSign,
-  HardHat,
-  Store,
-} from "lucide-react";
+import { LayoutDashboard, Users, ShieldCheck, Key, Receipt, Contact, ClipboardList, Package, ShoppingCart, CreditCard, Briefcase, Clock, CalendarDays, Wallet, Settings, UserSquare2, BarChart2, FileText, ClipboardCheck, Hammer, ListTree, Banknote, HandCoins, Building2, BadgeDollarSign, HardHat, Store, PanelLeftClose,  } from "lucide-react";
 
 import { NavGroup } from "./NavGroup";
 import { SidebarBrand } from "./SidebarBrand";
@@ -46,8 +17,21 @@ export const DashboardLayout = () => {
   const { can } = usePermission();
   const location = useLocation();
   const navigate = useNavigate();
-  const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [isDrawerOpen, setDrawerOpen] = useState(false);
+
+  // ── Collapsible desktop sidebar ─────────────────────────────────────────────
+  // Persisted to localStorage so preference survives page refreshes.
+  const [isCollapsed, setIsCollapsed] = useState(
+    () => localStorage.getItem("sidebar-collapsed") === "true"
+  );
+
+  const toggleCollapse = () => {
+    setIsCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem("sidebar-collapsed", String(next));
+      return next;
+    });
+  };
 
   const sectionTitle = useMemo(() => {
     const sectionMap = {
@@ -110,14 +94,23 @@ export const DashboardLayout = () => {
       ]
     },
     {
-      title: "Payments",
-      icon: CreditCard,
+      title: "People",
+      icon: Users,
       items: [
-        { name: "Employee Payments", path: "/employee-payments", icon: UserSquare2, permission: "employeePayments.read" },
-        { name: "Contractor Payments", path: "/contractor-payments", icon: HardHat, permission: "contractorPayments.read" },
-        { name: "Supplier Payments", path: "/supplier-payments", icon: Building2, permission: "supplierPayments.read" },
-        { name: "Customer Payments", path: "/customer-payments", icon: Store, permission: "customerPayments.read" },
+        { name: "Employees", path: "/employees", icon: UserSquare2, permission: "employees.read" },
+        { name: "Contractors", path: "/contractors", icon: HardHat, permission: "contractors.read" },
+        { name: "Customers", path: "/customers", icon: Store, permission: "customers.read" },
+      ]
+    },
+    {
+      title: "Finance",
+      icon: Wallet,
+      items: [
         { name: "Expenses", path: "/expenses", icon: Receipt, permission: "expenses.read" },
+        { name: "Supplier Payments", path: "/supplier-payments", icon: HandCoins, permission: "supplierPayments.read" },
+        { name: "Employee Payments", path: "/employee-payments", icon: Banknote, permission: "employeePayments.read" },
+        { name: "Contractor Payments", path: "/contractor-payments", icon: BadgeDollarSign, permission: "contractorPayments.read" },
+        { name: "Customer Payments", path: "/customer-payments", icon: CreditCard, permission: "customerPayments.read" },
       ]
     },
     {
@@ -126,16 +119,6 @@ export const DashboardLayout = () => {
       items: [
         { name: "Materials", path: "/materials", icon: Package, permission: "materials.read" },
         { name: "Suppliers", path: "/suppliers", icon: Building2, permission: "suppliers.read" },
-      ]
-    },
-    {
-      title: "People",
-      icon: Users,
-      items: [
-        { name: "Employees", path: "/employees", icon: UserSquare2, permission: "employees.read" },
-        { name: "Employee Rates", path: "/employee-rates", icon: BadgeDollarSign, permission: "employeeRates.read" },
-        { name: "Contractors", path: "/contractors", icon: HardHat, permission: "contractors.read" },
-        { name: "Customers", path: "/customers", icon: Store, permission: "customers.read" },
       ]
     },
     {
@@ -153,37 +136,32 @@ export const DashboardLayout = () => {
 
   return (
     <div className="flex h-screen text-primary relative z-0 bg-main">
-      {/* Desktop sidebar backdrop (mobile uses MobileDrawer instead) */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 z-20 bg-black/50 lg:hidden backdrop-blur-sm transition-opacity"
-          onClick={() => setSidebarOpen(false)}
-        ></div>
-      )}
 
       {/* Desktop Sidebar — hidden on mobile, shown on lg+ */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 flex w-[260px] transform flex-col bg-main transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } hidden lg:flex`}
+        className={`hidden lg:flex fixed inset-y-0 left-0 z-30 flex-col bg-main lg:static transition-[width] duration-300 ease-in-out ${
+          isCollapsed ? "w-16" : "w-[260px]"
+        }`}
       >
         {/* Brand Area */}
-        <SidebarBrand setSidebarOpen={setSidebarOpen} />
+        <SidebarBrand isCollapsed={isCollapsed} toggleCollapse={toggleCollapse} />
 
         {/* Navigation Area */}
-        <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-4 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+        <nav className={`flex-1 overflow-y-auto overflow-x-hidden py-4 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent transition-all duration-300 ${
+          isCollapsed ? "px-1" : "px-3"
+        }`}>
           {navGroups.map((group, idx) => (
             <NavGroup 
               key={idx} 
               group={group} 
-              isSidebarOpen={isSidebarOpen} 
-              setSidebarOpen={setSidebarOpen} 
+              isSidebarOpen={false}
+              setSidebarOpen={() => {}}
               pathname={location.pathname}
-              can={can} 
+              can={can}
+              isCollapsed={isCollapsed}
             />
           ))}
         </nav>
-
       </aside>
 
       {/* Main content */}
@@ -192,7 +170,6 @@ export const DashboardLayout = () => {
         <Header
           sectionTitle={sectionTitle}
           currentUser={currentUser}
-          onMobileMenuToggle={() => setSidebarOpen(true)}
         />
 
         {/* Main section — pb-20 on mobile to clear the bottom nav */}

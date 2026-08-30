@@ -48,6 +48,7 @@ export const DashboardRecentReceipts = ({
                   key={payment._id}
                   to="/customer-payments"
                   size="sm"
+                  showChevron={true}
                   title={customerName}
                   subtitle={formatDate(payment.paymentDate)}
                   right={

@@ -1,13 +1,7 @@
 import React, { useState } from "react";
 import { usePermission } from "../../../hooks/usePermission";
 import { useQuery } from "@tanstack/react-query";
-import { 
-  Check, Shield, Users, Key, Package, 
-  ShoppingCart, ShoppingBag, Receipt, Truck, 
-  Wallet, Landmark, Clock, CalendarDays, 
-  Briefcase, LayoutDashboard, Settings, FileText,
-  UserCog, HandCoins, Banknote
-} from "lucide-react";
+import { Check, Shield, Users, Key, Package, ShoppingCart, ShoppingBag, Receipt, Truck, Wallet, Landmark, Clock, CalendarDays, Briefcase, LayoutDashboard, Settings, FileText, UserCog, HandCoins, Banknote, X } from "lucide-react";
 import { Button } from "../../../components/ui/Button";
 import { getPermissions } from "../../permissions/api";
 import { Skeleton } from "../../../components/ui/skeletons";
@@ -134,7 +128,7 @@ export const AssignPermissionsForm = ({ onClose, onSubmit, role, isSubmitting })
                   </div>
                   <Button
                     type="button"
-                    variant="ghostPrimary"
+                    variant="ghost"
                     size="none"
                     onClick={() => handleToggleGroup(perms, isAllSelected)}
                     className="text-xs font-medium hover:underline"
@@ -199,11 +193,10 @@ export const AssignPermissionsForm = ({ onClose, onSubmit, role, isSubmitting })
       )}
 
       <div className="flex justify-end gap-3 border-t border-border pt-4">
-        <Button
-          type="button"
-          variant="secondary"
+        <Button type="button"
+          variant="ghost"
           onClick={onClose}
-          disabled={isSubmitting}
+          disabled={isSubmitting} leftIcon={X}
         >
           Cancel
         </Button>

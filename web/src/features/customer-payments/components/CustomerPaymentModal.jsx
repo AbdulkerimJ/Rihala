@@ -1,13 +1,16 @@
 import React, { useMemo } from "react";
+import { Save, X, Plus } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
 import { usePermission } from "../../../hooks/usePermission";
-import { getCustomers } from "../../customers/api";
+import { getCustomers, createCustomer } from "../../customers/api";
+import { CustomerForm } from "../../customers/components/CustomerForm";
 import { getOrders } from "../../orders/api";
 import { FormField } from "../../../components/ui/FormField";
 import { Select } from "../../../components/ui/Select";
+import { CreatableSelect } from "../../../components/ui/CreatableSelect";
 import { Input } from "../../../components/ui/Input";
 import { Textarea } from "../../../components/ui/Textarea";
 import { Button } from "../../../components/ui/Button";
@@ -146,14 +149,20 @@ export const CustomerPaymentModal = ({
           </div>
         ) : (
           <>
-            <FormField label="Customer" required error={errors.customer?.message}>
-              <Select
-                {...register("customer")}
-                placeholder="Select a customer"
-                options={customers.map((c) => ({ value: c._id, label: c.name }))}
-                error={errors.customer?.message}
-              />
-            </FormField>
+            <CreatableSelect
+              label="Customer"
+              required
+              name="customer"
+              register={register}
+              setValue={setValue}
+              error={errors.customer?.message}
+              options={customers.map((c) => ({ value: c._id, label: c.name }))}
+              placeholder="Select a customer"
+              createTitle="New Customer"
+              FormComponent={CustomerForm}
+              createMutationFn={createCustomer}
+              queryKey={["customers"]}
+            />
 
             <FormField label="Order" required error={errors.order?.message}>
               <Select
@@ -227,10 +236,10 @@ export const CustomerPaymentModal = ({
         </FormField>
 
         <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
-          <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>
+          <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting} leftIcon={X}>
             Cancel
           </Button>
-          <Button type="submit" isLoading={isSubmitting}>
+          <Button type="submit" isLoading={isSubmitting} leftIcon={Save}>
             Record Payment
           </Button>
         </div>

@@ -1,11 +1,14 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { Save, X, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { usePermission } from "../../../hooks/usePermission";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { getContracts, createContract } from "../api";
-import { getContractors } from "../../contractors/api";
-import { getTasks } from "../../tasks/api";
+import { getContractors, createContractor } from "../../contractors/api";
+import { ContractorForm } from "../../contractors/components/ContractorForm";
+import { getTasks, createTask } from "../../tasks/api";
+import { TaskForm } from "../../tasks/components/TaskForm";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
 import { Can } from "../../../components/Can";
@@ -17,6 +20,7 @@ import { FilterBar } from "../../../components/ui/FilterBar";
 import { FormField } from "../../../components/ui/FormField";
 import { Input } from "../../../components/ui/Input";
 import { Select } from "../../../components/ui/Select";
+import { CreatableSelect } from "../../../components/ui/CreatableSelect";
 import { Textarea } from "../../../components/ui/Textarea";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
@@ -106,23 +110,35 @@ const ContractForm = ({ onSubmit, onClose }) => {
   return (
     <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
       <FormRootError error={errors.root} />
-      <FormField label="Contractor" required error={errors.contractor?.message}>
-        <Select
-          {...register("contractor")}
-          placeholder="Select a contractor"
-          options={contractors.map(c => ({ value: c._id, label: c.name }))}
-          error={errors.contractor?.message}
-        />
-      </FormField>
+      <CreatableSelect
+        label="Contractor"
+        required
+        name="contractor"
+        register={register}
+        setValue={setValue}
+        error={errors.contractor?.message}
+        options={contractors.map(c => ({ value: c._id, label: c.name }))}
+        placeholder="Select a contractor"
+        createTitle="New Contractor"
+        FormComponent={ContractorForm}
+        createMutationFn={createContractor}
+        queryKey={["contractors"]}
+      />
 
-      <FormField label="Task" required error={errors.task?.message}>
-        <Select
-          {...register("task")}
-          placeholder="Select a task"
-          options={tasks.map(t => ({ value: t._id, label: `${t.name} (Default: ${t.defaultUnitPrice} ETB)` }))}
-          error={errors.task?.message}
-        />
-      </FormField>
+      <CreatableSelect
+        label="Task"
+        required
+        name="task"
+        register={register}
+        setValue={setValue}
+        error={errors.task?.message}
+        options={tasks.map(t => ({ value: t._id, label: `${t.name} (Default: ${t.defaultUnitPrice} ETB)` }))}
+        placeholder="Select a task"
+        createTitle="New Task"
+        FormComponent={TaskForm}
+        createMutationFn={createTask}
+        queryKey={["tasks"]}
+      />
 
       <div className="grid grid-cols-2 gap-4">
         <FormField label="Quantity" required error={errors.quantity?.message}>
@@ -175,10 +191,10 @@ const ContractForm = ({ onSubmit, onClose }) => {
       </FormField>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
-        <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>
+        <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting} leftIcon={X}>
           Cancel
         </Button>
-        <Button type="submit" isLoading={isSubmitting}>
+        <Button type="submit" isLoading={isSubmitting} leftIcon={Save}>
           Create Contract
         </Button>
       </div>
@@ -231,6 +247,7 @@ export const ContractsList = () => {
     mutationFn: createContract,
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      queryClient.invalidateQueries({ queryKey: ["contractors"] });
       toast.success("Contract created successfully");
       setIsOpen(false);
       navigate(`/contracts/${data.data.contract._id}`);
@@ -256,7 +273,7 @@ export const ContractsList = () => {
         description="Manage work contracts and monitor their progress."
         actions={
           <Can permission="contracts.create">
-            <Button onClick={() => setIsOpen(true)}>
+            <Button leftIcon={Plus} onClick={() => setIsOpen(true)}>
               New Contract
             </Button>
           </Can>

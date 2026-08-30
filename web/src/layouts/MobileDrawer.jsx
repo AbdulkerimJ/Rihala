@@ -1,11 +1,23 @@
 import React, { useEffect } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
-import { X } from "lucide-react";
+import { X, LogOut } from "lucide-react";
 import { usePermission } from "../hooks/usePermission";
+import { useAuth } from "../hooks/useAuth";
+
+// Paths already pinned in the bottom nav tabs — skip them in the drawer
+// to avoid duplication. Keep in sync with PINNED_TABS in BottomNav.jsx.
+const PINNED_PATHS = new Set([
+  "/dashboard",
+  "/attendances",
+  "/orders",
+  "/purchases",
+]);
 
 export const MobileDrawer = ({ isOpen, onClose, navGroups }) => {
   const { can } = usePermission();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
 
   // Close drawer when navigating
@@ -33,6 +45,12 @@ export const MobileDrawer = ({ isOpen, onClose, navGroups }) => {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [isOpen, onClose]);
+
+  const handleLogout = async () => {
+    onClose();
+    await logout();
+    navigate("/login");
+  };
 
   return createPortal(
     <>
@@ -62,7 +80,7 @@ export const MobileDrawer = ({ isOpen, onClose, navGroups }) => {
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-border/50 shrink-0">
           <h2 className="text-base font-bold text-primary tracking-tight">
-            All Sections
+            More
           </h2>
           <button
             onClick={onClose}
@@ -74,18 +92,23 @@ export const MobileDrawer = ({ isOpen, onClose, navGroups }) => {
         </div>
 
         {/* Nav content — scrollable */}
-        <nav className="flex-1 overflow-y-auto px-4 py-4 pb-safe space-y-6">
+        <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
           {navGroups.map((group, idx) => {
+            // Filter: user must have permission AND path must not already be a pinned tab
             const accessibleItems = group.items.filter(
-              (item) => !item.permission || can(item.permission)
+              (item) =>
+                (!item.permission || can(item.permission)) &&
+                !PINNED_PATHS.has(item.path)
             );
+
+            // Hide the entire group if nothing is left to show
             if (accessibleItems.length === 0) return null;
 
             const GroupIcon = group.icon;
 
             return (
               <div key={idx}>
-                {/* Group header */}
+                {/* Group header — always show for non-flat groups */}
                 {group.title && !group.isFlat ? (
                   <div className="flex items-center gap-2.5 mb-3 px-0.5">
                     <div className="flex-1 h-px bg-border/60" />
@@ -103,71 +126,54 @@ export const MobileDrawer = ({ isOpen, onClose, navGroups }) => {
                   </div>
                 ) : null}
 
-                {/* Items — flat (Main) section gets larger 2-col tiles */}
-                {group.isFlat ? (
-                  <div className="grid grid-cols-2 gap-2">
-                    {accessibleItems.map((item) => {
-                      const ItemIcon = item.icon;
-                      const isActive = location.pathname.startsWith(item.path);
-                      return (
-                        <NavLink
-                          key={item.path}
-                          to={item.path}
-                          className={`flex items-center gap-3 rounded-xl px-4 py-3.5 transition-colors duration-150 border ${
-                            isActive
-                              ? "bg-accent/10 text-accent border-accent/25 shadow-sm"
-                              : "bg-surface text-secondary hover:bg-main hover:text-primary border-border/60"
+                {/* Items — 3-column icon tiles */}
+                <div className="grid grid-cols-3 gap-2">
+                  {accessibleItems.map((item) => {
+                    const ItemIcon = item.icon;
+                    const isActive = location.pathname.startsWith(item.path);
+                    return (
+                      <NavLink
+                        key={item.path}
+                        to={item.path}
+                        onClick={onClose}
+                        className={`flex flex-col items-center justify-center gap-1.5 rounded-xl p-3 text-center transition-colors duration-150 min-h-[68px] border ${
+                          isActive
+                            ? "bg-accent/10 text-accent border-accent/20 shadow-sm"
+                            : "bg-surface text-secondary hover:bg-main hover:text-primary border-border/50"
+                        }`}
+                      >
+                        <ItemIcon
+                          className={`h-5 w-5 shrink-0 ${isActive ? "text-accent" : "text-secondary"}`}
+                          strokeWidth={isActive ? 2.5 : 2}
+                        />
+                        <span
+                          className={`text-[10px] font-semibold leading-tight text-center line-clamp-2 ${
+                            isActive ? "text-accent" : "text-secondary"
                           }`}
                         >
-                          <ItemIcon
-                            className={`h-5 w-5 shrink-0 ${isActive ? "text-accent" : "text-secondary"}`}
-                            strokeWidth={isActive ? 2.5 : 2}
-                          />
-                          <span className={`text-sm font-bold leading-tight ${isActive ? "text-accent" : "text-secondary"}`}>
-                            {item.name}
-                          </span>
-                        </NavLink>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  /* Regular groups — 3-column icon tiles */
-                  <div className="grid grid-cols-3 gap-2">
-                    {accessibleItems.map((item) => {
-                      const ItemIcon = item.icon;
-                      const isActive = location.pathname.startsWith(item.path);
-                      return (
-                        <NavLink
-                          key={item.path}
-                          to={item.path}
-                          className={`flex flex-col items-center justify-center gap-1.5 rounded-xl p-3 text-center transition-colors duration-150 min-h-[68px] border ${
-                            isActive
-                              ? "bg-accent/10 text-accent border-accent/20 shadow-sm"
-                              : "bg-surface text-secondary hover:bg-main hover:text-primary border-border/50"
-                          }`}
-                        >
-                          <ItemIcon
-                            className={`h-5 w-5 shrink-0 ${isActive ? "text-accent" : "text-secondary"}`}
-                            strokeWidth={isActive ? 2.5 : 2}
-                          />
-                          <span
-                            className={`text-[10px] font-semibold leading-tight text-center line-clamp-2 ${
-                              isActive ? "text-accent" : "text-secondary"
-                            }`}
-                          >
-                            {item.name}
-                          </span>
-                        </NavLink>
-                      );
-                    })}
-                  </div>
-                )}
+                          {item.name}
+                        </span>
+                      </NavLink>
+                    );
+                  })}
+                </div>
               </div>
             );
           })}
 
+          {/* Logout — pinned at bottom */}
+          <div className="pt-2 border-t border-border/40">
+            <button
+              onClick={handleLogout}
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-danger hover:bg-danger/10 transition-colors duration-150"
+            >
+              <LogOut className="h-5 w-5" />
+              <span className="text-sm font-semibold">Sign Out</span>
+            </button>
+          </div>
+
           {/* Bottom safe area spacer */}
-          <div className="h-6" />
+          <div className="h-4" />
         </nav>
       </div>
     </>,

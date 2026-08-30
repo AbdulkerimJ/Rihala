@@ -1,6 +1,7 @@
 import { usePermission } from "../../../hooks/usePermission";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import React, { useMemo, useState } from "react";
+import { Save, X, Plus, Edit, Trash2 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import {
   createExpense,
@@ -126,10 +127,10 @@ const ExpenseForm = ({ initialData, onSubmit, onClose }) => {
       </FormField>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
-        <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>
+        <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting} leftIcon={X}>
           Cancel
         </Button>
-        <Button type="submit" isLoading={isSubmitting}>
+        <Button type="submit" isLoading={isSubmitting} leftIcon={Save}>
           Save Expense
         </Button>
       </div>
@@ -229,28 +230,28 @@ export const ExpensesList = () => {
           <Can permission="expenses.update">
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
+              leftIcon={Edit}
               onClick={(e) => {
                 e.stopPropagation();
                 setEditingExpense(row);
                 setIsOpen(true);
               }}
-            >
-              Edit
-            </Button>
+              title="Edit"
+            />
           </Can>
           <Can permission="expenses.delete">
             <Button
-              variant="ghostDanger"
-              size="sm"
+              variant="danger-ghost"
+              size="icon"
+              leftIcon={Trash2}
               onClick={(e) => {
                 e.stopPropagation();
                 deleteMutation.mutate(row._id);
               }}
               isLoading={deleteMutation.isPending && deleteMutation.variables === row._id}
-            >
-              Delete
-            </Button>
+              title="Delete"
+            />
           </Can>
         </div>
       ),
@@ -277,6 +278,7 @@ export const ExpensesList = () => {
         actions={
           <Can permission="expenses.create">
             <Button
+              leftIcon={Plus}
               onClick={() => {
                 setEditingExpense(null);
                 setIsOpen(true);

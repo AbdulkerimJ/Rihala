@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
+import { Calculator } from "lucide-react";
 import { usePermission } from "../../../hooks/usePermission";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -63,17 +64,6 @@ export const WeeklyPayrollsList = () => {
     { header: "Normal Earnings", accessor: (row) => <MoneyDisplay amount={row.normalEarnings} /> },
     { header: "Overtime Earnings", accessor: (row) => <MoneyDisplay amount={row.overtimeEarnings} /> },
     { header: "Total Earnings", accessor: (row) => <MoneyDisplay amount={row.totalEarnings} variant="accent" /> },
-    { 
-      header: "Actions", 
-      isActions: true,
-      accessor: (row) => (
-        <div className="flex justify-end gap-2">
-          <Button variant="secondary" size="sm" onClick={(e) => { e.stopPropagation(); navigate(`/weekly-payrolls/${row._id}`); }}>
-            View Details
-          </Button>
-        </div>
-      ) 
-    }
   ];
 
   if (isError) return <ErrorState description={getApiErrorMessage(error, "Failed to load payroll records.")} />;
@@ -85,7 +75,7 @@ export const WeeklyPayrollsList = () => {
         description="Manage and close weekly payroll periods for daily-wage employees."
         actions={
           <Can permission="weeklyPayrolls.close">
-            <Button onClick={() => setIsOpen(true)}>Close Payroll</Button>
+            <Button variant="primary" leftIcon={Plus} onClick={() => setIsOpen(true)}>Close Payroll</Button>
           </Can>
         }
       />

@@ -1,12 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import {
-  User,
-  Wallet,
-  CreditCard,
-  ChevronRight,
-  ExternalLink,
-} from "lucide-react";
+import { User, Wallet, CreditCard, ChevronRight, ExternalLink, X } from "lucide-react";
 import { SummaryCard } from "../../../components/ui/SummaryCard";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { formatCurrency, formatDate } from "../../../utils/formatters";

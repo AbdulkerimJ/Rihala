@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useParams, Link } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getEmployeeById, getEmployeeStats } from "../api";
 import { DetailSkeleton } from "../../../components/ui/skeletons";
 import { ErrorState } from "../../../components/ui/ErrorState";
@@ -10,16 +10,26 @@ import { DetailSection, DetailItem } from "../../../components/ui/DetailSection"
 import { SystemInfoSection } from "../../../components/ui/SystemInfoSection";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { Button } from "../../../components/ui/Button";
-import { getApiErrorMessage, unwrapEntityResponse } from "../../../utils/apiResponse";
-import { formatDate } from "../../../utils/formatters";
+import { getApiErrorMessage, unwrapEntityResponse, unwrapListResponse } from "../../../utils/apiResponse";
+import { formatDate, formatDateTime } from "../../../utils/formatters";
 import { usePermission } from "../../../hooks/usePermission";
-import { ArrowLeft, TrendingUp, TrendingDown, Wallet, Phone, Calendar, Clock, Banknote } from "lucide-react";
+import { DataTable } from "../../../components/ui/DataTable";
+import { getWeeklyPayrolls } from "../../weekly-payrolls/api";
+import { getEmployeePayments } from "../../employee-payments/api";
+import { TrendingUp, TrendingDown, Wallet, Phone, Calendar, Clock, Banknote, FileText } from "lucide-react";
+import { BackButton } from "../../../components/ui/BackButton";
+import { Tabs } from "../../../components/ui/Tabs";
+import { EmployeePaymentModal } from "../../employee-payments/components/EmployeePaymentModal";
+import { createEmployeePayment } from "../../employee-payments/api";
+import { Can } from "../../../components/Can";
+import toast from "react-hot-toast";
 
 export const EmployeeDetail = () => {
   const { id } = useParams();
   const { can } = usePermission();
-  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'financials'
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   
   const employeeQuery = useQuery({
     queryKey: ["employees", id],
@@ -33,8 +43,33 @@ export const EmployeeDetail = () => {
     enabled: !!id && can("employees.read"),
   });
 
+  const { data: payrollsData, isLoading: isPayrollsLoading } = useQuery({
+    queryKey: ["weekly-payrolls", "list", { employee: id }],
+    queryFn: () => getWeeklyPayrolls({ employee: id, limit: 50 }),
+    enabled: !!id && can("weeklyPayrolls.read"),
+  });
+
+  const { data: paymentsData, isLoading: isPaymentsLoading } = useQuery({
+    queryKey: ["employee-payments", "list", { employee: id }],
+    queryFn: () => getEmployeePayments({ employee: id, limit: 50 }),
+    enabled: !!id && can("employeePayments.read"),
+  });
+
+  const paymentMutation = useMutation({
+    mutationFn: createEmployeePayment,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["employee-payments"] });
+      queryClient.invalidateQueries({ queryKey: ["employees", id] });
+      queryClient.invalidateQueries({ queryKey: ["employees", id, "stats"] });
+      toast.success("Payment recorded successfully");
+      setIsPaymentOpen(false);
+    },
+  });
+
   const employee = unwrapEntityResponse(employeeQuery.data);
   const stats = statsQuery.data?.data ?? null;
+  const payrolls = unwrapListResponse(payrollsData).items || [];
+  const payments = unwrapListResponse(paymentsData).items || [];
 
   if (employeeQuery.isLoading) return <DetailSkeleton />;
   
@@ -47,20 +82,37 @@ export const EmployeeDetail = () => {
     return name.trim().charAt(0).toUpperCase();
   };
 
+  const payrollColumns = [
+    { 
+      header: "Week", 
+      accessor: (row) => (
+        <Link to={`/weekly-payrolls/${row._id}`} className="font-medium text-accent hover:underline">
+          {formatDate(row.startDate)} - {formatDate(row.endDate)}
+        </Link>
+      ) 
+    },
+    { header: "Total Earnings", accessor: (row) => <MoneyDisplay amount={row.totalEarnings || 0} /> }
+  ];
+
+  const paymentColumns = [
+    { 
+      header: "Ref No", 
+      accessor: (row) => (
+        <span className="font-mono text-xs font-semibold text-primary">{row.paymentReference}</span>
+      ) 
+    },
+    { header: "Date", accessor: (row) => formatDateTime(row.paymentDate), className: "text-secondary" },
+    { header: "Amount", accessor: (row) => <MoneyDisplay amount={row.amount} className={row.status === 'voided' ? 'line-through opacity-50' : ''} /> },
+    { header: "Status", accessor: (row) => <StatusBadge status={row.status} /> }
+  ];
+
   return (
     <div className="space-y-6 sm:space-y-8 animate-[fadeSlideUp_0.3s_ease_both]">
       {/* ── Profile Header ── */}
       <div className="relative rounded-2xl border border-border/60 bg-surface shadow-sm p-5 sm:p-6 mt-4">
         {/* Back Button */}
         <div className="mb-4">
-          <Button
-            variant="secondary"
-            size="icon"
-            onClick={() => navigate(-1)}
-            className="rounded-xl border-border/60 shadow-sm bg-surface/50 hover:bg-main"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
+          <BackButton />
         </div>
 
         {/* Profile Info */}
@@ -86,30 +138,24 @@ export const EmployeeDetail = () => {
             </div>
           </div>
 
-          <div className="flex justify-center sm:justify-end shrink-0">
+          <div className="flex justify-center sm:justify-end shrink-0 gap-3">
+            <Can permission="employeePayments.create">
+              <Button variant="secondary" onClick={() => setIsPaymentOpen(true)}>Record Payment</Button>
+            </Can>
             <StatusBadge status={employee.status} className="text-sm px-4 py-1.5 shadow-sm" showDot />
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex bg-main/50 p-1 rounded-xl border border-border/50 mt-6 max-w-sm mx-auto sm:mx-0">
-          <button
-            onClick={() => setActiveTab("overview")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-bold rounded-lg transition-all duration-200 ${
-              activeTab === "overview" ? "bg-surface text-primary shadow-sm border border-border/50" : "text-secondary hover:text-primary"
-            }`}
-          >
-            Overview
-          </button>
-          <button
-            onClick={() => setActiveTab("financials")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-bold rounded-lg transition-all duration-200 ${
-              activeTab === "financials" ? "bg-surface text-primary shadow-sm border border-border/50" : "text-secondary hover:text-primary"
-            }`}
-          >
-            Financials
-          </button>
-        </div>
+        <Tabs 
+          tabs={[
+            { id: "overview", label: "Overview", icon: FileText },
+            { id: "financials", label: "Financials", icon: Wallet }
+          ]} 
+          activeTab={activeTab} 
+          onChange={setActiveTab} 
+          className="mt-6"
+        />
       </div>
 
       {/* ── Tab Content: Overview ── */}
@@ -167,15 +213,46 @@ export const EmployeeDetail = () => {
             />
           </div>
           
-          <div className="p-8 text-center rounded-xl border border-dashed border-border/80 bg-surface/50">
-            <Banknote className="h-8 w-8 mx-auto text-muted mb-2" />
-            <h3 className="text-lg font-bold text-primary tracking-tight">Payment History</h3>
-            <p className="text-sm font-medium text-secondary max-w-md mx-auto mt-1">
-              Detailed breakdown of payments and payroll slips will be integrated here in future phases.
-            </p>
+          <div className="grid gap-6 lg:grid-cols-2 mt-6">
+            <DetailSection title="Recent Payrolls">
+              <DataTable
+                columns={payrollColumns}
+                data={payrolls}
+                keyExtractor={(row) => row._id}
+                isLoading={isPayrollsLoading}
+                emptyState={
+                  <div className="text-center py-6 text-sm text-secondary flex flex-col items-center">
+                    <Banknote className="h-8 w-8 text-muted mb-2" />
+                    No payrolls generated for this employee.
+                  </div>
+                }
+              />
+            </DetailSection>
+
+            <DetailSection title="Payment History">
+              <DataTable
+                columns={paymentColumns}
+                data={payments}
+                keyExtractor={(row) => row._id}
+                isLoading={isPaymentsLoading}
+                emptyState={
+                  <div className="text-center py-6 text-sm text-secondary flex flex-col items-center">
+                    <FileText className="h-8 w-8 text-muted mb-2" />
+                    No payments have been recorded for this employee.
+                  </div>
+                }
+              />
+            </DetailSection>
           </div>
         </div>
       )}
+
+      <EmployeePaymentModal
+        isOpen={isPaymentOpen}
+        onClose={() => setIsPaymentOpen(false)}
+        onSubmit={paymentMutation.mutateAsync}
+        preSelectedEmployee={employee}
+      />
     </div>
   );
 };

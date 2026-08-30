@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { Save, X, Plus } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -9,8 +10,11 @@ import { Input } from "../../../components/ui/Input";
 import { CurrencyInput } from "../../../components/ui/CurrencyInput";
 import { Textarea } from "../../../components/ui/Textarea";
 import { Select } from "../../../components/ui/Select";
+import { CreatableSelect } from "../../../components/ui/CreatableSelect";
 import { FormRootError } from "../../../components/ui/FormRootError";
 import { applyServerErrors } from "../../../utils/apiResponse";
+import { CustomerForm } from "../../customers/components/CustomerForm";
+import { createCustomer } from "../../customers/api";
 
 const orderSchema = z.object({
   customer: z.string().min(1, "Customer is required"),
@@ -57,6 +61,7 @@ export const OrderForm = ({ initialData, customers = [], onSubmit, onClose }) =>
     control,
     handleSubmit,
     setError,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(orderSchema),
@@ -101,17 +106,23 @@ export const OrderForm = ({ initialData, customers = [], onSubmit, onClose }) =>
   return (
     <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
       <FormRootError error={errors.root} />
-      <FormField label="Customer" required error={errors.customer?.message}>
-        <Select
-          {...register("customer")}
-          placeholder="Select customer"
-          error={errors.customer?.message}
-          options={availableCustomers.map((c) => ({
-            value: c._id,
-            label: c.name,
-          }))}
-        />
-      </FormField>
+      <CreatableSelect
+        label="Customer"
+        required
+        name="customer"
+        register={register}
+        setValue={setValue}
+        error={errors.customer?.message}
+        options={availableCustomers.map((c) => ({
+          value: c._id,
+          label: c.name,
+        }))}
+        placeholder="Select customer"
+        createTitle="New Customer"
+        FormComponent={CustomerForm}
+        createMutationFn={createCustomer}
+        queryKey={["customers"]}
+      />
 
       <FormField
         label="Description"
@@ -186,15 +197,14 @@ export const OrderForm = ({ initialData, customers = [], onSubmit, onClose }) =>
       )}
 
       <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
-        <Button
-          type="button"
-          variant="secondary"
+        <Button type="button"
+          variant="ghost"
           onClick={onClose}
-          disabled={isSubmitting}
+          disabled={isSubmitting} leftIcon={X}
         >
           Cancel
         </Button>
-        <Button type="submit" isLoading={isSubmitting}>
+        <Button type="submit" isLoading={isSubmitting} leftIcon={Save}>
           {isEditing ? "Save Changes" : "Save Order"}
         </Button>
       </div>

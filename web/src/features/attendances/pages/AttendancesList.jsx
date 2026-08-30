@@ -226,7 +226,7 @@ export const AttendancesList = () => {
           </Can>
           <Can permission="attendances.delete">
             <Button
-              variant="ghostDanger"
+              variant="danger-ghost"
               size="icon"
               onClick={(e) => {
                 e.stopPropagation();

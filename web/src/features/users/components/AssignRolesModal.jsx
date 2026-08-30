@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { usePermission } from "../../../hooks/usePermission";
 import { useQuery } from "@tanstack/react-query";
-import { ShieldCheck, Check } from "lucide-react";
+import { ShieldCheck, Check, X } from "lucide-react";
 import { Button } from "../../../components/ui/Button";
 import { getRoles } from "../../roles/api";
 import { Skeleton } from "../../../components/ui/skeletons";
@@ -138,11 +138,10 @@ export const AssignRolesForm = ({
       )}
 
       <div className="flex justify-end gap-3 border-t border-border pt-4">
-        <Button
-          type="button"
-          variant="secondary"
+        <Button type="button"
+          variant="ghost"
           onClick={onClose}
-          disabled={isSubmitting}
+          disabled={isSubmitting} leftIcon={X}
         >
           Cancel
         </Button>

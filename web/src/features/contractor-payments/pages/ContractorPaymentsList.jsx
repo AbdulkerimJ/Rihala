@@ -59,6 +59,7 @@ export const ContractorPaymentsList = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contractor-payments"] });
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      queryClient.invalidateQueries({ queryKey: ["contractors"] });
       toast.success("Payment voided successfully");
       setVoidingPayment(null);
     },
@@ -78,7 +79,7 @@ export const ContractorPaymentsList = () => {
           <Can permission="contractorPayments.void">
             {row.status !== 'voided' && (
               <Button
-                variant="ghostDanger"
+                variant="danger-ghost"
                 size="sm"
                 onClick={(e) => {
                   e.stopPropagation();

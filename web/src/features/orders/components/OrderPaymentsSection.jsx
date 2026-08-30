@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus, Receipt } from "lucide-react";
+import { Plus, Receipt, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DetailSection } from "../../../components/ui/DetailSection";
 import { DataTable } from "../../../components/ui/DataTable";

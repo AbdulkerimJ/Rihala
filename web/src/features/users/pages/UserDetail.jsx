@@ -69,8 +69,8 @@ export const UserDetail = () => {
         backLabel="Back to users"
         actions={
           <Can permission="users.assign-role">
-            <Button onClick={() => setIsRolesModalOpen(true)}>
-              <ShieldCheck className="mr-2 h-4 w-4" /> Assign Roles
+            <Button variant="primary" leftIcon={ShieldCheck} onClick={() => setIsRolesModalOpen(true)}>
+              Assign Roles
             </Button>
           </Can>
         }

@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { UserPlus, CheckCircle, ShieldCheck } from "lucide-react";
+import { UserPlus, CheckCircle, ShieldCheck, Edit, Trash2, RotateCcw, XCircle, Send, X, Plus } from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth";
 import { Can } from "../../../components/Can";
 import { TableSkeleton } from "../../../components/ui/skeletons";
@@ -184,7 +184,7 @@ export const UsersList = () => {
         actions={
           <>
             <Button
-              variant="secondary"
+              variant="outline"
               onClick={() => setShowDeleted((value) => !value)}
               disabled={usersQuery.isFetching}
             >
@@ -192,12 +192,14 @@ export const UsersList = () => {
             </Button>
             <Can permission="users.create">
               <Button
+                variant="primary"
+                leftIcon={Plus}
                 onClick={() => {
                   setEditingUser(null);
                   setIsModalOpen(true);
                 }}
               >
-                <UserPlus className="mr-2 h-4 w-4" /> Invite User
+                Invite User
               </Button>
             </Can>
           </>
@@ -278,59 +280,57 @@ export const UsersList = () => {
                           <>
                             <Can permission="users.assign-role">
                               <Button
-                                variant="secondary"
-                                size="xs"
+                                variant="ghost"
+                                size="icon"
+                                leftIcon={ShieldCheck}
                                 onClick={() => {
                                   setRolesUser(user);
                                   setIsRolesModalOpen(true);
                                 }}
                                 title="Assign Roles"
-                              >
-                                <ShieldCheck className="h-3 w-3" />
-                                Assign Roles
-                              </Button>
+                              />
                             </Can>
                             <Can permission="users.update">
                               <Button
-                                variant="secondary"
-                                size="xs"
+                                variant="ghost"
+                                size="icon"
+                                leftIcon={Edit}
                                 onClick={() => {
                                   setEditingUser(user);
                                   setIsModalOpen(true);
                                 }}
-                              >
-                                Edit
-                              </Button>
+                                title="Edit"
+                              />
                               {user.status === "invited" && (
                                 <Button
-                                  variant="secondary"
-                                  size="xs"
+                                  variant="ghost"
+                                  size="icon"
+                                  leftIcon={Send}
                                   onClick={() => resendMutation.mutate(user._id)}
                                   disabled={resendMutation.isPending && resendMutation.variables === user._id}
-                                >
-                                  Re-invite
-                                </Button>
+                                  title="Re-invite"
+                                />
                               )}
                             </Can>
                             <Can permission="users.update">
                               {user.status === "inactive" ? (
                                 <Button
-                                  variant="secondary"
-                                  size="xs"
+                                  variant="ghost"
+                                  size="icon"
+                                  leftIcon={CheckCircle}
                                   onClick={() => activateMutation.mutate(user._id)}
                                   disabled={activateMutation.isPending && activateMutation.variables === user._id}
-                                >
-                                  Activate
-                                </Button>
+                                  title="Activate"
+                                />
                               ) : (
                                 <Button
-                                  variant="secondary"
-                                  size="xs"
+                                  variant="ghost"
+                                  size="icon"
+                                  leftIcon={XCircle}
                                   onClick={() => deactivateMutation.mutate(user._id)}
                                   disabled={deactivateMutation.isPending && deactivateMutation.variables === user._id}
-                                >
-                                  Deactivate
-                                </Button>
+                                  title="Deactivate"
+                                />
                               )}
                             </Can>
                           </>
@@ -338,23 +338,23 @@ export const UsersList = () => {
                         {user.deletedAt ? (
                           <Can permission="users.restore">
                             <Button
-                              variant="secondary"
-                              size="xs"
+                              variant="ghost"
+                              size="icon"
+                              leftIcon={RotateCcw}
                               onClick={() => restoreMutation.mutate(user._id)}
                               disabled={restoreMutation.isPending && restoreMutation.variables === user._id}
-                            >
-                              Restore
-                            </Button>
+                              title="Restore"
+                            />
                           </Can>
                         ) : (
                           <Can permission="users.delete">
                             <Button
-                              variant="danger"
-                              size="xs"
+                              variant="danger-ghost"
+                              size="icon"
+                              leftIcon={Trash2}
                               onClick={() => handleDelete(user._id)}
-                            >
-                              Delete
-                            </Button>
+                              title="Delete"
+                            />
                           </Can>
                         )}
                       </div>

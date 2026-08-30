@@ -3,6 +3,7 @@ import { usePermission } from "../../../hooks/usePermission";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { createMaterial, getMaterials, updateMaterial } from "../api";
+import { MaterialForm, CATEGORIES, UNITS } from "../components/MaterialForm";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
 import { Can } from "../../../components/Can";
@@ -25,102 +26,7 @@ import toast from "react-hot-toast";
 import { applyServerErrors, cleanFilterParams, getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
 import { ACTIVE_INACTIVE_OPTIONS, STATUS_FILTER_OPTIONS } from "../../../constants/options";
 
-const CATEGORIES = [
-  "MDF",
-  "Wood",
-  "Fabric",
-  "Foam",
-  "Safarian",
-  "Nails",
-  "Paint",
-  "Adhesives",
-  "Hardware",
-  "Chemicals",
-  "Other",
-];
 
-const UNITS = [
-  { value: "piece", label: "Piece" },
-  { value: "kg", label: "Kilogram (kg)" },
-  { value: "meter", label: "Meter (m)" },
-  { value: "liter", label: "Liter (l)" },
-  { value: "roll", label: "Roll" },
-];
-
-const materialSchema = z.object({
-  name: z
-    .string({ error: "Material name is required" })
-    .trim()
-    .min(2, "Name must be at least 2 characters")
-    .max(100, "Name cannot exceed 100 characters"),
-  category: z.enum(CATEGORIES, {
-    errorMap: () => ({ message: "Category is required" }),
-  }),
-  unit: z.enum(["piece", "kg", "meter", "liter", "roll"], {
-    errorMap: () => ({ message: "Unit of measurement is required" }),
-  }),
-  status: z.enum(["active", "inactive"]).default("active"),
-});
-
-const MaterialForm = ({ initialData, onSubmit, onClose }) => {
-  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm({
-    resolver: zodResolver(materialSchema),
-    defaultValues: initialData || {
-      name: "",
-      category: "MDF",
-      unit: "piece",
-      status: "active",
-    },
-  });
-
-  const handleFormSubmit = async (data) => {
-    try {
-      await onSubmit(data);
-    } catch (error) {
-      applyServerErrors(setError, error);
-    }
-  };
-
-  return (
-    <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
-      <FormRootError error={errors.root} />
-      <FormField label="Material Name" required error={errors.name?.message}>
-        <Input {...register("name")} error={errors.name?.message} placeholder="e.g. Oak Timber" />
-      </FormField>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormField label="Category" required error={errors.category?.message}>
-          <Select
-            {...register("category")}
-            options={CATEGORIES.map((c) => ({ value: c, label: c }))}
-            error={errors.category?.message}
-          />
-        </FormField>
-        
-        <FormField label="Unit of Measurement" required error={errors.unit?.message}>
-          <Select
-            {...register("unit")}
-            options={UNITS}
-            error={errors.unit?.message}
-          />
-        </FormField>
-      </div>
-
-      <FormField label="Status" error={errors.status?.message}>
-        <Select
-          {...register("status")}
-          error={errors.status?.message}
-          options={ACTIVE_INACTIVE_OPTIONS}
-        />
-      </FormField>
-
-      <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
-        <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
-        <Button type="submit" isLoading={isSubmitting}>Save Material</Button>
-      </div>
-    </form>
-  );
-};
 
 export const MaterialsList = () => {
   const { can } = usePermission();
@@ -175,9 +81,7 @@ export const MaterialsList = () => {
       isActions: true,
       accessor: (row) => (
         <Can permission="materials.update">
-          <Button variant="secondary" size="sm" onClick={(e) => { e.stopPropagation(); setEditingMaterial(row); setIsOpen(true); }}>
-            Edit
-          </Button>
+          <Button variant="ghost" size="icon" leftIcon={Edit} onClick={(e) => { e.stopPropagation(); setEditingMaterial(row); setIsOpen(true); }} title="Edit" />
         </Can>
       ) 
     }

@@ -1,9 +1,11 @@
 import React, { useMemo, useState } from "react";
+import { Save, X, Plus } from "lucide-react";
 import { usePermission } from "../../../hooks/usePermission";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { createOvertime, getOvertimes, updateOvertime, deleteOvertime } from "../api";
-import { getEmployees } from "../../employees/api";
+import { getEmployees, createEmployee } from "../../employees/api";
+import { EmployeeForm } from "../../employees/components/EmployeeForm";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
 import { Can } from "../../../components/Can";
@@ -17,6 +19,7 @@ import { FilterBar } from "../../../components/ui/FilterBar";
 import { FormField } from "../../../components/ui/FormField";
 import { Input } from "../../../components/ui/Input";
 import { Select } from "../../../components/ui/Select";
+import { CreatableSelect } from "../../../components/ui/CreatableSelect";
 import { Textarea } from "../../../components/ui/Textarea";
 import { FormRootError } from "../../../components/ui/FormRootError";
 import { useForm } from "react-hook-form";
@@ -49,7 +52,7 @@ const OvertimeForm = ({ initialData, onSubmit, onClose }) => {
   });
   const employees = unwrapListResponse(employeesData).items || [];
   
-  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, setError, setValue, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(overtimeSchema),
     defaultValues: initialData ? {
       employee: initialData.employee?._id || initialData.employee,
@@ -84,15 +87,21 @@ const OvertimeForm = ({ initialData, onSubmit, onClose }) => {
   return (
     <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
       <FormRootError error={errors.root} />
-      <FormField label="Employee" required error={errors.employee?.message}>
-        <Select
-          {...register("employee")}
-          placeholder="Select an employee"
-          options={employees.map(e => ({ value: e._id, label: e.name }))}
-          error={errors.employee?.message}
-          disabled={!!initialData}
-        />
-      </FormField>
+      <CreatableSelect
+        label="Employee"
+        required
+        name="employee"
+        register={register}
+        setValue={setValue}
+        error={errors.employee?.message}
+        options={employees.map(e => ({ value: e._id, label: e.name }))}
+        placeholder="Select an employee"
+        disabled={!!initialData}
+        createTitle="New Employee"
+        FormComponent={EmployeeForm}
+        createMutationFn={createEmployee}
+        queryKey={["employees"]}
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Work Date" required error={errors.workDate?.message}>
@@ -113,8 +122,8 @@ const OvertimeForm = ({ initialData, onSubmit, onClose }) => {
       </FormField>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
-        <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
-        <Button type="submit" isLoading={isSubmitting}>Save Record</Button>
+        <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting} leftIcon={X}>Cancel</Button>
+        <Button type="submit" isLoading={isSubmitting} leftIcon={Save}>Save Record</Button>
       </div>
     </form>
   );
@@ -205,9 +214,7 @@ export const OvertimesList = () => {
       accessor: (row) => (
         <div className="flex justify-end gap-2">
           <Can permission="overtimes.update">
-            <Button variant="secondary" size="sm" onClick={(e) => { e.stopPropagation(); setEditingRecord(row); setIsOpen(true); }}>
-              Edit
-            </Button>
+            <Button variant="ghost" size="icon" leftIcon={Edit} onClick={(e) => { e.stopPropagation(); setEditingRecord(row); setIsOpen(true); }} title="Edit" />
           </Can>
           <Can permission="overtimes.delete">
             <Button
