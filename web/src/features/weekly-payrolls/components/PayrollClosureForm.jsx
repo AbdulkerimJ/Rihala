@@ -10,7 +10,7 @@ import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import toast from "react-hot-toast";
 import { getApiErrorMessage, unwrapListResponse, unwrapEntityResponse } from "../../../utils/apiResponse";
 import { formatDate } from "../../../utils/formatters";
-import { CheckCircle, ChevronDown, ChevronUp, Clock, CalendarDays } from "lucide-react";
+import { CheckCircle, ChevronDown, ChevronUp, Clock, CalendarDays, X } from "lucide-react";
 import { Skeleton } from "../../../components/ui/skeletons";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 
@@ -236,7 +236,7 @@ export const PayrollClosureForm = ({ onClose }) => {
           )}
 
           <div className="flex justify-end gap-3 pt-4">
-            <Button variant="secondary" onClick={onClose} disabled={closeMutation.isPending}>Cancel</Button>
+            <Button variant="ghost" onClick={onClose} disabled={closeMutation.isPending} leftIcon={X}>Cancel</Button>
             <Button 
               onClick={() => closeMutation.mutate()} 
               isLoading={closeMutation.isPending} 

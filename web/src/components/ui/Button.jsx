@@ -3,11 +3,11 @@ import { Loader2 } from "lucide-react";
 
 const variantStyles = {
   primary: "bg-accent text-white shadow-sm hover:bg-accent-hover focus:ring-accent",
-  secondary: "border border-border bg-surface text-primary shadow-sm hover:bg-main hover:border-muted focus:ring-accent",
+  secondary: "bg-accent/10 text-accent hover:bg-accent/20 focus:ring-accent",
+  outline: "border border-border bg-transparent text-primary hover:bg-main focus:ring-accent",
+  ghost: "text-secondary hover:text-primary bg-transparent hover:bg-main focus:ring-accent",
   danger: "bg-danger text-white shadow-sm hover:bg-danger-hover focus:ring-danger",
-  ghost: "text-muted hover:text-primary bg-transparent hover:bg-black/5 dark:hover:bg-white/5",
-  ghostPrimary: "text-primary hover:text-accent bg-transparent hover:bg-black/5 dark:hover:bg-white/5",
-  ghostDanger: "text-muted hover:text-danger bg-transparent hover:bg-black/5 dark:hover:bg-white/5",
+  "danger-ghost": "text-danger hover:bg-danger/10 focus:ring-danger",
 };
 
 const sizeStyles = {
@@ -35,7 +35,7 @@ export const Button = ({
   ...props
 }) => {
   const baseStyles =
-    "inline-flex items-center justify-center rounded-md font-medium transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none select-none";
+    "inline-flex items-center justify-center rounded-sm font-medium transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none select-none";
 
   const combinedClassName = `
     ${baseStyles}

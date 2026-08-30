@@ -1,9 +1,11 @@
 import React, { useMemo, useState } from "react";
+import { Plus, Edit, Trash2, X } from "lucide-react";
 import { usePermission } from "../../../hooks/usePermission";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createEmployee, getEmployees, updateEmployee, deleteEmployee } from "../api";
+import { EmployeeForm } from "../components/EmployeeForm";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
 import { Can } from "../../../components/Can";
@@ -28,110 +30,7 @@ import { formatDate } from "../../../utils/formatters";
 import { ethiopianPhone } from "../../../utils/validation";
 import { ACTIVE_INACTIVE_OPTIONS, STATUS_FILTER_OPTIONS } from "../../../constants/options";
 
-const employeeSchema = z
-  .object({
-    name: z
-      .string({ error: "Employee name is required" })
-      .trim()
-      .min(2, "Name must be at least 2 characters"),
-    phone: ethiopianPhone,
-    employmentStartDate: z.string().min(1, "Employment start date is required"),
-    employmentEndDate: z.string().optional().or(z.literal("")),
-    status: z.enum(["active", "inactive"]).default("active"),
-  })
-  .refine(
-    (data) => {
-      if (!data.employmentEndDate || !data.employmentStartDate) return true;
-      return new Date(data.employmentEndDate) >= new Date(data.employmentStartDate);
-    },
-    {
-      message: "Employment end date cannot be before start date",
-      path: ["employmentEndDate"],
-    }
-  );
 
-const EmployeeForm = ({ initialData, onSubmit, onClose }) => {
-  const {
-    register,
-    handleSubmit,
-    setError,
-    formState: { errors, isSubmitting },
-  } = useForm({
-    resolver: zodResolver(employeeSchema),
-    defaultValues: initialData
-      ? {
-          name: initialData.name || "",
-          phone: initialData.phone || "",
-          employmentStartDate: initialData.employmentStartDate
-            ? new Date(initialData.employmentStartDate).toISOString().split("T")[0]
-            : new Date().toISOString().split("T")[0],
-          employmentEndDate: initialData.employmentEndDate
-            ? new Date(initialData.employmentEndDate).toISOString().split("T")[0]
-            : "",
-          status: initialData.status || "active",
-        }
-      : {
-          name: "",
-          phone: "",
-          employmentStartDate: new Date().toISOString().split("T")[0],
-          employmentEndDate: "",
-          status: "active",
-        },
-  });
-
-  const handleFormSubmit = async (data) => {
-    try {
-      const payload = {
-        ...data,
-        employmentEndDate: data.employmentEndDate ? data.employmentEndDate : undefined,
-      };
-      await onSubmit(payload);
-    } catch (error) {
-      applyServerErrors(setError, error);
-    }
-  };
-
-  return (
-    <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
-      <FormRootError error={errors.root} />
-
-      <FormField label="Full Name" required error={errors.name?.message}>
-        <Input {...register("name")} error={errors.name?.message} placeholder="e.g. Abebe Bikila" />
-      </FormField>
-
-      <FormField label="Phone Number" required error={errors.phone?.message}>
-        <Input {...register("phone")} error={errors.phone?.message} placeholder="e.g. 0911234567 or +251911234567" />
-      </FormField>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormField label="Employment Start Date" required error={errors.employmentStartDate?.message}>
-          <Input type="date" {...register("employmentStartDate")} error={errors.employmentStartDate?.message} />
-        </FormField>
-
-        <FormField label="Employment End Date (Optional)" error={errors.employmentEndDate?.message}>
-          <Input type="date" {...register("employmentEndDate")} error={errors.employmentEndDate?.message} />
-        </FormField>
-      </div>
-
-      <FormField label="Status" error={errors.status?.message}>
-        <Select
-          {...register("status")}
-          error={errors.status?.message}
-          options={ACTIVE_INACTIVE_OPTIONS}
-        />
-      </FormField>
-
-      <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
-        <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>
-          Cancel
-        </Button>
-        <Button type="submit" isLoading={isSubmitting}>
-          Save Employee
-        </Button>
-      </div>
-    </form>
-  );
-};
 
 export const EmployeesList = () => {
   const { can } = usePermission();
@@ -218,33 +117,29 @@ export const EmployeesList = () => {
         <div className="text-xs text-secondary font-medium">
           Started: <span className="text-primary font-semibold">{formatDate(row.employmentStartDate)}</span>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-1">
           <Can permission="employees.update">
             <Button
-              variant="secondary"
+              variant="ghost"
               size="icon"
+              leftIcon={Edit}
               onClick={(e) => {
                 e.stopPropagation();
                 setEditingEmployee(row);
                 setIsOpen(true);
               }}
-            >
-              <span className="sr-only">Edit</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-edit-3"><path d="M12 20h9"/><path d="M16.376 3.622a2.123 2.123 0 1 1 3.004 3.004L7.142 18.86a2 2 0 0 1-1.238.56l-3.32.72 1.48-2.96a2 2 0 0 1 .56-1.238Z"/></svg>
-            </Button>
+            />
           </Can>
           <Can permission="employees.delete">
             <Button
-              variant="ghostDanger"
+              variant="danger-ghost"
               size="icon"
+              leftIcon={Trash2}
               onClick={(e) => {
                 e.stopPropagation();
                 setDeletingEmployee(row);
               }}
-            >
-              <span className="sr-only">Delete</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-            </Button>
+            />
           </Can>
         </div>
       </div>
@@ -269,41 +164,29 @@ export const EmployeesList = () => {
       header: "Actions",
       isActions: true,
       accessor: (row) => (
-        <div className="flex gap-2 justify-end">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/employees/${row._id}`);
-            }}
-          >
-            View
-          </Button>
+        <div className="flex gap-1 justify-end">
           <Can permission="employees.update">
             <Button
-              variant="secondary"
-              size="sm"
+              variant="ghost"
+              size="icon"
+              leftIcon={Edit}
               onClick={(e) => {
                 e.stopPropagation();
                 setEditingEmployee(row);
                 setIsOpen(true);
               }}
-            >
-              Edit
-            </Button>
+            />
           </Can>
           <Can permission="employees.delete">
             <Button
-              variant="ghostDanger"
-              size="sm"
+              variant="danger-ghost"
+              size="icon"
+              leftIcon={Trash2}
               onClick={(e) => {
                 e.stopPropagation();
                 setDeletingEmployee(row);
               }}
-            >
-              Delete
-            </Button>
+            />
           </Can>
         </div>
       ),
@@ -320,7 +203,7 @@ export const EmployeesList = () => {
         description="Manage workshop staff, contact info, and employment periods."
         actions={
           <Can permission="employees.create">
-            <Button onClick={() => { setEditingEmployee(null); setIsOpen(true); }}>
+            <Button variant="primary" leftIcon={Plus} onClick={() => { setEditingEmployee(null); setIsOpen(true); }}>
               Add Employee
             </Button>
           </Can>

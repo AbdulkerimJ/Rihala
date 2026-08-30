@@ -44,6 +44,7 @@ export const CurrencyInput = React.forwardRef(({ value, onChange, placeholder, .
   return (
     <Input
       type="text"
+      inputMode="decimal"
       value={displayValue}
       onChange={handleChange}
       placeholder={placeholder || "0"}

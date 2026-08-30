@@ -1,8 +1,10 @@
 import React, { useState, useMemo } from "react";
+import { Plus, Edit, Trash2, X } from "lucide-react";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { usePermission } from "../../../hooks/usePermission";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { getTaskTypes, createTaskType, updateTaskType, deleteTaskType } from "../api";
+import { TaskTypeForm } from "../components/TaskTypeForm";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
 import { Can } from "../../../components/Can";
@@ -25,62 +27,7 @@ import toast from "react-hot-toast";
 import { applyServerErrors, cleanFilterParams, getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
 import { formatDateTime } from "../../../utils/formatters";
 
-const taskTypeSchema = z.object({
-  name: z
-    .string({ error: "Task type name is required" })
-    .trim()
-    .min(2, "Name must be at least 2 characters")
-    .max(100, "Name cannot exceed 100 characters"),
-  isActive: z.boolean().default(true),
-});
 
-const TaskTypeForm = ({ initialData, onSubmit, onClose }) => {
-  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm({
-    resolver: zodResolver(taskTypeSchema),
-    defaultValues: initialData || {
-      name: "",
-      isActive: true,
-    },
-  });
-
-  const handleFormSubmit = async (data) => {
-    try {
-      await onSubmit(data);
-    } catch (error) {
-      applyServerErrors(setError, error);
-    }
-  };
-
-  return (
-    <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
-      <FormRootError error={errors.root} />
-      <FormField label="Name" required error={errors.name?.message}>
-        <Input
-          {...register("name")}
-          placeholder="e.g. Painting, Finishing"
-          error={errors.name?.message}
-        />
-      </FormField>
-
-      <div className="pt-2">
-        <Checkbox
-          id="isActive"
-          label="Active"
-          {...register("isActive")}
-        />
-      </div>
-
-      <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
-        <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>
-          Cancel
-        </Button>
-        <Button type="submit" isLoading={isSubmitting}>
-          Save Task Type
-        </Button>
-      </div>
-    </form>
-  );
-};
 
 export const TaskTypesList = () => {
   const { can } = usePermission();
@@ -151,31 +98,31 @@ export const TaskTypesList = () => {
       header: "Actions", 
       isActions: true,
       accessor: (row) => (
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-1">
           <Can permission="taskTypes.update">
             <Button
-              variant="secondary"
-              size="sm"
+              variant="ghost"
+              size="icon"
+              leftIcon={Edit}
               onClick={(e) => {
                 e.stopPropagation();
                 setEditingTaskType(row);
                 setIsOpen(true);
               }}
-            >
-              Edit
-            </Button>
+              title="Edit"
+            />
           </Can>
           <Can permission="taskTypes.delete">
             <Button
-              variant="ghostDanger"
-              size="sm"
+              variant="danger-ghost"
+              size="icon"
+              leftIcon={Trash2}
               onClick={(e) => {
                 e.stopPropagation();
                 setDeletingTaskType(row);
               }}
-            >
-              Delete
-            </Button>
+              title="Delete"
+            />
           </Can>
         </div>
       ) 
@@ -191,7 +138,7 @@ export const TaskTypesList = () => {
         description="Manage the configurable categories of work."
         actions={
           <Can permission="taskTypes.create">
-            <Button onClick={() => { setEditingTaskType(null); setIsOpen(true); }}>
+            <Button variant="primary" leftIcon={Plus} onClick={() => { setEditingTaskType(null); setIsOpen(true); }}>
               New Task Type
             </Button>
           </Can>

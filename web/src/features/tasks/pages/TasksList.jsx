@@ -1,9 +1,11 @@
 import React, { useState, useMemo } from "react";
+import { Plus, Edit, Trash2, X } from "lucide-react";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { usePermission } from "../../../hooks/usePermission";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { getTasks, createTask, updateTask, deleteTask } from "../api";
 import { getTaskTypes } from "../../task-types/api";
+import { TaskForm } from "../components/TaskForm";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
 import { Can } from "../../../components/Can";
@@ -27,102 +29,7 @@ import { z } from "zod";
 import toast from "react-hot-toast";
 import { applyServerErrors, cleanFilterParams, getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
 
-const taskSchema = z.object({
-  name: z
-    .string({ error: "Task name is required" })
-    .trim()
-    .min(2, "Name must be at least 2 characters")
-    .max(100, "Name cannot exceed 100 characters"),
-  taskType: z.string().min(1, "Task Type is required"),
-  defaultUnitPrice: z.coerce.number({ error: "Default unit price is required" }).positive("Unit price must be positive"),
-  isActive: z.boolean().default(true),
-});
 
-const TaskForm = ({ initialData, onSubmit, onClose }) => {
-  const { can } = usePermission();
-  const { data: taskTypesData } = useQuery({ 
-    queryKey: ["task-types", "list"], 
-    queryFn: () => getTaskTypes({ limit: 1000, isActive: true }),
-    enabled: can("taskTypes.read")
-  });
-  const taskTypes = unwrapListResponse(taskTypesData).items || [];
-
-  const { register, handleSubmit, control, setError, formState: { errors, isSubmitting } } = useForm({
-    resolver: zodResolver(taskSchema),
-    defaultValues: initialData ? {
-      ...initialData,
-      taskType: initialData.taskType?._id || initialData.taskType,
-    } : {
-      name: "",
-      taskType: "",
-      defaultUnitPrice: "",
-      isActive: true,
-    },
-  });
-
-  const handleFormSubmit = async (data) => {
-    try {
-      await onSubmit(data);
-    } catch (error) {
-      applyServerErrors(setError, error);
-    }
-  };
-
-  return (
-    <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
-      <FormRootError error={errors.root} />
-      <FormField label="Name" required error={errors.name?.message}>
-        <Input
-          {...register("name")}
-          placeholder="e.g. Paint 1 Door"
-          error={errors.name?.message}
-        />
-      </FormField>
-
-      <FormField label="Task Type" required error={errors.taskType?.message}>
-        <Select
-          {...register("taskType")}
-          placeholder="Select a task type"
-          options={taskTypes.map(tt => ({ value: tt._id, label: tt.name }))}
-          error={errors.taskType?.message}
-        />
-      </FormField>
-
-      <FormField label="Default Unit Price (ETB)" required error={errors.defaultUnitPrice?.message}>
-        <Controller
-          name="defaultUnitPrice"
-          control={control}
-          render={({ field: { onChange, value, ref } }) => (
-            <CurrencyInput
-              ref={ref}
-              value={value}
-              onChange={onChange}
-              placeholder="e.g. 500"
-              error={errors.defaultUnitPrice?.message}
-            />
-          )}
-        />
-      </FormField>
-
-      <div className="pt-2">
-        <Checkbox
-          id="isActive"
-          label="Active"
-          {...register("isActive")}
-        />
-      </div>
-
-      <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
-        <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>
-          Cancel
-        </Button>
-        <Button type="submit" isLoading={isSubmitting}>
-          Save Task
-        </Button>
-      </div>
-    </form>
-  );
-};
 
 export const TasksList = () => {
   const { can } = usePermission();
@@ -201,31 +108,31 @@ export const TasksList = () => {
       header: "Actions", 
       isActions: true,
       accessor: (row) => (
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-1">
           <Can permission="tasks.update">
             <Button
-              variant="secondary"
-              size="sm"
+              variant="ghost"
+              size="icon"
+              leftIcon={Edit}
               onClick={(e) => {
                 e.stopPropagation();
                 setEditingTask(row);
                 setIsOpen(true);
               }}
-            >
-              Edit
-            </Button>
+              title="Edit"
+            />
           </Can>
           <Can permission="tasks.delete">
             <Button
-              variant="ghostDanger"
-              size="sm"
+              variant="danger-ghost"
+              size="icon"
+              leftIcon={Trash2}
               onClick={(e) => {
                 e.stopPropagation();
                 setDeletingTask(row);
               }}
-            >
-              Delete
-            </Button>
+              title="Delete"
+            />
           </Can>
         </div>
       ) 
@@ -241,7 +148,7 @@ export const TasksList = () => {
         description="Manage task definitions and unit prices."
         actions={
           <Can permission="tasks.create">
-            <Button onClick={() => { setEditingTask(null); setIsOpen(true); }}>
+            <Button variant="primary" leftIcon={Plus} onClick={() => { setEditingTask(null); setIsOpen(true); }}>
               New Task
             </Button>
           </Can>

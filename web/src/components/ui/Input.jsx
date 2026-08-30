@@ -66,6 +66,7 @@ export const Input = forwardRef(
           aria-invalid={!!error}
           className={combinedClassName}
           onWheel={handleWheel}
+          inputMode={type === "number" ? "decimal" : type === "tel" ? "tel" : undefined}
           {...props}
         />
         {RightIcon && (

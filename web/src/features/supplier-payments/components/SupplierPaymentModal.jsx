@@ -1,10 +1,12 @@
 import React from "react";
+import { Save, X, Plus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { usePermission } from "../../../hooks/usePermission";
-import { getSuppliers } from "../../suppliers/api";
+import { getSuppliers, createSupplier } from "../../suppliers/api";
+import { SupplierForm } from "../../suppliers/components/SupplierForm";
 import { getPurchases } from "../../purchases/api";
 import { unwrapListResponse, applyServerErrors } from "../../../utils/apiResponse";
 
@@ -12,6 +14,7 @@ import { Modal } from "../../../components/ui/Modal";
 import { FormField } from "../../../components/ui/FormField";
 import { Input } from "../../../components/ui/Input";
 import { Select } from "../../../components/ui/Select";
+import { CreatableSelect } from "../../../components/ui/CreatableSelect";
 import { Textarea } from "../../../components/ui/Textarea";
 import { Button } from "../../../components/ui/Button";
 import { CurrencyInput } from "../../../components/ui/CurrencyInput";
@@ -77,6 +80,28 @@ export const SupplierPaymentModal = ({
   }, [isOpen, preSelectedSupplier, preSelectedPurchase, reset]);
 
   const selectedSupplier = watch("supplier");
+  
+  // Handle supplier change side-effects
+  React.useEffect(() => {
+    if (!selectedSupplier) return;
+    
+    // Skip if it's the pre-selected supplier (initial load)
+    if (preSelectedSupplier && selectedSupplier === preSelectedSupplier._id) {
+       return;
+    }
+
+    const sObj = suppliers.find(s => s._id === selectedSupplier);
+    setValue("purchase", ""); // Clear purchase when supplier changes
+    
+    // Only set amount if we haven't touched it yet, to avoid overriding user input
+    // We can just set it directly if we want the original behavior:
+    if (sObj && sObj.balance > 0) {
+      setValue("amount", sObj.balance, { shouldValidate: true, shouldDirty: true });
+    } else {
+      setValue("amount", "", { shouldValidate: false });
+    }
+  }, [selectedSupplier, suppliers, setValue, preSelectedSupplier]);
+
   const selectedSupplierObj = React.useMemo(() => {
     if (preSelectedSupplier && selectedSupplier === preSelectedSupplier._id) {
       return preSelectedSupplier;
@@ -131,26 +156,23 @@ export const SupplierPaymentModal = ({
     <Modal isOpen={isOpen} title="Record Payment to Supplier" onClose={onClose}>
       <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
         <FormRootError error={errors.root} />
-        <FormField label="Supplier" required error={errors.supplier?.message}>
-          <Select
-            {...register("supplier", {
-              onChange: (e) => {
-                const supplierId = e.target.value;
-                const sObj = suppliers.find(s => s._id === supplierId);
-                setValue("purchase", ""); // Clear purchase when supplier changes
-                if (sObj && sObj.balance > 0) {
-                  setValue("amount", sObj.balance, { shouldValidate: true, shouldDirty: true });
-                } else {
-                  setValue("amount", "", { shouldValidate: false });
-                }
-              }
-            })}
-            placeholder="Select a supplier"
-            options={suppliers.map((s) => ({ value: s._id, label: s.name }))}
-            error={errors.supplier?.message}
-            disabled={!!preSelectedSupplier}
-          />
-          {selectedSupplierObj && (
+        <CreatableSelect
+          label="Supplier"
+          required
+          name="supplier"
+          register={register}
+          setValue={setValue}
+          error={errors.supplier?.message}
+          options={suppliers.map((s) => ({ value: s._id, label: s.name }))}
+          placeholder="Select a supplier"
+          disabled={!!preSelectedSupplier}
+          createTitle="New Supplier"
+          FormComponent={SupplierForm}
+          createMutationFn={createSupplier}
+          queryKey={["suppliers"]}
+        />
+        {selectedSupplierObj && (
+          <div className="mt-[-8px]">
             <p className="text-xs text-secondary mt-1 flex gap-1 items-center">
               Outstanding Balance: 
               <MoneyDisplay 
@@ -158,8 +180,8 @@ export const SupplierPaymentModal = ({
                 variant={(selectedSupplierObj.balance || 0) > 0 ? "financeOut" : (selectedSupplierObj.balance || 0) < 0 ? "financeIn" : "default"} 
               />
             </p>
-          )}
-        </FormField>
+          </div>
+        )}
 
         <FormField label="Purchase (Optional)" error={errors.purchase?.message}>
           <Select
@@ -228,10 +250,10 @@ export const SupplierPaymentModal = ({
         </FormField>
 
         <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
-          <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>
+          <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting} leftIcon={X}>
             Cancel
           </Button>
-          <Button type="submit" isLoading={isSubmitting}>
+          <Button type="submit" isLoading={isSubmitting} leftIcon={Save}>
             Record Payment
           </Button>
         </div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { getRoles, createRole, updateRole, deleteRole } from "../api";
 import { Can } from "../../../components/Can";
-import { Edit2, Trash2, Key } from "lucide-react";
+import { Plus, Edit2, Trash2, Key, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { RoleForm } from "../components/RoleModal";
 import { AssignPermissionsForm } from "../components/AssignPermissionsModal";
@@ -36,7 +36,7 @@ export const RolesList = () => {
   const createMutation = useMutation({
     mutationFn: createRole,
     onSuccess: () => {
-      queryClient.invalidateQueries(["roles"]);
+      queryClient.invalidateQueries({ queryKey: ["roles"] });
       toast.success("Role created successfully");
     },
     meta: { suppressToast: true },
@@ -45,7 +45,7 @@ export const RolesList = () => {
   const updateMutation = useMutation({
     mutationFn: updateRole,
     onSuccess: () => {
-      queryClient.invalidateQueries(["roles"]);
+      queryClient.invalidateQueries({ queryKey: ["roles"] });
       toast.success("Role updated successfully");
     },
     meta: { suppressToast: true },
@@ -54,7 +54,7 @@ export const RolesList = () => {
   const deleteMutation = useMutation({
     mutationFn: deleteRole,
     onSuccess: () => {
-      queryClient.invalidateQueries(["roles"]);
+      queryClient.invalidateQueries({ queryKey: ["roles"] });
       toast.success("Role deleted successfully");
     },
   });
@@ -115,7 +115,7 @@ export const RolesList = () => {
         description="Create roles and manage their permissions."
         actions={
           <Can permission="roles.create">
-            <Button onClick={() => handleOpenModal()}>Create Role</Button>
+            <Button variant="primary" leftIcon={Plus} onClick={() => handleOpenModal()}>Create Role</Button>
           </Can>
         }
       />
@@ -159,39 +159,36 @@ export const RolesList = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end gap-3">
+                    <div className="flex justify-end gap-1">
                       <Can permission="roles.assign-permission">
                         <Button
-                          variant="ghostPrimary"
+                          variant="ghost"
                           size="icon"
+                          leftIcon={Key}
                           onClick={() => {
                             setPermissionsRole(role);
                             setIsPermissionsModalOpen(true);
                           }}
                           title="Manage Permissions"
-                        >
-                          <Key className="w-4 h-4" />
-                        </Button>
+                        />
                       </Can>
                       <Can permission="roles.update">
                         <Button
-                          variant="ghostPrimary"
+                          variant="ghost"
                           size="icon"
+                          leftIcon={Edit2}
                           onClick={() => handleOpenModal(role)}
                           title="Edit Role"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
+                        />
                       </Can>
                       <Can permission="roles.delete">
                         <Button
-                          variant="ghostDanger"
+                          variant="danger-ghost"
                           size="icon"
+                          leftIcon={Trash2}
                           onClick={() => setRoleToDelete(role._id)}
                           title="Delete Role"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        />
                       </Can>
                     </div>
                   </td>

@@ -1,4 +1,5 @@
 import React from "react";
+import { Save, X, Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -46,10 +47,10 @@ export const RoleForm = ({ initialData, onSubmit, onClose }) => {
       </FormField>
 
       <div className="mt-6 flex justify-end gap-3 border-t border-border/50 pt-4">
-        <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>
+        <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting} leftIcon={X}>
           Cancel
         </Button>
-        <Button type="submit" isLoading={isSubmitting}>
+        <Button type="submit" isLoading={isSubmitting} leftIcon={Save}>
           Save
         </Button>
       </div>

@@ -1,10 +1,12 @@
 import React, { useMemo, useState } from "react";
+
 import { usePermission } from "../../../hooks/usePermission";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createPurchase, getPurchases } from "../api";
-import { getSuppliers } from "../../suppliers/api";
+import { getSuppliers, createSupplier } from "../../suppliers/api";
+import { PurchaseForm } from "../components/PurchaseForm";
 import { getMaterials } from "../../materials/api";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
@@ -44,179 +46,7 @@ const purchaseSchema = z.object({
   items: z.array(purchaseItemSchema).min(1, "At least one item is required"),
 });
 
-export const PurchaseForm = ({ initialData, onSubmit, onClose, isFullyPaid }) => {
-  const { can } = usePermission();
-  const { data: suppliersData } = useQuery({ 
-    queryKey: ["suppliers", "list", { status: "active" }], 
-    queryFn: () => getSuppliers({ limit: 1000, status: "active" }),
-    enabled: can("suppliers.read")
-  });
-  const { data: materialsData } = useQuery({ 
-    queryKey: ["materials", "list", { status: "active" }], 
-    queryFn: () => getMaterials({ limit: 1000, status: "active" }),
-    enabled: can("materials.read")
-  });
-  
-  const suppliers = unwrapListResponse(suppliersData).items || [];
-  const materials = unwrapListResponse(materialsData).items || [];
 
-  const { register, control, handleSubmit, watch, setError, formState: { errors, isSubmitting } } = useForm({
-    resolver: zodResolver(purchaseSchema),
-    defaultValues: initialData || {
-      supplier: "",
-      purchaseDate: new Date().toISOString().split("T")[0],
-      notes: "",
-      items: [{ material: "", quantity: "", unitPrice: "" }],
-    },
-  });
-
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "items",
-  });
-
-  const watchItems = watch("items");
-  const watchSupplier = watch("supplier");
-  const selectedSupplierObj = React.useMemo(() => {
-    return suppliers.find((s) => s._id === watchSupplier);
-  }, [suppliers, watchSupplier]);
-
-  const totalAmount = watchItems.reduce((sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0), 0);
-
-  const handleFormSubmit = async (data) => {
-    try {
-      const payload = {
-        ...data,
-        date: new Date(data.purchaseDate).toISOString(),
-        note: data.notes,
-      };
-      delete payload.purchaseDate;
-      delete payload.notes;
-      
-      if (isFullyPaid) {
-        delete payload.items;
-      }
-
-      await onSubmit(payload);
-    } catch (error) {
-      applyServerErrors(setError, error);
-    }
-  };
-
-  return (
-    <form className="space-y-4 p-6 overflow-y-auto max-h-[80vh]" onSubmit={handleSubmit(handleFormSubmit)}>
-      <FormRootError error={errors.root} />
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormField label="Supplier" required error={errors.supplier?.message}>
-          <Select
-            {...register("supplier")}
-            placeholder="Select a supplier"
-            options={suppliers.map(s => ({ value: s._id, label: s.name }))}
-            error={errors.supplier?.message}
-            disabled={!!initialData}
-          />
-          {selectedSupplierObj && (
-            <p className="text-xs text-secondary mt-1 flex gap-1 items-center">
-              Current Balance: 
-              <MoneyDisplay 
-                amount={selectedSupplierObj.balance || 0} 
-                variant={(selectedSupplierObj.balance || 0) > 0 ? "financeOut" : (selectedSupplierObj.balance || 0) < 0 ? "financeIn" : "default"} 
-              />
-            </p>
-          )}
-        </FormField>
-        
-        <FormField label="Purchase Date" required error={errors.purchaseDate?.message}>
-          <Input type="date" {...register("purchaseDate")} error={errors.purchaseDate?.message} />
-        </FormField>
-      </div>
-
-      <div className="pt-4 border-t border-border/50">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-semibold text-primary">Purchase Items {isFullyPaid && <span className="text-xs font-normal text-warning ml-2">(Locked - Fully Paid)</span>}</h3>
-          {!isFullyPaid && (
-            <Button type="button" variant="secondary" size="sm" onClick={() => append({ material: "", quantity: "", unitPrice: "" })}>
-              <Plus className="h-4 w-4 mr-1" /> Add Item
-            </Button>
-          )}
-        </div>
-        
-        {errors.items?.root && <p className="text-xs text-danger mb-2">{errors.items.root.message}</p>}
-
-        <div className="space-y-3">
-          {fields.map((item, index) => (
-            <div key={item.id} className="grid grid-cols-12 gap-2 items-start bg-main/50 p-3 rounded-lg border border-border/50">
-              <div className="col-span-12 sm:col-span-5">
-                <FormField label="Material" error={errors.items?.[index]?.material?.message}>
-                  <Select
-                    {...register(`items.${index}.material`)}
-                    placeholder="Select material"
-                    options={materials.map(m => ({ value: m._id, label: `${m.name} (${m.unit})` }))}
-                    error={errors.items?.[index]?.material?.message}
-                    disabled={isFullyPaid}
-                  />
-                </FormField>
-              </div>
-              <div className="col-span-6 sm:col-span-3">
-                <FormField label="Quantity" error={errors.items?.[index]?.quantity?.message}>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    placeholder="Qty"
-                    {...register(`items.${index}.quantity`)}
-                    error={errors.items?.[index]?.quantity?.message}
-                    disabled={isFullyPaid}
-                  />
-                </FormField>
-              </div>
-              <div className="col-span-5 sm:col-span-3">
-                <FormField label="Unit Price (ETB)" error={errors.items?.[index]?.unitPrice?.message}>
-                  <Controller
-                    name={`items.${index}.unitPrice`}
-                    control={control}
-                    render={({ field }) => (
-                      <CurrencyInput
-                        {...field}
-                        placeholder="Unit Price"
-                        error={errors.items?.[index]?.unitPrice?.message}
-                        disabled={isFullyPaid}
-                      />
-                    )}
-                  />
-                </FormField>
-              </div>
-              <div className="col-span-1 flex justify-end pt-2">
-                {fields.length > 1 && !isFullyPaid && (
-                  <button
-                    type="button"
-                    onClick={() => remove(index)}
-                    className="text-secondary hover:text-danger p-1"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex justify-end items-center gap-2 mt-4 pt-3 border-t border-border/50">
-          <span className="text-sm font-medium text-secondary">Total:</span>
-          <span className="text-lg font-bold text-accent"><MoneyDisplay amount={totalAmount} /></span>
-        </div>
-      </div>
-
-      <FormField label="Notes" error={errors.notes?.message}>
-        <Textarea {...register("notes")} rows={2} error={errors.notes?.message} placeholder="Optional purchase notes" />
-      </FormField>
-
-      <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
-        <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
-        <Button type="submit" isLoading={isSubmitting}>Save Purchase</Button>
-      </div>
-    </form>
-  );
-};
 
 export const PurchasesList = () => {
   const { can } = usePermission();
@@ -289,7 +119,7 @@ export const PurchasesList = () => {
         description="Record and track material purchases from suppliers."
         actions={
           <Can permission="purchases.create">
-            <Button onClick={() => setIsOpen(true)}>Record Purchase</Button>
+            <Button variant="primary" leftIcon={Plus} onClick={() => setIsOpen(true)}>Record Purchase</Button>
           </Can>
         }
       />
@@ -364,4 +194,3 @@ export const PurchasesList = () => {
     </div>
   );
 };
-

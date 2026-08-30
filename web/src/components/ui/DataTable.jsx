@@ -50,6 +50,9 @@ export const DataTable = ({
                   {col.header}
                 </th>
               ))}
+              {onRowClick && (
+                <th className="px-5 py-3.5 w-10"></th>
+              )}
             </tr>
           </thead>
           <tbody className="divide-y divide-border bg-surface">
@@ -57,8 +60,8 @@ export const DataTable = ({
               <tr
                 key={keyExtractor(row)}
                 onClick={() => onRowClick && onRowClick(row)}
-                className={`hover:bg-main/50 transition-colors ${
-                  onRowClick ? "cursor-pointer" : ""
+                className={`group transition-all duration-200 ${
+                  onRowClick ? "cursor-pointer hover:bg-accent/5 hover:shadow-[inset_4px_0_0_0_var(--color-accent)]" : ""
                 }`}
               >
                 {columns.map((col, colIndex) => {
@@ -77,6 +80,11 @@ export const DataTable = ({
                     </td>
                   );
                 })}
+                {onRowClick && (
+                  <td className="px-5 py-3.5 text-right w-10">
+                    <ChevronRight className="h-4 w-4 text-secondary/30 group-hover:text-accent group-hover:translate-x-1 transition-all inline-block" />
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
@@ -90,10 +98,9 @@ export const DataTable = ({
             key={keyExtractor(row)}
             onClick={() => onRowClick && onRowClick(row)}
             className={`
-              relative rounded-xl border border-border bg-surface shadow-sm overflow-hidden
-              transition-colors duration-150
-              hover:bg-main/40 active:bg-main/60
-              ${onRowClick ? "cursor-pointer" : ""}
+              group relative rounded-xl border border-border bg-surface shadow-sm overflow-hidden
+              transition-all duration-200
+              ${onRowClick ? "cursor-pointer hover:bg-accent/5 hover:border-accent/60 hover:shadow-md hover:-translate-y-0.5 active:bg-main/60 pr-10" : ""}
             `}
           >
             {mobileRenderer ? (

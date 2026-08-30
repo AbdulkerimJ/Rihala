@@ -6,7 +6,7 @@ import { Button } from "./ui/Button";
 import { SearchInput } from "./ui/SearchInput";
 import { LogOut } from "lucide-react";
 
-export const Header = ({ currentUser, onMobileMenuToggle, sectionTitle }) => {
+export const Header = ({ currentUser, sectionTitle }) => {
   // Helper to extract user initials for avatar
   const getInitials = (name) => {
     if (!name) return "RM";
@@ -77,7 +77,7 @@ export const Header = ({ currentUser, onMobileMenuToggle, sectionTitle }) => {
 
         {/* Logout Button */}
         <Button
-          variant="ghostDanger"
+          variant="danger-ghost"
           size="icon"
           onClick={handleLogout}
           className="rounded-lg p-2 transition-all ml-1"

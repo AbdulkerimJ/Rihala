@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { ChevronRight, ChevronDown } from "lucide-react";
 
-export const NavGroup = ({ group, isSidebarOpen, setSidebarOpen, pathname, can }) => {
+export const NavGroup = ({ group, isSidebarOpen, setSidebarOpen, pathname, can, isCollapsed }) => {
   // Check if any item in this group is accessible
   const accessibleItems = group.items.filter(item => !item.permission || can(item.permission));
   
@@ -20,7 +20,44 @@ export const NavGroup = ({ group, isSidebarOpen, setSidebarOpen, pathname, can }
     if (isActiveGroup) setIsExpanded(true);
   }, [isActiveGroup]);
 
-  // Flat group (like Dashboard)
+  // ─── COLLAPSED SIDEBAR MODE ────────────────────────────────────────────────
+  // When the desktop sidebar is collapsed to icon-only mode, render each group
+  // as a set of icon-only buttons with native title tooltips.
+  if (isCollapsed) {
+    return (
+      <div className="mb-1 flex flex-col items-center gap-0.5">
+        {accessibleItems.map((item) => {
+          const isActive = pathname.startsWith(item.path);
+          return (
+            <NavLink
+              key={item.name}
+              to={item.path}
+              title={item.name}
+              className={`flex items-center justify-center w-9 h-9 rounded-md transition-colors ${
+                isActive
+                  ? "bg-accent/15 text-accent"
+                  : "text-primary/60 hover:bg-black/5 dark:hover:bg-white/5 hover:text-primary"
+              }`}
+              onClick={() => setSidebarOpen(false)}
+            >
+              <item.icon
+                className={`h-5 w-5 flex-shrink-0 transition-colors ${
+                  isActive ? "text-accent" : ""
+                }`}
+                strokeWidth={isActive ? 2.5 : 2}
+              />
+            </NavLink>
+          );
+        })}
+        {/* Thin separator between groups */}
+        {!group.isFlat && (
+          <div className="w-6 h-px bg-border/40 my-1" />
+        )}
+      </div>
+    );
+  }
+
+  // ─── FLAT GROUP (e.g. Dashboard / Analytics) ───────────────────────────────
   if (!group.title || group.isFlat) {
     return (
       <div className="mb-2">
@@ -45,7 +82,7 @@ export const NavGroup = ({ group, isSidebarOpen, setSidebarOpen, pathname, can }
     );
   }
 
-  // Hierarchical group
+  // ─── HIERARCHICAL GROUP ────────────────────────────────────────────────────
   return (
     <div className="mb-0">
       <button

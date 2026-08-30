@@ -26,6 +26,9 @@ const STATUS_STYLES = {
   present: "bg-success/10 text-success border border-success/20",
   absent: "bg-danger/10 text-danger border border-danger/20",
   permission: "bg-warning/10 text-warning border border-warning/20",
+  PAID: "bg-success/10 text-success border border-success/20",
+  PARTIALLY_PAID: "bg-warning/10 text-warning border border-warning/20",
+  UNPAID: "bg-danger/10 text-danger border border-danger/20",
 };
 
 const DOT_COLORS = {
@@ -53,6 +56,9 @@ const DOT_COLORS = {
   CANCELLED: "bg-status-cancelled",
   VOIDED: "bg-status-cancelled",
   ABSENT: "bg-danger",
+  PAID: "bg-success",
+  PARTIALLY_PAID: "bg-warning",
+  UNPAID: "bg-danger",
 };
 
 export const StatusBadge = ({ status, label, showDot = false, className = "" }) => {

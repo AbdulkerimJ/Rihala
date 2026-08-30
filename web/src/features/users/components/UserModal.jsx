@@ -6,7 +6,7 @@ import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
 import { getRoles } from "../../roles/api";
 import { applyServerErrors } from "../../../utils/apiResponse";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, X } from "lucide-react";
 import { Button } from "../../../components/ui/Button";
 import { FormField } from "../../../components/ui/FormField";
 import { Input } from "../../../components/ui/Input";
@@ -197,18 +197,17 @@ export const UserForm = ({ onClose, onSubmit, initialData }) => {
       )}
 
       <div className="mt-6 flex justify-end gap-3 border-t border-border/50 pt-4">
-        <Button
-          type="button"
-          variant="secondary"
+        <Button type="button"
+          variant="ghost"
           onClick={onClose}
-          disabled={isSubmitting}
+          disabled={isSubmitting} leftIcon={X}
         >
           Cancel
         </Button>
         <Button
           type="submit"
           isLoading={isSubmitting}
-        >
+         leftIcon={Save}>
           {isEditing ? "Save Changes" : "Send Invitation"}
         </Button>
       </div>

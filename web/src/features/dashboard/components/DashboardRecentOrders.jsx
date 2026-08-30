@@ -43,6 +43,7 @@ export const DashboardRecentOrders = ({ orders, loadingOrders }) => {
                   key={order._id}
                   to={`/orders/${order._id}`}
                   size="sm"
+                  showChevron={true}
                   title={
                     <span className="flex items-center gap-2 min-w-0">
                       <span className="font-mono text-[10px] font-bold text-secondary uppercase tracking-widest shrink-0">

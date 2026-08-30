@@ -3,7 +3,8 @@ import { useParams, Link } from "react-router-dom";
 import { usePermission } from "../../../hooks/usePermission";
 import { Can } from "../../../components/Can";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, HardHat, Hammer, ClipboardCheck, FileText, AlertCircle } from "lucide-react";
+import { HardHat, Hammer, ClipboardCheck, FileText, AlertCircle, Save, X } from "lucide-react";
+import { BackButton } from "../../../components/ui/BackButton";
 import { getContractById, cancelContract } from "../api";
 import { recordCompletion, voidCompletion } from "../../contract-completions/api";
 import { createContractorPayment, voidContractorPayment } from "../../contractor-payments/api";
@@ -70,8 +71,8 @@ const CompletionForm = ({ contract, onSubmit, onClose }) => {
         <Textarea {...register("note")} rows={2} error={errors.note?.message} />
       </FormField>
       <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
-        <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
-        <Button type="submit" isLoading={isSubmitting}>Record Completion</Button>
+        <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting} leftIcon={X}>Cancel</Button>
+        <Button type="submit" isLoading={isSubmitting} leftIcon={Save}>Record Completion</Button>
       </div>
     </form>
   );
@@ -124,8 +125,8 @@ const PaymentForm = ({ contract, onSubmit, onClose }) => {
         <Textarea {...register("note")} rows={2} error={errors.note?.message} />
       </FormField>
       <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
-        <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
-        <Button type="submit" isLoading={isSubmitting}>Record Payment</Button>
+        <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting} leftIcon={X}>Cancel</Button>
+        <Button type="submit" isLoading={isSubmitting} leftIcon={Save}>Record Payment</Button>
       </div>
     </form>
   );
@@ -222,7 +223,7 @@ export const ContractDetail = () => {
       accessor: (row) => (
         <Can permission="contractCompletions.void">
           {row.status === 'active' && contract.status === 'ACTIVE' && (
-            <Button variant="ghostDanger" size="sm" onClick={() => setVoidingCompletion(row)}>Void</Button>
+            <Button variant="danger-ghost" size="sm" onClick={() => setVoidingCompletion(row)}>Void</Button>
           )}
         </Can>
       ) 
@@ -240,7 +241,7 @@ export const ContractDetail = () => {
       accessor: (row) => (
         <Can permission="contractorPayments.void">
           {row.status === 'active' && (
-            <Button variant="ghostDanger" size="sm" onClick={() => setVoidingPayment(row)}>Void</Button>
+            <Button variant="danger-ghost" size="sm" onClick={() => setVoidingPayment(row)}>Void</Button>
           )}
         </Can>
       ) 
@@ -251,14 +252,7 @@ export const ContractDetail = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-4">
         <div className="flex items-center gap-3">
-          <Link
-            to="/contracts"
-            className="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-border bg-surface text-secondary hover:text-primary hover:bg-main transition-colors shrink-0"
-            title="Back to contracts"
-            aria-label="Back to contracts"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
+          <BackButton />
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-bold text-primary font-display tracking-tight">Contract {contract.contractNumber}</h1>
@@ -320,7 +314,7 @@ export const ContractDetail = () => {
                 </Can>
                 {contract.status === "ACTIVE" && (
                   <Can permission="contracts.cancel">
-                    <Button variant="ghostDanger" onClick={() => setCancelModalOpen(true)}>
+                    <Button variant="danger-ghost" onClick={() => setCancelModalOpen(true)}>
                       Cancel Contract
                     </Button>
                   </Can>
@@ -348,7 +342,7 @@ export const ContractDetail = () => {
                     </div>
                     <Can permission="contractCompletions.void">
                       {row.status === 'active' && contract.status === 'ACTIVE' && (
-                        <Button variant="ghostDanger" size="sm" onClick={() => setVoidingCompletion(row)}>Void</Button>
+                        <Button variant="danger-ghost" size="sm" onClick={() => setVoidingCompletion(row)}>Void</Button>
                       )}
                     </Can>
                   </div>

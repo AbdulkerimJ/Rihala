@@ -1,4 +1,5 @@
 import React from "react";
+import { Save, X, Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
@@ -138,15 +139,14 @@ export const AttendanceFormModal = ({
         </div>
 
         <div className="flex justify-end gap-2.5 pt-4 border-t border-border/50">
-          <Button
-            type="button"
-            variant="secondary"
+          <Button type="button"
+            variant="ghost"
             onClick={onClose}
-            disabled={isSubmitting}
+            disabled={isSubmitting} leftIcon={X}
           >
             Cancel
           </Button>
-          <Button type="submit" isLoading={isSubmitting}>
+          <Button type="submit" isLoading={isSubmitting} leftIcon={Save}>
             {initialData ? "Update Record" : "Save Record"}
           </Button>
         </div>

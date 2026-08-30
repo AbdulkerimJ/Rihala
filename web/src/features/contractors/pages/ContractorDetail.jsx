@@ -12,10 +12,16 @@ import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { Button } from "../../../components/ui/Button";
 import { Modal } from "../../../components/ui/Modal";
 import { Can } from "../../../components/Can";
-import { ContractorForm } from "./ContractorsList";
-import { getApiErrorMessage, unwrapEntityResponse } from "../../../utils/apiResponse";
+import { ContractorForm } from "../components/ContractorForm";
+import { getApiErrorMessage, unwrapEntityResponse, unwrapListResponse } from "../../../utils/apiResponse";
 import { usePermission } from "../../../hooks/usePermission";
-import { Phone, ArrowLeft, TrendingUp, TrendingDown, Wallet } from "lucide-react";
+import { DataTable } from "../../../components/ui/DataTable";
+import { formatDate, formatDateTime } from "../../../utils/formatters";
+import { Phone, TrendingUp, TrendingDown, Wallet, HardHat, FileText, ClipboardList } from "lucide-react";
+import { BackButton } from "../../../components/ui/BackButton";
+import { Tabs } from "../../../components/ui/Tabs";
+import { getContracts } from "../../contracts/api";
+import { getContractorPayments } from "../../contractor-payments/api";
 import toast from "react-hot-toast";
 
 export const ContractorDetail = () => {
@@ -23,6 +29,7 @@ export const ContractorDetail = () => {
   const { can } = usePermission();
   const queryClient = useQueryClient();
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
 
   const contractorQuery = useQuery({
     queryKey: ["contractors", id],
@@ -36,6 +43,18 @@ export const ContractorDetail = () => {
     enabled: !!id && can("contractors.read"),
   });
 
+  const { data: contractsData, isLoading: isContractsLoading } = useQuery({
+    queryKey: ["contracts", "list", { contractor: id }],
+    queryFn: () => getContracts({ contractor: id, limit: 50 }),
+    enabled: !!id && can("contracts.read"),
+  });
+
+  const { data: paymentsData, isLoading: isPaymentsLoading } = useQuery({
+    queryKey: ["contractor-payments", "list", { contractor: id }],
+    queryFn: () => getContractorPayments({ contractor: id, limit: 50 }),
+    enabled: !!id && can("contractorPayments.read"),
+  });
+
   const updateMutation = useMutation({
     mutationFn: updateContractor,
     onSuccess: () => {
@@ -47,6 +66,8 @@ export const ContractorDetail = () => {
 
   const contractor = unwrapEntityResponse(contractorQuery.data);
   const stats = statsQuery.data?.data ?? null;
+  const contracts = unwrapListResponse(contractsData).items || [];
+  const payments = unwrapListResponse(paymentsData).items || [];
 
   if (contractorQuery.isLoading) return <DetailSkeleton />;
 
@@ -61,6 +82,32 @@ export const ContractorDetail = () => {
     );
   }
 
+  const contractColumns = [
+    { 
+      header: "Contract No", 
+      accessor: (row) => (
+        <Link to={`/contracts/${row._id}`} className="font-mono text-xs text-accent hover:underline">
+          {row.contractNumber || "-"}
+        </Link>
+      ) 
+    },
+    { header: "Date", accessor: (row) => formatDate(row.contractDate), className: "text-secondary" },
+    { header: "Value", accessor: (row) => <MoneyDisplay amount={row.quantity * row.unitPrice || 0} /> },
+    { header: "Status", accessor: (row) => <StatusBadge status={row.status} /> }
+  ];
+
+  const paymentColumns = [
+    { 
+      header: "Ref No", 
+      accessor: (row) => (
+        <span className="font-mono text-xs font-semibold text-primary">{row.paymentReference}</span>
+      ) 
+    },
+    { header: "Date", accessor: (row) => formatDateTime(row.paymentDate), className: "text-secondary" },
+    { header: "Amount", accessor: (row) => <MoneyDisplay amount={row.amount} className={row.status === 'voided' ? 'line-through opacity-50' : ''} /> },
+    { header: "Status", accessor: (row) => <StatusBadge status={row.status} /> }
+  ];
+
   const balanceColor =
     !stats
       ? "bg-main/50 border-border/50"
@@ -73,14 +120,7 @@ export const ContractorDetail = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-4">
         <div className="flex items-center gap-3">
-          <Link
-            to="/contractors"
-            className="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-border bg-surface text-secondary hover:text-primary hover:bg-main transition-colors shrink-0"
-            title="Back to contractors"
-            aria-label="Back to contractors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
+          <BackButton />
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-bold text-primary font-display tracking-tight">
@@ -98,8 +138,21 @@ export const ContractorDetail = () => {
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid gap-4 sm:grid-cols-4">
+      {/* Tabs */}
+      <Tabs 
+        tabs={[
+          { id: "overview", label: "Overview", icon: FileText },
+          { id: "contracts", label: "Contracts", icon: ClipboardList },
+          { id: "financials", label: "Financials", icon: Wallet }
+        ]} 
+        activeTab={activeTab} 
+        onChange={setActiveTab} 
+      />
+
+      {activeTab === "overview" && (
+      <>
+        {/* Summary Cards */}
+        <div className="grid gap-4 sm:grid-cols-4">
         <SummaryCard
           title="Total Contract Value"
           value={
@@ -160,8 +213,7 @@ export const ContractorDetail = () => {
         />
       </div>
 
-      {/* Info & System */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3 mt-6">
         <div className="lg:col-span-2 space-y-6">
           <DetailSection title="Contact & Notes">
             <div className="space-y-4">
@@ -188,6 +240,46 @@ export const ContractorDetail = () => {
           />
         </div>
       </div>
+      </>
+      )}
+
+      {activeTab === "contracts" && (
+        <Can permission="contracts.read">
+          <DetailSection title="Assigned Contracts">
+            <DataTable
+              columns={contractColumns}
+              data={contracts}
+              keyExtractor={(row) => row._id}
+              isLoading={isContractsLoading}
+              emptyState={
+                <div className="text-center py-6 text-sm text-secondary flex flex-col items-center">
+                  <HardHat className="h-8 w-8 text-muted mb-2" />
+                  No contracts assigned to this contractor.
+                </div>
+              }
+            />
+          </DetailSection>
+        </Can>
+      )}
+
+      {activeTab === "financials" && (
+        <Can permission="contractorPayments.read">
+          <DetailSection title="Payment History">
+            <DataTable
+              columns={paymentColumns}
+              data={payments}
+              keyExtractor={(row) => row._id}
+              isLoading={isPaymentsLoading}
+              emptyState={
+                <div className="text-center py-6 text-sm text-secondary flex flex-col items-center">
+                  <FileText className="h-8 w-8 text-muted mb-2" />
+                  No payments have been recorded for this contractor.
+                </div>
+              }
+            />
+          </DetailSection>
+        </Can>
+      )}
 
       <Modal
         isOpen={isEditOpen}
