@@ -17,6 +17,7 @@ import { getApiErrorMessage, unwrapEntityResponse, unwrapListResponse } from "..
 import { formatDate } from "../../../utils/formatters";
 import { usePermission } from "../../../hooks/usePermission";
 import { ShoppingBag, Calendar, Building2, Edit, CreditCard } from "lucide-react";
+import { ProgressBar } from "../../../components/ui/ProgressBar";
 import { BackButton } from "../../../components/ui/BackButton";
 import toast from "react-hot-toast";
 import { SupplierPaymentModal } from "../../supplier-payments/components/SupplierPaymentModal";
@@ -231,15 +232,12 @@ export const PurchaseDetail = () => {
                   </span>
                 )}
               </div>
-              {/* Progress Bar */}
-              <div className="h-2.5 w-full bg-main rounded-full overflow-hidden shadow-inner">
-                <div 
-                  className={`h-full transition-all duration-500 rounded-full ${
-                    purchase.paymentStatus === 'PAID' ? 'bg-success' : purchase.paymentStatus === 'PARTIALLY_PAID' ? 'bg-warning' : 'bg-finance-out'
-                  }`}
-                  style={{ width: `${purchase.totalAmount > 0 ? Math.min(100, Math.round(((purchase.allocatedAmount || 0) / purchase.totalAmount) * 100)) : 0}%` }}
-                />
-              </div>
+              <ProgressBar 
+                progress={purchase.totalAmount > 0 ? Math.round(((purchase.allocatedAmount || 0) / purchase.totalAmount) * 100) : 0} 
+                variant={purchase.paymentStatus === 'PAID' ? 'success' : purchase.paymentStatus === 'PARTIALLY_PAID' ? 'warning' : 'financeOut'} 
+                size="md" 
+                animated={purchase.paymentStatus !== 'PAID'} 
+              />
               <div className="text-right text-xs text-secondary font-medium">
                 {purchase.totalAmount > 0 ? Math.min(100, Math.round(((purchase.allocatedAmount || 0) / purchase.totalAmount) * 100)) : 0}% Paid
               </div>

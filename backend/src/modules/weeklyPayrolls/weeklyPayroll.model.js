@@ -42,16 +42,7 @@ const weeklyPayrollSchema = new mongoose.Schema(
       default: 0,
     },
 
-    status: {
-      type: String,
-      required: [true, "Status is required"],
-      enum: {
-        values: ["CLOSED"],
-        message: "Status must be CLOSED",
-      },
-      default: "CLOSED",
-      index: true,
-    },
+
 
     closedAt: {
       type: Date,

@@ -13,7 +13,7 @@ const weeklyPayrollIdSchema = z.object({
 const weeklyPayrollQuerySchema = z
   .object({
     employee: z.string().regex(mongoIdRegex, "Invalid employee id.").optional(),
-    status: z.enum(["CLOSED"]).optional(),
+
     from: z.coerce
       .date({ message: "The from date must be a valid date." })
       .optional(),
@@ -27,7 +27,7 @@ const weeklyPayrollQuerySchema = z
   })
   .strict({
     error:
-      "Only employee, status, from, to, search, sort, page, and limit are allowed.",
+      "Only employee, from, to, search, sort, page, and limit are allowed.",
   });
 
 export { employeeIdSchema, weeklyPayrollIdSchema, weeklyPayrollQuerySchema };

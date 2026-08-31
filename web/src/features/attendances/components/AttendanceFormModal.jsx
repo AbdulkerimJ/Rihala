@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Save, X, Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -53,6 +53,26 @@ export const AttendanceFormModal = ({
           afternoonStatus: "PRESENT",
         },
   });
+
+  useEffect(() => {
+    if (initialData) {
+      reset({
+        employee: initialData.employee?._id || initialData.employee,
+        workDate: initialData.workDate
+          ? new Date(initialData.workDate).toISOString().split("T")[0]
+          : new Date().toISOString().split("T")[0],
+        morningStatus: initialData.morningStatus || "PRESENT",
+        afternoonStatus: initialData.afternoonStatus || "PRESENT",
+      });
+    } else {
+      reset({
+        employee: "",
+        workDate: new Date().toISOString().split("T")[0],
+        morningStatus: "PRESENT",
+        afternoonStatus: "PRESENT",
+      });
+    }
+  }, [initialData, reset]);
 
   const handleFormSubmit = async (data) => {
     try {

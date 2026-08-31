@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Save, X, Plus } from "lucide-react";
+import { Save, X, Plus, Edit, Trash2 } from "lucide-react";
 import { usePermission } from "../../../hooks/usePermission";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
@@ -218,15 +218,15 @@ export const OvertimesList = () => {
           </Can>
           <Can permission="overtimes.delete">
             <Button
-              variant="danger"
-              size="sm"
+              variant="danger-ghost"
+              size="icon"
+              leftIcon={Trash2}
               onClick={(e) => {
                 e.stopPropagation();
                 setRecordToDelete(row);
               }}
-            >
-              Delete
-            </Button>
+              title="Delete"
+            />
           </Can>
         </div>
       ) 
