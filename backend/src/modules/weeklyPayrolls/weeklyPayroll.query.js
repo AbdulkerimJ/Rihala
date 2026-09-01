@@ -1,5 +1,5 @@
 const weeklyPayrollQueryConfig = {
-  searchableFields: ["employee"],
+  searchableFields: [],
   sortableFields: ["startDate", "endDate", "createdAt"],
   filterableFields: ["employee"],
   defaultSort: "-createdAt",

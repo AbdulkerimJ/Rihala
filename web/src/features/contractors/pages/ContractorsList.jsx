@@ -4,6 +4,7 @@ import { ContractorForm } from "../components/ContractorForm";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { usePermission } from "../../../hooks/usePermission";
+import { useDebounce } from "../../../hooks/useDebounce";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { getContractors, createContractor, updateContractor, deleteContractor } from "../api";
 import { PageHeader } from "../../../components/ui/PageHeader";
@@ -36,12 +37,13 @@ export const ContractorsList = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState({ search: "", status: "" });
+  const [filters, setFilters] = useState({ search: "", status: "" }); 
+  const debouncedSearch = useDebounce(filters.search, 300);
   const [isOpen, setIsOpen] = useState(false);
   const [editingContractor, setEditingContractor] = useState(null);
   const [deletingContractor, setDeletingContractor] = useState(null);
 
-  const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
+  const params = useMemo(() => cleanFilterParams({ ...filters, search: debouncedSearch }, { page, limit: 20 }), [filters, debouncedSearch, page]);
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["contractors", params],
@@ -146,6 +148,7 @@ export const ContractorsList = () => {
       />
 
       <FilterBar 
+        filters={filters}
         searchPlaceholder="Search contractors..."
         searchValue={filters.search}
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}

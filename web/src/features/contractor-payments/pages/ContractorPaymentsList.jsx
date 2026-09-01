@@ -1,7 +1,9 @@
 import React, { useState, useMemo } from "react";
+import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { usePermission } from "../../../hooks/usePermission";
+import { useDebounce } from "../../../hooks/useDebounce";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { getContractorPayments, voidContractorPayment } from "../api";
 import { getContracts } from "../../contracts/api";
@@ -19,14 +21,17 @@ import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import toast from "react-hot-toast";
 import { cleanFilterParams, getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
 import { formatDate } from "../../../utils/formatters";
+import { PaymentDetailsModal } from "../../../components/ui/PaymentDetailsModal";
 
 export const ContractorPaymentsList = () => {
   const navigate = useNavigate();
   const { can } = usePermission();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState({ contract: "", status: "" });
+  const [filters, setFilters] = useState({ contract: "", status: "" }); 
+  const debouncedSearch = useDebounce(filters.search, 300);
   const [voidingPayment, setVoidingPayment] = useState(null);
+  const [selectedPayment, setSelectedPayment] = useState(null);
 
   const { data: contractsData } = useQuery({ 
     queryKey: ["contracts", "list"], 
@@ -35,7 +40,7 @@ export const ContractorPaymentsList = () => {
   });
   const contracts = unwrapListResponse(contractsData).items || [];
 
-  const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
+  const params = useMemo(() => cleanFilterParams({ ...filters, search: debouncedSearch }, { page, limit: 20 }), [filters, debouncedSearch, page]);
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["contractor-payments", params],
@@ -67,6 +72,7 @@ export const ContractorPaymentsList = () => {
 
   const columns = [
     { header: "Payment Ref", accessor: "paymentReference", className: "font-mono text-xs font-medium" },
+    { header: "Contractor", accessor: (row) => row.contract?.contractor?.name || "Unknown", className: "font-medium text-primary" },
     { header: "Contract No", accessor: (row) => row.contract?.contractNumber || "-", className: "font-medium text-secondary hidden sm:table-cell" },
     { header: "Amount", accessor: (row) => <MoneyDisplay amount={row.amount} className={row.status === 'voided' ? 'line-through opacity-50' : ''} /> },
     { header: "Date", accessor: (row) => formatDate(row.paymentDate), className: "text-secondary" },
@@ -107,6 +113,7 @@ export const ContractorPaymentsList = () => {
       />
 
       <FilterBar 
+        filters={filters}
         onClear={Object.values(filters).some(v => v !== "") ? () => { setFilters({ contract: "", status: "" }); setPage(1); } : undefined}
       >
         <Select
@@ -132,6 +139,7 @@ export const ContractorPaymentsList = () => {
         columns={columns}
         data={payments}
         keyExtractor={(row) => row._id}
+        onRowClick={(row) => setSelectedPayment(row)}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
         isLoading={isLoading}
@@ -141,6 +149,7 @@ export const ContractorPaymentsList = () => {
             title="No payments found"
             description="Payments are recorded directly from the Contract detail page to ensure accurate accounting."
             actionLabel={can("contracts.read") ? "Go to Contracts" : null}
+            actionIcon={ArrowRight}
             onAction={() => navigate("/contracts")}
           />
         }
@@ -154,6 +163,13 @@ export const ContractorPaymentsList = () => {
         isSubmitting={voidMutation.isPending}
         onConfirm={(reason) => voidMutation.mutateAsync({ id: voidingPayment._id, voidReason: reason })}
         onCancel={() => setVoidingPayment(null)}
+      />
+
+      <PaymentDetailsModal
+        isOpen={!!selectedPayment}
+        onClose={() => setSelectedPayment(null)}
+        payment={selectedPayment}
+        type="contractor"
       />
     </div>
   );

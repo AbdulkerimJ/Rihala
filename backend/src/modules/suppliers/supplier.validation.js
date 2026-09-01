@@ -62,8 +62,6 @@ const supplierQuerySchema = z.object({
     .default("10")
     .optional(),
   sort: z.string().optional(),
-  name: z.string().optional(),
-  phone: z.string().optional(),
   status: z.enum(["active", "inactive"]).optional(),
   search: z.string().optional(),
 });

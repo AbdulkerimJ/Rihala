@@ -1,5 +1,5 @@
 const materialQueryConfig = {
-  searchFields: ["name"],
+  searchableFields: ["name"],
   filterableFields: ["category", "unit", "status"],
   sortableFields: ["name", "createdAt", "updatedAt", "status", "category"],
   defaultSort: "name",

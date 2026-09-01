@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { usePermission } from "../../../hooks/usePermission";
+import { useDebounce } from "../../../hooks/useDebounce";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { createMaterial, getMaterials, updateMaterial } from "../api";
@@ -32,11 +33,12 @@ export const MaterialsList = () => {
   const { can } = usePermission();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState({ search: "", status: "", category: "" });
+  const [filters, setFilters] = useState({ search: "", status: "", category: "" }); 
+  const debouncedSearch = useDebounce(filters.search, 300);
   const [isOpen, setIsOpen] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState(null);
 
-  const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
+  const params = useMemo(() => cleanFilterParams({ ...filters, search: debouncedSearch }, { page, limit: 20 }), [filters, debouncedSearch, page]);
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["materials", params],
@@ -102,6 +104,7 @@ export const MaterialsList = () => {
       />
 
       <FilterBar 
+        filters={filters}
         searchPlaceholder="Search materials..."
         searchValue={filters.search}
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}

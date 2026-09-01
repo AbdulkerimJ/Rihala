@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { Plus, Edit, Trash2, X } from "lucide-react";
 import { usePermission } from "../../../hooks/usePermission";
+import { useDebounce } from "../../../hooks/useDebounce";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -37,12 +38,13 @@ export const EmployeesList = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState({ search: "", status: "" });
+  const [filters, setFilters] = useState({ search: "", status: "" }); 
+  const debouncedSearch = useDebounce(filters.search, 300);
   const [isOpen, setIsOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [deletingEmployee, setDeletingEmployee] = useState(null);
 
-  const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
+  const params = useMemo(() => cleanFilterParams({ ...filters, search: debouncedSearch }, { page, limit: 20 }), [filters, debouncedSearch, page]);
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["employees", params],
@@ -210,7 +212,8 @@ export const EmployeesList = () => {
         }
       />
 
-      <FilterBar
+      <FilterBar 
+        filters={filters}
         searchPlaceholder="Search employees..."
         searchValue={filters.search}
         onSearchChange={(val) => { setFilters((p) => ({ ...p, search: val })); setPage(1); }}

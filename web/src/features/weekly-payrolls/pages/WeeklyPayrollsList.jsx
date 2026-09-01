@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { Calculator, Plus } from "lucide-react";
 import { usePermission } from "../../../hooks/usePermission";
+import { useDebounce } from "../../../hooks/useDebounce";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { getWeeklyPayrolls } from "../api";
@@ -28,7 +29,8 @@ export const WeeklyPayrollsList = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState({ search: "", employee: "", from: "", to: "" });
+  const [filters, setFilters] = useState({ search: "", employee: "", from: "", to: "" }); 
+  const debouncedSearch = useDebounce(filters.search, 300);
   const [isOpen, setIsOpen] = useState(false);
 
   const { data: employeesData } = useQuery({ 
@@ -38,7 +40,7 @@ export const WeeklyPayrollsList = () => {
   });
   const employees = unwrapListResponse(employeesData).items || [];
 
-  const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
+  const params = useMemo(() => cleanFilterParams({ ...filters, search: debouncedSearch }, { page, limit: 20 }), [filters, debouncedSearch, page]);
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["weekly-payrolls", params],
@@ -81,6 +83,7 @@ export const WeeklyPayrollsList = () => {
       />
 
       <FilterBar 
+        filters={filters}
         searchPlaceholder="Search..."
         searchValue={filters.search}
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}

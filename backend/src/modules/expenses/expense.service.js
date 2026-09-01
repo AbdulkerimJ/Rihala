@@ -27,11 +27,14 @@ const createExpenseService = async (data, userId) => {
 };
 
 const getExpensesService = async (filters = {}) => {
-  if (!filters.status) {
-    filters.status = "active";
+  const queryFilters = { ...filters };
+  if (queryFilters.status === undefined) {
+    queryFilters.status = "active";
+  } else if (queryFilters.status === "all") {
+    delete queryFilters.status;
   }
 
-  return getPaginatedQueryResult(Expense, filters, expenseQueryConfig, {
+  return getPaginatedQueryResult(Expense, queryFilters, expenseQueryConfig, {
     populate: { path: "createdBy", select: "name email" },
   });
 };

@@ -22,7 +22,7 @@ import { Select } from "../../../components/ui/Select";
 const paymentSchema = z.object({
   employee: z.string().min(1, "Employee is required"),
   amount: z.coerce.number({ error: "Amount is required" }).positive("Amount must be greater than 0"),
-  type: z.enum(["regular", "overtime", "bonus", "advance", "other"]).default("advance"),
+  type: z.enum(["regular", "advance"]).default("regular"),
   paymentDate: z.string().min(1, "Payment date is required"),
   note: z.string().trim().optional().or(z.literal("")),
 });
@@ -47,7 +47,7 @@ export const EmployeePaymentModal = ({
     defaultValues: {
       employee: preSelectedEmployee?._id || preSelectedEmployee || "",
       amount: "",
-      type: "advance",
+      type: "regular",
       paymentDate: new Date().toISOString().split("T")[0],
       note: "",
     },
@@ -98,11 +98,8 @@ export const EmployeePaymentModal = ({
             <Select
               {...register("type")}
               options={[
-                { value: "advance", label: "Salary Advance" },
                 { value: "regular", label: "Regular Salary" },
-                { value: "overtime", label: "Overtime Payment" },
-                { value: "bonus", label: "Bonus" },
-                { value: "other", label: "Other" },
+                { value: "advance", label: "Salary Advance" },
               ]}
               error={errors.type?.message}
             />

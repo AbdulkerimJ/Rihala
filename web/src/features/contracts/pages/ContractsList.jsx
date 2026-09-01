@@ -3,6 +3,7 @@ import { Save, X, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { usePermission } from "../../../hooks/usePermission";
+import { useDebounce } from "../../../hooks/useDebounce";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { getContracts, createContract } from "../api";
 import { getContractors, createContractor } from "../../contractors/api";
@@ -207,7 +208,8 @@ export const ContractsList = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState({ search: "", status: "", contractor: "", task: "" });
+  const [filters, setFilters] = useState({ search: "", status: "", contractor: "", task: "" }); 
+  const debouncedSearch = useDebounce(filters.search, 300);
   const [isOpen, setIsOpen] = useState(false);
 
   const { data: contractorsData } = useQuery({ 
@@ -224,7 +226,7 @@ export const ContractsList = () => {
   });
   const tasks = unwrapListResponse(tasksData).items || [];
 
-  const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
+  const params = useMemo(() => cleanFilterParams({ ...filters, search: debouncedSearch }, { page, limit: 20 }), [filters, debouncedSearch, page]);
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["contracts", params],
@@ -281,6 +283,7 @@ export const ContractsList = () => {
       />
 
       <FilterBar 
+        filters={filters}
         searchPlaceholder="Search by contract no..."
         searchValue={filters.search}
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}

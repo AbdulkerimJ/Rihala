@@ -26,7 +26,7 @@ import { MaterialsList } from "../features/materials/pages/MaterialsList";
 import { PurchasesList } from "../features/purchases/pages/PurchasesList";
 import { PurchaseDetail } from "../features/purchases/pages/PurchaseDetail";
 import { CustomerPaymentsList } from "../features/customer-payments/pages/CustomerPaymentsList";
-import { CustomerPaymentDetail } from "../features/customer-payments/pages/CustomerPaymentDetail";
+
 import { SupplierPaymentsList } from "../features/supplier-payments/pages/SupplierPaymentsList";
 import { EmployeesList } from "../features/employees/pages/EmployeesList";
 import { EmployeeDetail } from "../features/employees/pages/EmployeeDetail";
@@ -38,6 +38,7 @@ import { WeeklyPayrollDetail } from "../features/weekly-payrolls/pages/WeeklyPay
 import { EmployeeRatesList } from "../features/employee-rates/pages/EmployeeRatesList";
 
 import { TaskTypesList } from "../features/task-types/pages/TaskTypesList";
+import { Finance } from "../features/finance/pages/Finance";
 import { TasksList } from "../features/tasks/pages/TasksList";
 import { ContractorsList } from "../features/contractors/pages/ContractorsList";
 import { ContractorDetail } from "../features/contractors/pages/ContractorDetail";
@@ -135,14 +136,6 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: "expenses",
-        element: (
-          <RequirePermission permission="expenses.read">
-            <ExpensesList />
-          </RequirePermission>
-        ),
-      },
-      {
         path: "customers",
         element: (
           <RequirePermission permission="customers.read">
@@ -151,21 +144,10 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: "customer-payments",
-        element: (
-          <RequirePermission permission="customerPayments.read">
-            <CustomerPaymentsList />
-          </RequirePermission>
-        ),
+        path: "payments",
+        element: <Finance />,
       },
-      {
-        path: "customer-payments/:id",
-        element: (
-          <RequirePermission permission="customerPayments.read">
-            <CustomerPaymentDetail />
-          </RequirePermission>
-        ),
-      },
+
       {
         path: "orders",
         element: (
@@ -195,14 +177,6 @@ export const router = createBrowserRouter([
         element: (
           <RequirePermission permission="suppliers.read">
             <SupplierDetail />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: "supplier-payments",
-        element: (
-          <RequirePermission permission="supplierPayments.read">
-            <SupplierPaymentsList />
           </RequirePermission>
         ),
       },
@@ -243,14 +217,6 @@ export const router = createBrowserRouter([
         element: (
           <RequirePermission permission="employees.read">
             <EmployeeDetail />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: "employee-payments",
-        element: (
-          <RequirePermission permission="employeePayments.read">
-            <EmployeePaymentsList />
           </RequirePermission>
         ),
       },
@@ -339,15 +305,6 @@ export const router = createBrowserRouter([
         element: (
           <RequirePermission permission="contracts.read">
             <ContractDetail />
-          </RequirePermission>
-        ),
-      },
-
-      {
-        path: "contractor-payments",
-        element: (
-          <RequirePermission permission="contractorPayments.read">
-            <ContractorPaymentsList />
           </RequirePermission>
         ),
       },

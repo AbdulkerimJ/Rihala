@@ -4,6 +4,7 @@ import { Clock, History, Plus } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { usePermission } from "../../../hooks/usePermission";
+import { useDebounce } from "../../../hooks/useDebounce";
 import {
   createAttendance,
   updateAttendance,
