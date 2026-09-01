@@ -42,33 +42,39 @@ export const SupplierForm = ({ initialData, onSubmit, onClose }) => {
   };
 
   return (
-    <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
+    <form className="space-y-3 p-4 sm:p-5" onSubmit={handleSubmit(handleFormSubmit)}>
       <FormRootError error={errors.root} />
-      <FormField label="Name" required error={errors.name?.message}>
-        <Input {...register("name")} error={errors.name?.message} />
-      </FormField>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <FormField label="Name" required error={errors.name?.message}>
+          <Input {...register("name")} error={errors.name?.message} />
+        </FormField>
 
-      <FormField label="Phone" required error={errors.phone?.message}>
-        <Input {...register("phone")} inputMode="tel" error={errors.phone?.message} placeholder="e.g. 0911234567 or +251911234567" />
-      </FormField>
+        <FormField label="Phone" required error={errors.phone?.message}>
+          <Input {...register("phone")} inputMode="tel" error={errors.phone?.message} placeholder="e.g. 0911234567" />
+        </FormField>
+      </div>
 
-      <FormField label="Address" error={errors.address?.message}>
-        <Input {...register("address")} error={errors.address?.message} />
-      </FormField>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <FormField label="Address" error={errors.address?.message}>
+          <Input {...register("address")} error={errors.address?.message} />
+        </FormField>
+      </div>
 
       <FormField label="Notes" error={errors.notes?.message}>
         <Textarea {...register("notes")} rows={2} error={errors.notes?.message} />
       </FormField>
 
-      <FormField label="Status" error={errors.status?.message}>
-        <Select
-          {...register("status")}
-          options={ACTIVE_INACTIVE_OPTIONS}
-          error={errors.status?.message}
-        />
-      </FormField>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <FormField label="Status" error={errors.status?.message}>
+          <Select
+            {...register("status")}
+            options={ACTIVE_INACTIVE_OPTIONS}
+            error={errors.status?.message}
+          />
+        </FormField>
+      </div>
 
-      <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
+      <div className="flex justify-end gap-2.5 pt-3 mt-1 border-t border-border/50">
         <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting} leftIcon={X}>Cancel</Button>
         <Button type="submit" isLoading={isSubmitting} leftIcon={Save}>Save Supplier</Button>
       </div>

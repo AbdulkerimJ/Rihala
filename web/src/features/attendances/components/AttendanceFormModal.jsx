@@ -102,31 +102,33 @@ export const AttendanceFormModal = ({
       onClose={onClose}
     >
       <form
-        className="space-y-4 p-5 sm:p-6"
+        className="space-y-3 p-4 sm:p-5"
         onSubmit={handleSubmit(handleFormSubmit)}
       >
         <FormRootError error={errors.root} />
 
-        <FormField label="Employee" required error={errors.employee?.message}>
-          <Select
-            {...register("employee")}
-            placeholder="Select an active employee"
-            options={employees.map((e) => ({ value: e._id, label: e.name }))}
-            error={errors.employee?.message}
-            disabled={!!initialData}
-          />
-        </FormField>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <FormField label="Employee" required error={errors.employee?.message}>
+            <Select
+              {...register("employee")}
+              placeholder="Select an active employee"
+              options={employees.map((e) => ({ value: e._id, label: e.name }))}
+              error={errors.employee?.message}
+              disabled={!!initialData}
+            />
+          </FormField>
 
-        <FormField label="Work Date" required error={errors.workDate?.message}>
-          <Input
-            type="date"
-            {...register("workDate")}
-            error={errors.workDate?.message}
-            disabled={!!initialData}
-          />
-        </FormField>
+          <FormField label="Work Date" required error={errors.workDate?.message}>
+            <Input
+              type="date"
+              {...register("workDate")}
+              error={errors.workDate?.message}
+              disabled={!!initialData}
+            />
+          </FormField>
+        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormField
             label="Morning Status"
             required
@@ -158,7 +160,7 @@ export const AttendanceFormModal = ({
           </FormField>
         </div>
 
-        <div className="flex justify-end gap-2.5 pt-4 border-t border-border/50">
+        <div className="flex justify-end gap-2.5 pt-3 mt-1 border-t border-border/50">
           <Button type="button"
             variant="ghost"
             onClick={onClose}

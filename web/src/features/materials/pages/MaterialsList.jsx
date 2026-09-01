@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { Edit, Plus } from "lucide-react";
 import { usePermission } from "../../../hooks/usePermission";
 import { useDebounce } from "../../../hooks/useDebounce";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
@@ -98,7 +99,7 @@ export const MaterialsList = () => {
         description="Manage the catalogue of materials used in furniture production."
         actions={
           <Can permission="materials.create">
-            <Button onClick={() => { setEditingMaterial(null); setIsOpen(true); }}>New Material</Button>
+            <Button leftIcon={Plus} onClick={() => { setEditingMaterial(null); setIsOpen(true); }}>New Material</Button>
           </Can>
         }
       />

@@ -14,7 +14,6 @@ import { Can } from "../../../components/Can";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { Modal } from "../../../components/ui/Modal";
-import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { DataTable } from "../../../components/ui/DataTable";
 import { FilterBar } from "../../../components/ui/FilterBar";
@@ -92,61 +91,6 @@ export const EmployeesList = () => {
       setDeletingEmployee(null);
     },
   });
-
-  const getInitials = (name) => {
-    if (!name) return "?";
-    return name.trim().charAt(0).toUpperCase();
-  };
-
-  const mobileRenderer = (row) => (
-    <div className="p-4 sm:p-5 flex flex-col gap-3">
-      <div className="flex justify-between items-start">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-accent to-accent/60 text-white font-bold text-lg shadow-sm shrink-0">
-            {getInitials(row.name)}
-          </div>
-          <div>
-            <h4 className="font-bold text-primary leading-tight text-base">{row.name}</h4>
-            <span className="text-sm text-secondary mt-0.5 inline-flex items-center gap-1">
-               {row.phone || "No phone"}
-            </span>
-          </div>
-        </div>
-        <StatusBadge status={row.status} />
-      </div>
-      
-      <div className="flex items-center justify-between mt-2 pt-3 border-t border-border/50">
-        <div className="text-xs text-secondary font-medium">
-          Started: <span className="text-primary font-semibold">{formatDate(row.employmentStartDate)}</span>
-        </div>
-        <div className="flex gap-1">
-          <Can permission="employees.update">
-            <Button
-              variant="ghost"
-              size="icon"
-              leftIcon={Edit}
-              onClick={(e) => {
-                e.stopPropagation();
-                setEditingEmployee(row);
-                setIsOpen(true);
-              }}
-            />
-          </Can>
-          <Can permission="employees.delete">
-            <Button
-              variant="danger-ghost"
-              size="icon"
-              leftIcon={Trash2}
-              onClick={(e) => {
-                e.stopPropagation();
-                setDeletingEmployee(row);
-              }}
-            />
-          </Can>
-        </div>
-      </div>
-    </div>
-  );
 
   const columns = [
     { header: "Name", accessor: "name", className: "font-bold text-primary" },
@@ -231,7 +175,6 @@ export const EmployeesList = () => {
         data={employees}
         keyExtractor={(row) => row._id}
         onRowClick={(row) => navigate(`/employees/${row._id}`)}
-        mobileRenderer={mobileRenderer}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
         isLoading={isLoading}
@@ -239,8 +182,9 @@ export const EmployeesList = () => {
         emptyState={
           <EmptyState
             title="No employees found"
-            description="Add your first employee to the system."
+            description="Get started by adding your first employee."
             actionLabel={can("employees.create") ? "Add Employee" : null}
+            actionIcon={UserPlus}
             onAction={can("employees.create") ? () => {  setEditingEmployee(null); setIsOpen(true); } : undefined}
           />
         }

@@ -329,25 +329,6 @@ export const ContractDetail = () => {
               data={contract.completions || []} 
               keyExtractor={(row) => row._id} 
               emptyState={<div className="text-sm text-secondary p-4 text-center">No completions recorded yet.</div>}
-              mobileRenderer={(row) => (
-                <div className="flex flex-col gap-2.5 p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-sm font-semibold text-primary">{row.quantity} units</span>
-                    <StatusBadge status={row.status} />
-                  </div>
-                  <div className="flex items-center justify-between gap-4 pt-2 border-t border-border/50 mt-2">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-1">Date</span>
-                      <span className="text-sm text-secondary font-medium">{formatDate(row.recordedAt)}</span>
-                    </div>
-                    <Can permission="contractCompletions.void">
-                      {row.status === 'active' && contract.status === 'ACTIVE' && (
-                        <Button variant="danger-ghost" size="sm" onClick={() => setVoidingCompletion(row)}>Void</Button>
-                      )}
-                    </Can>
-                  </div>
-                </div>
-              )}
             />
           </DetailSection>
 

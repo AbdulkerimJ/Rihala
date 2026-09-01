@@ -37,7 +37,7 @@ export const TaskTypeForm = ({ initialData, onSubmit, onClose }) => {
   };
 
   return (
-    <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
+    <form className="space-y-3 p-4 sm:p-5" onSubmit={handleSubmit(handleFormSubmit)}>
       <FormRootError error={errors.root} />
       <FormField label="Name" required error={errors.name?.message}>
         <Input
@@ -55,7 +55,7 @@ export const TaskTypeForm = ({ initialData, onSubmit, onClose }) => {
         />
       </div>
 
-      <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
+      <div className="flex justify-end gap-2.5 pt-3 mt-1 border-t border-border/50">
         <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting} leftIcon={X}>
           Cancel
         </Button>

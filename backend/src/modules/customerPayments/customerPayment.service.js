@@ -42,7 +42,8 @@ const createCustomerPaymentService = async (data, userId) => {
 
       // 6. Reject if it exceeds the remaining amount
       if (data.amount > remainingAmount) {
-        throw new ValidationError(`Payment amount (${data.amount}) exceeds the remaining balance (${remainingAmount}).`);
+        const msg = `Payment amount (${data.amount}) exceeds the remaining balance (${remainingAmount}).`;
+        throw new ValidationError(msg, [{ field: "amount", message: msg }]);
       }
 
       // 7 & 8. Snapshot customerName and orderNumber from Order

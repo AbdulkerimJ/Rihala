@@ -59,7 +59,7 @@ export const TaskForm = ({ initialData, onSubmit, onClose }) => {
   };
 
   return (
-    <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
+    <form className="space-y-3 p-4 sm:p-5" onSubmit={handleSubmit(handleFormSubmit)}>
       <FormRootError error={errors.root} />
       <FormField label="Name" required error={errors.name?.message}>
         <Input
@@ -69,36 +69,38 @@ export const TaskForm = ({ initialData, onSubmit, onClose }) => {
         />
       </FormField>
 
-      <CreatableSelect
-        label="Task Type"
-        required
-        name="taskType"
-        register={register}
-        setValue={setValue}
-        error={errors.taskType?.message}
-        options={taskTypes.map(tt => ({ value: tt._id, label: tt.name }))}
-        placeholder="Select a task type"
-        createTitle="New Task Type"
-        FormComponent={TaskTypeForm}
-        createMutationFn={createTaskType}
-        queryKey={["task-types"]}
-      />
-
-      <FormField label="Default Unit Price (ETB)" required error={errors.defaultUnitPrice?.message}>
-        <Controller
-          name="defaultUnitPrice"
-          control={control}
-          render={({ field: { onChange, value, ref } }) => (
-            <CurrencyInput
-              ref={ref}
-              value={value}
-              onChange={onChange}
-              placeholder="e.g. 500"
-              error={errors.defaultUnitPrice?.message}
-            />
-          )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <CreatableSelect
+          label="Task Type"
+          required
+          name="taskType"
+          register={register}
+          setValue={setValue}
+          error={errors.taskType?.message}
+          options={taskTypes.map(tt => ({ value: tt._id, label: tt.name }))}
+          placeholder="Select a task type"
+          createTitle="New Task Type"
+          FormComponent={TaskTypeForm}
+          createMutationFn={createTaskType}
+          queryKey={["task-types"]}
         />
-      </FormField>
+
+        <FormField label="Default Unit Price (ETB)" required error={errors.defaultUnitPrice?.message}>
+          <Controller
+            name="defaultUnitPrice"
+            control={control}
+            render={({ field: { onChange, value, ref } }) => (
+              <CurrencyInput
+                ref={ref}
+                value={value}
+                onChange={onChange}
+                placeholder="e.g. 500"
+                error={errors.defaultUnitPrice?.message}
+              />
+            )}
+          />
+        </FormField>
+      </div>
 
       <div className="pt-2">
         <Checkbox
@@ -108,7 +110,7 @@ export const TaskForm = ({ initialData, onSubmit, onClose }) => {
         />
       </div>
 
-      <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
+      <div className="flex justify-end gap-2.5 pt-3 mt-1 border-t border-border/50">
         <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting} leftIcon={X}>
           Cancel
         </Button>

@@ -104,7 +104,7 @@ export const OrderForm = ({ initialData, customers = [], onSubmit, onClose }) =>
   };
 
   return (
-    <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
+    <form className="space-y-3 p-4 sm:p-5" onSubmit={handleSubmit(handleFormSubmit)}>
       <FormRootError error={errors.root} />
       <CreatableSelect
         label="Customer"
@@ -137,7 +137,7 @@ export const OrderForm = ({ initialData, customers = [], onSubmit, onClose }) =>
         />
       </FormField>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <FormField
           label="Agreed Amount (ETB)"
           required
@@ -196,7 +196,7 @@ export const OrderForm = ({ initialData, customers = [], onSubmit, onClose }) =>
         </FormField>
       )}
 
-      <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
+      <div className="flex justify-end gap-2.5 pt-3 mt-1 border-t border-border/50">
         <Button type="button"
           variant="ghost"
           onClick={onClose}

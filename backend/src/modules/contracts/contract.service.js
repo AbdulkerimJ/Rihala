@@ -8,6 +8,8 @@ import NotFoundError from "../../core/errors/NotFoundError.js";
 import ValidationError from "../../core/errors/ValidationError.js";
 import { getPaginatedQueryResult } from "../../core/utils/query.js";
 import { normalizeDateValue } from "../../core/utils/date.js";
+import ContractCompletion from "../contractCompletions/contractCompletion.model.js";
+import ContractorPayment from "../contractorPayments/contractorPayment.model.js";
 
 const generateContractNumber = async (session = null) => {
   const counter = await Counter.findOneAndUpdate(
@@ -21,15 +23,8 @@ const generateContractNumber = async (session = null) => {
 const getContractStatsService = async (contractId, session = null) => {
   const query = session ? { session } : {};
 
-  let completions = [];
-  let payments = [];
-
-  if (mongoose.models.ContractCompletion) {
-    completions = await mongoose.model("ContractCompletion").find({ contract: contractId, status: "ACTIVE" }, null, query);
-  }
-  if (mongoose.models.ContractorPayment) {
-    payments = await mongoose.model("ContractorPayment").find({ contract: contractId, status: "active" }, null, query);
-  }
+  const completions = await ContractCompletion.find({ contract: contractId, status: "ACTIVE" }, null, query);
+  const payments = await ContractorPayment.find({ contract: contractId, status: "active" }, null, query);
 
   const completedQuantity = completions.reduce((sum, c) => sum + c.quantity, 0);
   const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
@@ -104,6 +99,9 @@ const getContractByIdService = async (id) => {
     remainingQuantity,
     isOverdue,
   };
+
+  contractObj.completions = await ContractCompletion.find({ contract: id }).sort({ recordedAt: -1 });
+  contractObj.payments = await ContractorPayment.find({ contract: id }).sort({ paymentDate: -1 });
 
   return contractObj;
 };

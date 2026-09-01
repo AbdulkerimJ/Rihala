@@ -8,12 +8,12 @@ export const DataTable = ({
   data,
   keyExtractor,
   onRowClick,
-  mobileRenderer,
   pagination,
   onPageChange,
   emptyState,
   isLoading,
   isFetching,
+  mobileStyle = "card",
 }) => {
   if (isLoading) {
     return (
@@ -35,8 +35,8 @@ export const DataTable = ({
     <div className="w-full relative">
       <LoadingBar isLoading={isFetching && !isLoading} />
 
-      {/* ── Desktop Table View ── */}
-      <div className="hidden lg:block overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
+      {/* ── Table View (Responsive) ── */}
+      <div className="w-full overflow-x-auto rounded-xl border border-border bg-surface shadow-sm">
         <table className="min-w-full divide-y divide-border">
           <thead className="bg-main/50">
             <tr>
@@ -89,69 +89,6 @@ export const DataTable = ({
             ))}
           </tbody>
         </table>
-      </div>
-
-      {/* ── Mobile Card View ── */}
-      <div className="flex flex-col gap-3 lg:hidden">
-        {data.map((row) => (
-          <div
-            key={keyExtractor(row)}
-            onClick={() => onRowClick && onRowClick(row)}
-            className={`
-              group relative rounded-xl border border-border bg-surface shadow-sm overflow-hidden
-              transition-all duration-200
-              ${onRowClick ? "cursor-pointer hover:bg-accent/5 hover:border-accent/60 hover:shadow-md hover:-translate-y-0.5 active:bg-main/60 pr-10" : ""}
-            `}
-          >
-            {mobileRenderer ? (
-              mobileRenderer(row)
-            ) : (
-              <div className="p-1.5">
-                <div className="space-y-0.5">
-                  {columns.map((col, index) => {
-                    if (col.hiddenOnMobile) return null;
-                    const content =
-                      typeof col.accessor === "function"
-                        ? col.accessor(row)
-                        : row[col.accessor];
-
-                    // Actions column — full-width buttons at the bottom
-                    if (col.header === "Actions" || col.isActions) {
-                      return (
-                        <div
-                          key={index}
-                          className="pt-3 mt-1 border-t border-border/60 flex justify-end gap-2"
-                        >
-                          {content}
-                        </div>
-                      );
-                    }
-
-                    // First non-action column = primary field → bigger text
-                    const isPrimary = index === 0;
-
-                    return (
-                      <div key={index} className="flex items-center justify-between gap-3">
-                        <span className="text-xs font-semibold text-secondary shrink-0">
-                          {col.header}
-                        </span>
-                        <div
-                          className={`text-right min-w-0 ${
-                            isPrimary
-                              ? "text-sm font-bold text-primary truncate"
-                              : "text-sm text-primary"
-                          }`}
-                        >
-                          {content}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
       </div>
 
       {/* ── Pagination ── */}

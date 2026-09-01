@@ -15,9 +15,9 @@ export const DashboardQuickShortcuts = () => {
       permission: "orders.read",
     },
     {
-      to: "/customer-payments",
+      to: "/payments?tab=customers",
       icon: CreditCard,
-      label: "Receive Pay",
+      label: "Receive Payment",
       variant: "success",
       permission: "customerPayments.read",
     },

@@ -76,18 +76,20 @@ export const EmployeeForm = ({ initialData, onSubmit, onClose }) => {
   };
 
   return (
-    <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
+    <form className="space-y-3 p-4 sm:p-5" onSubmit={handleSubmit(handleFormSubmit)}>
       <FormRootError error={errors.root} />
 
-      <FormField label="Full Name" required error={errors.name?.message}>
-        <Input {...register("name")} error={errors.name?.message} placeholder="e.g. Abebe Bikila" />
-      </FormField>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <FormField label="Full Name" required error={errors.name?.message}>
+          <Input {...register("name")} error={errors.name?.message} placeholder="e.g. Abebe Bikila" />
+        </FormField>
 
-      <FormField label="Phone Number" required error={errors.phone?.message}>
-        <Input {...register("phone")} inputMode="tel" error={errors.phone?.message} placeholder="e.g. 0911234567 or +251911234567" />
-      </FormField>
+        <FormField label="Phone Number" required error={errors.phone?.message}>
+          <Input {...register("phone")} inputMode="tel" error={errors.phone?.message} placeholder="e.g. 0911234567" />
+        </FormField>
+      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <FormField label="Employment Start Date" required error={errors.employmentStartDate?.message}>
           <Input type="date" {...register("employmentStartDate")} error={errors.employmentStartDate?.message} />
         </FormField>
@@ -97,15 +99,17 @@ export const EmployeeForm = ({ initialData, onSubmit, onClose }) => {
         </FormField>
       </div>
 
-      <FormField label="Status" error={errors.status?.message}>
-        <Select
-          {...register("status")}
-          error={errors.status?.message}
-          options={ACTIVE_INACTIVE_OPTIONS}
-        />
-      </FormField>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <FormField label="Status" error={errors.status?.message}>
+          <Select
+            {...register("status")}
+            error={errors.status?.message}
+            options={ACTIVE_INACTIVE_OPTIONS}
+          />
+        </FormField>
+      </div>
 
-      <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
+      <div className="flex justify-end gap-2.5 pt-3 mt-1 border-t border-border/50">
         <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting} leftIcon={X}>
           Cancel
         </Button>

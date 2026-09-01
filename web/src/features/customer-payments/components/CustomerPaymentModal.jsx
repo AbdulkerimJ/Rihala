@@ -5,12 +5,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
 import { usePermission } from "../../../hooks/usePermission";
-import { getCustomers, createCustomer } from "../../customers/api";
-import { CustomerForm } from "../../customers/components/CustomerForm";
+import { getCustomers } from "../../customers/api";
 import { getOrders } from "../../orders/api";
 import { FormField } from "../../../components/ui/FormField";
 import { Select } from "../../../components/ui/Select";
-import { CreatableSelect } from "../../../components/ui/CreatableSelect";
 import { Input } from "../../../components/ui/Input";
 import { Textarea } from "../../../components/ui/Textarea";
 import { Button } from "../../../components/ui/Button";
@@ -98,7 +96,10 @@ export const CustomerPaymentModal = ({
 
   const orders = useMemo(() => {
     const list = unwrapListResponse(ordersData).items || [];
-    return list.filter((o) => o.status !== "cancelled");
+    return list.filter((o) => {
+      const remaining = (o.agreedAmount || 0) - (o.totalPaid || 0);
+      return o.status !== "cancelled" && o.status !== "completed" && remaining > 0;
+    });
   }, [ordersData]);
 
   const selectedOrderObj = useMemo(() => {
@@ -123,11 +124,11 @@ export const CustomerPaymentModal = ({
 
   return (
     <Modal isOpen={isOpen} title="Receive Customer Payment" onClose={onClose}>
-      <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
+      <form className="space-y-3 p-4 sm:p-5" onSubmit={handleSubmit(handleFormSubmit)}>
         <FormRootError error={errors.root} />
 
         {isPreSelected ? (
-          <div className="rounded-xl border border-finance-in/20 bg-finance-in/5 p-4">
+          <div className="rounded-xl border border-finance-in/20 bg-finance-in/5 p-3">
             <div className="flex items-center justify-between text-sm">
               <span className="text-secondary">Customer:</span>
               <span className="font-semibold text-primary">
@@ -149,20 +150,14 @@ export const CustomerPaymentModal = ({
           </div>
         ) : (
           <>
-            <CreatableSelect
-              label="Customer"
-              required
-              name="customer"
-              register={register}
-              setValue={setValue}
-              error={errors.customer?.message}
-              options={customers.map((c) => ({ value: c._id, label: c.name }))}
-              placeholder="Select a customer"
-              createTitle="New Customer"
-              FormComponent={CustomerForm}
-              createMutationFn={createCustomer}
-              queryKey={["customers"]}
-            />
+            <FormField label="Customer" required error={errors.customer?.message}>
+              <Select
+                {...register("customer")}
+                options={customers.map((c) => ({ value: c._id, label: c.name }))}
+                placeholder="Select a customer"
+                error={errors.customer?.message}
+              />
+            </FormField>
 
             <FormField label="Order" required error={errors.order?.message}>
               <Select
@@ -193,7 +188,7 @@ export const CustomerPaymentModal = ({
             </FormField>
 
             {selectedOrderObj && (
-              <div className="rounded-xl border border-teal-500/20 bg-teal-500/5 p-3.5 text-xs space-y-1.5">
+              <div className="rounded-xl border border-teal-500/20 bg-teal-500/5 p-2.5 text-xs space-y-1">
                 <div className="flex justify-between items-center">
                   <span className="text-secondary">Selected Order:</span>
                   <span className="font-semibold text-primary">
@@ -215,7 +210,7 @@ export const CustomerPaymentModal = ({
           </>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormField label="Amount (ETB)" required error={errors.amount?.message}>
             <Controller
               name="amount"
@@ -235,7 +230,7 @@ export const CustomerPaymentModal = ({
           <Textarea {...register("notes")} rows={2} error={errors.notes?.message} />
         </FormField>
 
-        <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
+        <div className="flex justify-end gap-2.5 pt-3 mt-1 border-t border-border/50">
           <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting} leftIcon={X}>
             Cancel
           </Button>

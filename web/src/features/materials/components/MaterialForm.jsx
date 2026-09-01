@@ -68,13 +68,13 @@ export const MaterialForm = ({ initialData, onSubmit, onClose }) => {
   };
 
   return (
-    <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
+    <form className="space-y-3 p-4 sm:p-5" onSubmit={handleSubmit(handleFormSubmit)}>
       <FormRootError error={errors.root} />
-      <FormField label="Material Name" required error={errors.name?.message}>
-        <Input {...register("name")} error={errors.name?.message} placeholder="e.g. Oak Timber" />
-      </FormField>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <FormField label="Material Name" required error={errors.name?.message}>
+          <Input {...register("name")} error={errors.name?.message} placeholder="e.g. Oak Timber" />
+        </FormField>
+        
         <FormField label="Category" required error={errors.category?.message}>
           <Select
             {...register("category")}
@@ -82,7 +82,9 @@ export const MaterialForm = ({ initialData, onSubmit, onClose }) => {
             error={errors.category?.message}
           />
         </FormField>
-        
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <FormField label="Unit of Measurement" required error={errors.unit?.message}>
           <Select
             {...register("unit")}
@@ -90,17 +92,17 @@ export const MaterialForm = ({ initialData, onSubmit, onClose }) => {
             error={errors.unit?.message}
           />
         </FormField>
+
+        <FormField label="Status" error={errors.status?.message}>
+          <Select
+            {...register("status")}
+            error={errors.status?.message}
+            options={ACTIVE_INACTIVE_OPTIONS}
+          />
+        </FormField>
       </div>
 
-      <FormField label="Status" error={errors.status?.message}>
-        <Select
-          {...register("status")}
-          error={errors.status?.message}
-          options={ACTIVE_INACTIVE_OPTIONS}
-        />
-      </FormField>
-
-      <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
+      <div className="flex justify-end gap-2.5 pt-3 mt-1 border-t border-border/50">
         <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting} leftIcon={X}>Cancel</Button>
         <Button type="submit" isLoading={isSubmitting} leftIcon={Save}>Save Material</Button>
       </div>
