@@ -124,6 +124,14 @@
     animation: sweep 2s infinite cubic-bezier(0.4, 0, 0.2, 1);
     transform-origin: left center;
   }
+
+  .hide-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+  }
 }
 
 @keyframes sweep {
