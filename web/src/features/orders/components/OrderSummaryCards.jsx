@@ -5,6 +5,7 @@ import { SummaryCard } from "../../../components/ui/SummaryCard";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { formatCurrency, formatDate } from "../../../utils/formatters";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_CONFIG } from "../constants";
+import { ProgressBar } from "../../../components/ui/ProgressBar";
 
 export const OrderSummaryCards = ({
   order,
@@ -107,14 +108,14 @@ export const OrderSummaryCards = ({
         <div className="space-y-1">
           <div className="flex justify-between text-xs text-secondary font-medium">
             <span>{paymentProgress}% paid</span>
-            <span>{formatCurrency(remainingBalance)} left</span>
+            <span>{isFullyPaid ? "Fully Paid" : `${formatCurrency(remainingBalance)} left`}</span>
           </div>
-          <div className="w-full h-1.5 bg-border/60 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-finance-in rounded-full transition-all duration-500"
-              style={{ width: `${paymentProgress}%` }}
-            />
-          </div>
+          <ProgressBar 
+            progress={paymentProgress} 
+            variant={isFullyPaid ? 'success' : totalPaid > 0 ? 'warning' : 'financeIn'} 
+            size="sm" 
+            animated={!isFullyPaid} 
+          />
         </div>
       </SummaryCard>
 

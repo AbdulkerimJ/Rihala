@@ -1,11 +1,12 @@
 import { usePermission } from "../../../hooks/usePermission";
+import { useDebounce } from "../../../hooks/useDebounce";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import React, { useMemo, useState } from "react";
-import { Save, X, Plus, Edit, Trash2 } from "lucide-react";
+import { Save, X, Receipt, Edit, Trash2 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import {
   createExpense,
-  deleteExpense,
+  voidExpense,
   getExpenses,
   updateExpense,
 } from "../api";
@@ -17,6 +18,7 @@ import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { Modal } from "../../../components/ui/Modal";
+import { VoidReasonDialog } from "../../../components/ui/VoidReasonDialog";
 import { DataTable } from "../../../components/ui/DataTable";
 import { FilterBar } from "../../../components/ui/FilterBar";
 import { FormField } from "../../../components/ui/FormField";
@@ -35,6 +37,7 @@ import {
   getApiErrorMessage,
   unwrapListResponse,
 } from "../../../utils/apiResponse";
+import { formatDate } from "../../../utils/formatters";
 
 const expenseSchema = z.object({
   category: z.enum(EXPENSE_CATEGORIES, {
@@ -48,6 +51,7 @@ const expenseSchema = z.object({
 const initialFilters = {
   search: "",
   category: "",
+  status: "",
   from: "",
   to: "",
   sort: "-date",
@@ -73,7 +77,7 @@ const ExpenseForm = ({ initialData, onSubmit, onClose }) => {
           category: EXPENSE_CATEGORIES[0],
           amount: "",
           description: "",
-          date: "",
+          date: new Date().toISOString().slice(0, 10),
         },
   });
 
@@ -105,6 +109,7 @@ const ExpenseForm = ({ initialData, onSubmit, onClose }) => {
               {...field}
               error={errors.amount?.message}
               placeholder="0"
+              disabled={!!initialData}
             />
           )}
         />
@@ -123,6 +128,7 @@ const ExpenseForm = ({ initialData, onSubmit, onClose }) => {
           type="date"
           {...register("date")}
           error={errors.date?.message}
+          disabled={!!initialData}
         />
       </FormField>
 
@@ -142,8 +148,10 @@ export const ExpensesList = () => {
   const { can } = usePermission();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState(initialFilters);
+  const [filters, setFilters] = useState(initialFilters); 
+  const debouncedSearch = useDebounce(filters.search, 300);
   const [editingExpense, setEditingExpense] = useState(null);
+  const [voidingExpense, setVoidingExpense] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
 
   const params = useMemo(
@@ -184,11 +192,15 @@ export const ExpensesList = () => {
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: deleteExpense,
+  const voidMutation = useMutation({
+    mutationFn: voidExpense,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
-      toast.success("Expense deleted successfully");
+      toast.success("Expense voided successfully");
+      setVoidingExpense(null);
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, "Failed to void expense"));
     },
   });
 
@@ -204,7 +216,13 @@ export const ExpensesList = () => {
     },
     {
       header: "Amount",
-      accessor: (row) => <MoneyDisplay amount={row.amount} variant="danger" />,
+      accessor: (row) => (
+        <MoneyDisplay 
+          amount={row.amount} 
+          variant="danger" 
+          className={row.status === 'voided' ? 'line-through opacity-50' : ''} 
+        />
+      ),
     },
     {
       header: "Description",
@@ -221,6 +239,10 @@ export const ExpensesList = () => {
       accessor: (row) => row.createdBy?.name || "-",
       className: "text-secondary hidden md:table-cell",
       hiddenOnMobile: true,
+    },
+    {
+      header: "Status",
+      accessor: (row) => <StatusBadge status={row.status} />,
     },
     {
       header: "Actions",
@@ -240,18 +262,19 @@ export const ExpensesList = () => {
               title="Edit"
             />
           </Can>
-          <Can permission="expenses.delete">
-            <Button
-              variant="danger-ghost"
-              size="icon"
-              leftIcon={Trash2}
-              onClick={(e) => {
-                e.stopPropagation();
-                deleteMutation.mutate(row._id);
-              }}
-              isLoading={deleteMutation.isPending && deleteMutation.variables === row._id}
-              title="Delete"
-            />
+          <Can permission="expenses.void">
+            {row.status !== "voided" && (
+              <Button
+                variant="danger-ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setVoidingExpense(row);
+                }}
+              >
+                Void
+              </Button>
+            )}
           </Can>
         </div>
       ),
@@ -278,7 +301,7 @@ export const ExpensesList = () => {
         actions={
           <Can permission="expenses.create">
             <Button
-              leftIcon={Plus}
+              leftIcon={Receipt}
               onClick={() => {
                 setEditingExpense(null);
                 setIsOpen(true);
@@ -290,7 +313,8 @@ export const ExpensesList = () => {
         }
       />
 
-      <FilterBar
+      <FilterBar 
+        filters={filters}
         searchPlaceholder="Search description..."
         searchValue={filters.search}
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}
@@ -301,6 +325,16 @@ export const ExpensesList = () => {
           onChange={(e) => { setFilters(p => ({ ...p, category: e.target.value })); setPage(1); }}
           placeholder="All categories"
           options={EXPENSE_CATEGORIES.map((c) => ({ value: c, label: c }))}
+        />
+
+        <Select
+          value={filters.status}
+          onChange={(e) => { setFilters(p => ({ ...p, status: e.target.value })); setPage(1); }}
+          options={[
+            { value: "", label: "Active" },
+            { value: "voided", label: "Voided" },
+            { value: "all", label: "All Statuses" },
+          ]}
         />
 
         <Input
@@ -342,6 +376,7 @@ export const ExpensesList = () => {
             title="No expenses found"
             description="Create the first expense for this workshop."
             actionLabel={can("expenses.create") ? "New Expense" : null}
+            actionIcon={Receipt}
             onAction={can("expenses.create") ? () => { setEditingExpense(null); setIsOpen(true); } : undefined}
           />
         }
@@ -356,12 +391,25 @@ export const ExpensesList = () => {
           initialData={editingExpense}
           onSubmit={(data) =>
             editingExpense
-              ? updateMutation.mutateAsync({ id: editingExpense._id, data })
+              ? updateMutation.mutateAsync({ 
+                  id: editingExpense._id, 
+                  data: { category: data.category, description: data.description } 
+                })
               : createMutation.mutateAsync(data)
           }
           onClose={() => setIsOpen(false)}
         />
       </Modal>
+
+      <VoidReasonDialog
+        isOpen={!!voidingExpense}
+        title="Void Expense"
+        description={`Are you sure you want to void this expense of ${voidingExpense?.amount} ETB?`}
+        onCancel={() => setVoidingExpense(null)}
+        onConfirm={(reason) => voidMutation.mutate({ id: voidingExpense._id, voidReason: reason })}
+        isSubmitting={voidMutation.isPending}
+        confirmLabel="Void Expense"
+      />
     </div>
   );
 };

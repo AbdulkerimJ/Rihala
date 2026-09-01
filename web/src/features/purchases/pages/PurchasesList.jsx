@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 
 import { usePermission } from "../../../hooks/usePermission";
+import { useDebounce } from "../../../hooks/useDebounce";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -53,7 +54,8 @@ export const PurchasesList = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState({ search: "", supplier: "", paymentStatus: "", from: "", to: "" });
+  const [filters, setFilters] = useState({ search: "", supplier: "", paymentStatus: "", from: "", to: "" }); 
+  const debouncedSearch = useDebounce(filters.search, 300);
   const [isOpen, setIsOpen] = useState(false);
 
   const { data: suppliersData } = useQuery({ 
@@ -63,7 +65,7 @@ export const PurchasesList = () => {
   });
   const suppliers = unwrapListResponse(suppliersData).items || [];
 
-  const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
+  const params = useMemo(() => cleanFilterParams({ ...filters, search: debouncedSearch }, { page, limit: 20 }), [filters, debouncedSearch, page]);
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["purchases", params],
@@ -125,6 +127,7 @@ export const PurchasesList = () => {
       />
 
       <FilterBar 
+        filters={filters}
         searchPlaceholder="Search by number or reference..."
         searchValue={filters.search}
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}

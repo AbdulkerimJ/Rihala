@@ -39,7 +39,6 @@ export const DashboardLayout = () => {
       "/users": "Users",
       "/roles": "Roles",
       "/permissions": "Permissions",
-      "/expenses": "Expenses",
       "/customers": "Customers",
       "/orders": "Orders",
       "/suppliers": "Suppliers",
@@ -51,14 +50,12 @@ export const DashboardLayout = () => {
       "/attendances": "Attendance",
       "/overtimes": "Overtime",
       "/weekly-payrolls": "Weekly Payroll",
-      "/supplier-payments": "Supplier Payments",
-      "/customer-payments": "Customer Payments",
+      "/payments": "Payments",
       "/task-types": "Task Types",
       "/tasks": "Tasks",
       "/contractors": "Contractors",
       "/contracts": "Contracts",
       "/contract-completions": "Contract Completions",
-      "/contractor-payments": "Contractor Payments",
       "/analytics": "Analytics",
     };
 
@@ -103,14 +100,10 @@ export const DashboardLayout = () => {
       ]
     },
     {
-      title: "Finance",
+      title: "Payments",
       icon: Wallet,
       items: [
-        { name: "Expenses", path: "/expenses", icon: Receipt, permission: "expenses.read" },
-        { name: "Supplier Payments", path: "/supplier-payments", icon: HandCoins, permission: "supplierPayments.read" },
-        { name: "Employee Payments", path: "/employee-payments", icon: Banknote, permission: "employeePayments.read" },
-        { name: "Contractor Payments", path: "/contractor-payments", icon: BadgeDollarSign, permission: "contractorPayments.read" },
-        { name: "Customer Payments", path: "/customer-payments", icon: CreditCard, permission: "customerPayments.read" },
+        { name: "Payments", path: "/payments", icon: Wallet },
       ]
     },
     {

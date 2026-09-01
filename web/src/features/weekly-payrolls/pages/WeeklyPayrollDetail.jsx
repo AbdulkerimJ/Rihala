@@ -41,7 +41,7 @@ export const WeeklyPayrollDetail = () => {
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-bold text-primary font-display tracking-tight">Payroll Record</h1>
-              <StatusBadge status={payroll.status || "CLOSED"} />
+              <StatusBadge status="CLOSED" />
             </div>
             <p className="text-sm text-secondary">
               Period: {formatDate(payroll.startDate)} - {formatDate(payroll.endDate)} &bull; Processed: {payroll.dailyBreakdown?.length === 1 ? "1 Day" : `${payroll.dailyBreakdown?.length || 0} Days`}
@@ -157,7 +157,6 @@ export const WeeklyPayrollDetail = () => {
             idLabel="Payroll ID"
             createdAt={payroll.createdAt}
             extraItems={[
-              { label: "Status", value: payroll.status || "CLOSED" },
               { label: "Closed At", value: payroll.closedAt ? formatDate(payroll.closedAt) : "N/A" },
             ]}
           />

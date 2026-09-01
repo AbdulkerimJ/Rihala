@@ -43,7 +43,7 @@ export const DataTable = ({
               {columns.map((col, index) => (
                 <th
                   key={index}
-                  className={`px-5 py-3.5 text-left text-xs font-bold uppercase tracking-wider text-secondary ${
+                  className={`px-5 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-secondary ${
                     col.headerClassName || ""
                   }`}
                 >
@@ -51,7 +51,7 @@ export const DataTable = ({
                 </th>
               ))}
               {onRowClick && (
-                <th className="px-5 py-3.5 w-10"></th>
+                <th className="px-5 py-2.5 w-10"></th>
               )}
             </tr>
           </thead>
@@ -72,7 +72,7 @@ export const DataTable = ({
                   return (
                     <td
                       key={colIndex}
-                      className={`px-5 py-3.5 text-sm ${
+                      className={`px-5 py-0.5 text-sm ${
                         col.className || "text-primary"
                       }`}
                     >
@@ -81,7 +81,7 @@ export const DataTable = ({
                   );
                 })}
                 {onRowClick && (
-                  <td className="px-5 py-3.5 text-right w-10">
+                  <td className="px-5 py-0.5 text-right w-10">
                     <ChevronRight className="h-4 w-4 text-secondary/30 group-hover:text-accent group-hover:translate-x-1 transition-all inline-block" />
                   </td>
                 )}
@@ -106,8 +106,8 @@ export const DataTable = ({
             {mobileRenderer ? (
               mobileRenderer(row)
             ) : (
-              <div className="p-4">
-                <div className="space-y-2.5">
+              <div className="p-1.5">
+                <div className="space-y-0.5">
                   {columns.map((col, index) => {
                     if (col.hiddenOnMobile) return null;
                     const content =

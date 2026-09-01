@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from "react";
+import { Plus, HandCoins } from "lucide-react";
 import { usePermission } from "../../../hooks/usePermission";
+import { useDebounce } from "../../../hooks/useDebounce";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { createSupplierPayment, getSupplierPayments, voidSupplierPayment } from "../api";
@@ -13,6 +15,7 @@ import { ErrorState } from "../../../components/ui/ErrorState";
 import { DataTable } from "../../../components/ui/DataTable";
 import { FilterBar } from "../../../components/ui/FilterBar";
 import { Select } from "../../../components/ui/Select";
+import { Input } from "../../../components/ui/Input";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { SupplierPaymentModal } from "../components/SupplierPaymentModal";
@@ -20,6 +23,7 @@ import { VoidReasonDialog } from "../../../components/ui/VoidReasonDialog";
 import toast from "react-hot-toast";
 import { cleanFilterParams, getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
 import { formatDate } from "../../../utils/formatters";
+import { PaymentDetailsModal } from "../../../components/ui/PaymentDetailsModal";
 
 
 
@@ -27,9 +31,11 @@ export const SupplierPaymentsList = () => {
   const { can } = usePermission();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState({ search: "", supplier: "", status: "", from: "", to: "" });
+  const [filters, setFilters] = useState({ search: "", supplier: "", status: "", from: "", to: "" }); 
+  const debouncedSearch = useDebounce(filters.search, 300);
   const [isOpen, setIsOpen] = useState(false);
   const [voidingPayment, setVoidingPayment] = useState(null);
+  const [selectedPayment, setSelectedPayment] = useState(null);
 
   const { data: suppliersData } = useQuery({ 
     queryKey: ["suppliers", "list"], 
@@ -38,7 +44,7 @@ export const SupplierPaymentsList = () => {
   });
   const suppliers = unwrapListResponse(suppliersData).items || [];
 
-  const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
+  const params = useMemo(() => cleanFilterParams({ ...filters, search: debouncedSearch }, { page, limit: 20 }), [filters, debouncedSearch, page]);
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["supplier-payments", params],
@@ -113,12 +119,15 @@ export const SupplierPaymentsList = () => {
         description="Record and track payments made to suppliers."
         actions={
           <Can permission="supplierPayments.create">
-            <Button onClick={() => setIsOpen(true)}>Record Payment</Button>
+            <Button leftIcon={HandCoins} onClick={() => setIsOpen(true)}>
+              Record Payment
+            </Button>
           </Can>
         }
       />
 
       <FilterBar 
+        filters={filters}
         searchPlaceholder="Search by receipt or ref..."
         searchValue={filters.search}
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}
@@ -137,9 +146,21 @@ export const SupplierPaymentsList = () => {
           onChange={(e) => { setFilters(p => ({ ...p, status: e.target.value })); setPage(1); }}
           options={[
             { value: "", label: "All Statuses" },
-            { value: "valid", label: "Valid" },
+            { value: "active", label: "Active" },
             { value: "voided", label: "Voided" },
           ]}
+        />
+        <Input
+          type="date"
+          value={filters.from}
+          onChange={(e) => { setFilters(p => ({ ...p, from: e.target.value })); setPage(1); }}
+          placeholder="From Date"
+        />
+        <Input
+          type="date"
+          value={filters.to}
+          onChange={(e) => { setFilters(p => ({ ...p, to: e.target.value })); setPage(1); }}
+          placeholder="To Date"
         />
       </FilterBar>
 
@@ -147,6 +168,7 @@ export const SupplierPaymentsList = () => {
         columns={columns}
         data={payments}
         keyExtractor={(row) => row._id}
+        onRowClick={(row) => setSelectedPayment(row)}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
         isLoading={isLoading}
@@ -156,6 +178,7 @@ export const SupplierPaymentsList = () => {
             title="No payments found"
             description="Record a payment made to a supplier."
             actionLabel={can("supplierPayments.create") ? "Record Payment" : null}
+            actionIcon={HandCoins}
             onAction={can("supplierPayments.create") ? () => setIsOpen(true) : undefined}
           />
         }
@@ -175,6 +198,13 @@ export const SupplierPaymentsList = () => {
         isSubmitting={voidMutation.isPending}
         onConfirm={(reason) => voidMutation.mutateAsync({ id: voidingPayment._id, voidReason: reason })}
         onCancel={() => setVoidingPayment(null)}
+      />
+
+      <PaymentDetailsModal
+        isOpen={!!selectedPayment}
+        onClose={() => setSelectedPayment(null)}
+        payment={selectedPayment}
+        type="supplier"
       />
     </div>
   );

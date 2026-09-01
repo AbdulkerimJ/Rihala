@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
-import { Save, X, Plus } from "lucide-react";
+import { Save, X, Plus, Edit, Trash2 } from "lucide-react";
 import { usePermission } from "../../../hooks/usePermission";
+import { useDebounce } from "../../../hooks/useDebounce";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { createOvertime, getOvertimes, updateOvertime, deleteOvertime } from "../api";
@@ -133,7 +134,8 @@ export const OvertimesList = () => {
   const { can } = usePermission();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState({ search: "", employee: "", from: "", to: "" });
+  const [filters, setFilters] = useState({ search: "", employee: "", from: "", to: "" }); 
+  const debouncedSearch = useDebounce(filters.search, 300);
   const [isOpen, setIsOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [recordToDelete, setRecordToDelete] = useState(null);
@@ -145,7 +147,7 @@ export const OvertimesList = () => {
   });
   const employees = unwrapListResponse(employeesData).items || [];
 
-  const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
+  const params = useMemo(() => cleanFilterParams({ ...filters, search: debouncedSearch }, { page, limit: 20 }), [filters, debouncedSearch, page]);
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["overtimes", params],
@@ -218,15 +220,15 @@ export const OvertimesList = () => {
           </Can>
           <Can permission="overtimes.delete">
             <Button
-              variant="danger"
-              size="sm"
+              variant="danger-ghost"
+              size="icon"
+              leftIcon={Trash2}
               onClick={(e) => {
                 e.stopPropagation();
                 setRecordToDelete(row);
               }}
-            >
-              Delete
-            </Button>
+              title="Delete"
+            />
           </Can>
         </div>
       ) 
@@ -248,6 +250,7 @@ export const OvertimesList = () => {
       />
 
       <FilterBar 
+        filters={filters}
         searchPlaceholder="Search notes..."
         searchValue={filters.search}
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}

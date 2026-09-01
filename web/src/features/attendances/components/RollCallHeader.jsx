@@ -56,6 +56,18 @@ export const RollCallHeader = ({
       {/* Right: Date Picker & Actions */}
       <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
         
+        {rollCallDate !== todayStr && (
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => onDateChange(todayStr)}
+            leftIcon={RotateCcw}
+            className="text-xs h-9"
+          >
+            Today
+          </Button>
+        )}
+
         {/* Date Stepper & Picker */}
         <div className="flex items-center rounded-lg border border-border bg-main/60 p-0.5">
           <button
@@ -83,18 +95,6 @@ export const RollCallHeader = ({
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
-
-        {rollCallDate !== todayStr && (
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => onDateChange(todayStr)}
-            leftIcon={RotateCcw}
-            className="text-xs h-9"
-          >
-            Today
-          </Button>
-        )}
 
         {/* Mark All Present Bulk Action */}
         <Can permission="attendances.create">

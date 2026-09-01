@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { usePermission } from "../../../hooks/usePermission";
+import { useDebounce } from "../../../hooks/useDebounce";
 import { getPermissions } from "../api";
 import { Key } from "lucide-react";
 import { PageHeader } from "../../../components/ui/PageHeader";
@@ -62,6 +63,7 @@ export const PermissionsList = () => {
       />
 
       <FilterBar 
+        filters={filters}
         searchPlaceholder="Search permissions..."
         searchValue={search}
         onSearchChange={setSearch}

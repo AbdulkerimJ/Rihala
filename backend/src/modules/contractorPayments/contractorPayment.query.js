@@ -3,7 +3,11 @@ const contractorPaymentQueryConfig = {
   sortableFields: ["paymentDate", "amount", "createdAt"],
   filterableFields: ["contract", "status"],
   defaultSort: "-paymentDate",
-  populate: "contract createdBy voidedBy",
+  populate: [
+    { path: "contract", populate: { path: "contractor", select: "name" } },
+    { path: "createdBy", select: "name" },
+    { path: "voidedBy", select: "name" }
+  ],
   filterTransforms: {
     from: (value) => ({
       field: "paymentDate",

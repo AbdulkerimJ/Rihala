@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { Save, X, Plus } from "lucide-react";
 import { usePermission } from "../../../hooks/usePermission";
+import { useDebounce } from "../../../hooks/useDebounce";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { employeeRatesApi } from "../api";
@@ -142,7 +143,8 @@ export const EmployeeRatesList = () => {
   const { can } = usePermission();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState({ search: "", employee: "" });
+  const [filters, setFilters] = useState({ search: "", employee: "" }); 
+  const debouncedSearch = useDebounce(filters.search, 300);
   const [isOpen, setIsOpen] = useState(false);
   const [editingRate, setEditingRate] = useState(null);
   const [deletingRate, setDeletingRate] = useState(null);
@@ -154,7 +156,7 @@ export const EmployeeRatesList = () => {
   });
   const employees = unwrapListResponse(employeesData).items || [];
 
-  const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
+  const params = useMemo(() => cleanFilterParams({ ...filters, search: debouncedSearch }, { page, limit: 20 }), [filters, debouncedSearch, page]);
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["employeeRates", params],
@@ -271,6 +273,7 @@ export const EmployeeRatesList = () => {
       />
 
       <FilterBar 
+        filters={filters}
         searchPlaceholder="Search notes..."
         searchValue={filters.search}
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}

@@ -56,7 +56,7 @@ const ensureNotClosedInPayroll = async (employeeId, workDate) => {
     employee: employeeId,
     startDate: { $lte: normalizedWorkDate },
     endDate: { $gte: normalizedWorkDate },
-    status: "CLOSED",
+
   });
 
   if (closedPayroll) {

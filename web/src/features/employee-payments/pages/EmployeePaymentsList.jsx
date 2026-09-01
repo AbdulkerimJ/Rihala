@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from "react";
+import { Plus, Banknote } from "lucide-react";
 import { usePermission } from "../../../hooks/usePermission";
+import { useDebounce } from "../../../hooks/useDebounce";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { createEmployeePayment, getEmployeePayments, voidEmployeePayment } from "../api";
@@ -29,16 +31,17 @@ import { z } from "zod";
 import toast from "react-hot-toast";
 import { applyServerErrors, cleanFilterParams, getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
 import { formatDate } from "../../../utils/formatters";
-
-
+import { PaymentDetailsModal } from "../../../components/ui/PaymentDetailsModal";
 
 export const EmployeePaymentsList = () => {
   const { can } = usePermission();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState({ search: "", employee: "", status: "", type: "" });
+  const [filters, setFilters] = useState({ search: "", employee: "", status: "", type: "" }); 
+  const debouncedSearch = useDebounce(filters.search, 300);
   const [isOpen, setIsOpen] = useState(false);
   const [voidingPayment, setVoidingPayment] = useState(null);
+  const [selectedPayment, setSelectedPayment] = useState(null);
 
   const { data: employeesData } = useQuery({ 
     queryKey: ["employees", "list"], 
@@ -47,7 +50,7 @@ export const EmployeePaymentsList = () => {
   });
   const employees = unwrapListResponse(employeesData).items || [];
 
-  const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
+  const params = useMemo(() => cleanFilterParams({ ...filters, search: debouncedSearch }, { page, limit: 20 }), [filters, debouncedSearch, page]);
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["employee-payments", params],
@@ -121,12 +124,15 @@ export const EmployeePaymentsList = () => {
         description="Record and track payments made to staff (salaries, advances, bonuses)."
         actions={
           <Can permission="employeePayments.create">
-            <Button onClick={() => setIsOpen(true)}>Record Payment</Button>
+            <Button leftIcon={Banknote} onClick={() => setIsOpen(true)}>
+              Record Payment
+            </Button>
           </Can>
         }
       />
 
       <FilterBar 
+        filters={filters}
         searchPlaceholder="Search by receipt or ref..."
         searchValue={filters.search}
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}
@@ -145,18 +151,16 @@ export const EmployeePaymentsList = () => {
           onChange={(e) => { setFilters(p => ({ ...p, type: e.target.value })); setPage(1); }}
           options={[
             { value: "", label: "All Types" },
-            { value: "salary", label: "Salary" },
+            { value: "regular", label: "Regular" },
             { value: "advance", label: "Advance" },
-            { value: "bonus", label: "Bonus" },
-            { value: "other", label: "Other" },
           ]}
         />
         <Select
           value={filters.status}
           onChange={(e) => { setFilters(p => ({ ...p, status: e.target.value })); setPage(1); }}
           options={[
-            { value: "", label: "Active Only (Default)" },
-            { value: "voided", label: "Voided Only" },
+            { value: "", label: "Active" },
+            { value: "voided", label: "Voided" },
             { value: "all", label: "All Payments" },
           ]}
         />
@@ -166,6 +170,7 @@ export const EmployeePaymentsList = () => {
         columns={columns}
         data={payments}
         keyExtractor={(row) => row._id}
+        onRowClick={(row) => setSelectedPayment(row)}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
         isLoading={isLoading}
@@ -175,6 +180,7 @@ export const EmployeePaymentsList = () => {
             title="No payments found"
             description="Record a payment made to an employee."
             actionLabel={can("employeePayments.create") ? "Record Payment" : null}
+            actionIcon={Banknote}
             onAction={can("employeePayments.create") ? () => setIsOpen(true) : undefined}
           />
         }
@@ -194,6 +200,13 @@ export const EmployeePaymentsList = () => {
         isSubmitting={voidMutation.isPending}
         onConfirm={(reason) => voidMutation.mutateAsync({ id: voidingPayment._id, voidReason: reason })}
         onCancel={() => setVoidingPayment(null)}
+      />
+
+      <PaymentDetailsModal
+        isOpen={!!selectedPayment}
+        onClose={() => setSelectedPayment(null)}
+        payment={selectedPayment}
+        type="employee"
       />
     </div>
   );

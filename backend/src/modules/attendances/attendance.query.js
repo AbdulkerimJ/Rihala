@@ -1,5 +1,5 @@
 const attendanceQueryConfig = {
-  searchableFields: ["employee"],
+  searchableFields: [],
   sortableFields: ["workDate", "createdAt"],
   filterableFields: ["employee"],
   defaultSort: "-workDate",

@@ -38,8 +38,8 @@ const employeePaymentSchema = new mongoose.Schema(
       type: String,
       required: [true, "Payment type is required"],
       enum: {
-        values: ["regular", "overtime", "bonus", "advance", "other"],
-        message: "Payment type must be regular, overtime, bonus, advance, or other",
+        values: ["regular", "advance"],
+        message: "Payment type must be regular or advance",
       },
     },
 

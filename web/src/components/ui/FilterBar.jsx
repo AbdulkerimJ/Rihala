@@ -9,9 +9,24 @@ export const FilterBar = ({
   onSearchChange,
   children, // other filter inputs
   onClear,
-  activeFilterCount = 0, // how many non-search filters are active
+  activeFilterCount: explicitActiveFilterCount,
+  filters = {},
+  defaultFilters = {},
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+
+  // Compute active filter count automatically if not provided explicitly
+  const activeFilterCount =
+    explicitActiveFilterCount !== undefined
+      ? explicitActiveFilterCount
+      : Object.keys(filters).filter(
+          (k) =>
+            k !== "search" &&
+            k !== "sort" &&
+            filters[k] !== undefined &&
+            filters[k] !== "" &&
+            filters[k] !== (defaultFilters[k] ?? "")
+        ).length;
 
   return (
     <div className="flex flex-col gap-2 w-full">

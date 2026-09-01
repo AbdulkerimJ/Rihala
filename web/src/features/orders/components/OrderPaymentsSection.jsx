@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Plus, Receipt, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DetailSection } from "../../../components/ui/DetailSection";
@@ -7,6 +7,7 @@ import { Button } from "../../../components/ui/Button";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { Can } from "../../../components/Can";
+import { PaymentDetailsModal } from "../../../components/ui/PaymentDetailsModal";
 import { formatDate } from "../../../utils/formatters";
 
 export const OrderPaymentsSection = ({
@@ -18,6 +19,7 @@ export const OrderPaymentsSection = ({
   onOpenPaymentModal,
 }) => {
   const navigate = useNavigate();
+  const [selectedPayment, setSelectedPayment] = useState(null);
   const isCancelled = order?.status === "cancelled";
 
   const paymentColumns = [
@@ -92,7 +94,7 @@ export const OrderPaymentsSection = ({
           columns={paymentColumns}
           data={payments}
           keyExtractor={(row) => row._id}
-          onRowClick={(row) => navigate(`/customer-payments/${row._id}`)}
+          onRowClick={(row) => setSelectedPayment(row)}
           isLoading={isLoading}
           emptyState={
             <div className="flex flex-col items-center justify-center p-8 text-center bg-surface border border-dashed border-border/60 rounded-xl">
@@ -115,6 +117,13 @@ export const OrderPaymentsSection = ({
           }
         />
       </div>
+
+      <PaymentDetailsModal
+        isOpen={!!selectedPayment}
+        onClose={() => setSelectedPayment(null)}
+        payment={selectedPayment}
+        type="customer"
+      />
     </DetailSection>
   );
 };

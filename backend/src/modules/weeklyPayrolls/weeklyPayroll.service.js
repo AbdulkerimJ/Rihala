@@ -15,7 +15,7 @@ import { normalizeDateValue, isWorkday } from "../../core/utils/date.js";
 const getLatestClosedPayroll = async (employeeId, session = null) => {
   return WeeklyPayroll.findOne({
     employee: employeeId,
-    status: "CLOSED",
+
   }).sort({ endDate: -1 }).session(session);
 };
 
@@ -74,8 +74,9 @@ const buildRequiredAttendanceDates = (startDate, endDate, employee) => {
       const isWithinEmploymentPeriod =
         cursor >= normalizedEmploymentStartDate &&
         (!normalizedEmploymentEndDate || cursor <= normalizedEmploymentEndDate);
+      const isPastOrToday = cursor <= normalizeDateValue(new Date());
 
-      if (isWithinEmploymentPeriod) {
+      if (isWithinEmploymentPeriod && isPastOrToday) {
         dates.push(new Date(cursor));
       }
     }
@@ -193,7 +194,8 @@ const calculatePayrollData = async (
 
   return {
     missingAttendanceDates,
-    isComplete: missingAttendanceDates.length === 0,
+    isComplete: missingAttendanceDates.length === 0 && (dailyBreakdown.length > 0 || overtimeBreakdown.length > 0),
+    hasProcessedDays: dailyBreakdown.length > 0 || overtimeBreakdown.length > 0,
     normalEarnings,
     overtimeEarnings,
     totalEarnings: normalEarnings + overtimeEarnings,
@@ -227,8 +229,9 @@ const getCurrentPayrollCalculationService = async (employeeId) => {
     normalEarnings: payrollData.normalEarnings,
     overtimeEarnings: payrollData.overtimeEarnings,
     totalEarnings: payrollData.totalEarnings,
-    status: "OPEN",
+
     isComplete: payrollData.isComplete,
+    hasProcessedDays: payrollData.hasProcessedDays,
     missingAttendanceDates: payrollData.missingAttendanceDates,
     dailyBreakdown: payrollData.dailyBreakdown,
     overtimeBreakdown: payrollData.overtimeBreakdown,
@@ -295,7 +298,7 @@ const closeEmployeeWeeklyPayrollService = async (employeeId) => {
         session,
       );
 
-      if (!payrollData.isComplete) {
+      if (payrollData.missingAttendanceDates.length > 0) {
         throw new ValidationError(
           "Payroll cannot be closed because attendance is missing for required dates.",
           [
@@ -306,6 +309,12 @@ const closeEmployeeWeeklyPayrollService = async (employeeId) => {
                 .join(", ")}`,
             },
           ],
+        );
+      }
+
+      if (!payrollData.hasProcessedDays) {
+        throw new ValidationError(
+          "Cannot close an empty payroll with no processed attendance or overtime.",
         );
       }
 
@@ -321,7 +330,7 @@ const closeEmployeeWeeklyPayrollService = async (employeeId) => {
               totalEarnings: payrollData.totalEarnings,
               dailyBreakdown: payrollData.dailyBreakdown,
               overtimeBreakdown: payrollData.overtimeBreakdown,
-              status: "CLOSED",
+
               closedAt: new Date(),
             },
           ],

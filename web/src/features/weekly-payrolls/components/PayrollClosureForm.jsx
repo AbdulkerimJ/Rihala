@@ -35,6 +35,10 @@ export const PayrollClosureForm = ({ onClose }) => {
   });
   
   const calculation = unwrapEntityResponse(calculationData);
+  const uniqueDaysProcessed = calculation ? new Set([
+    ...(calculation.dailyBreakdown || []).map(d => d.workDate),
+    ...(calculation.overtimeBreakdown || []).map(d => d.workDate)
+  ]).size : 0;
 
   const { data: statsData, isLoading: isStatsLoading } = useQuery({
     queryKey: ["employees", selectedEmployee, "stats"],
@@ -90,7 +94,7 @@ export const PayrollClosureForm = ({ onClose }) => {
         <div className="space-y-4 pt-4 border-t border-border/50">
           <h4 className="font-semibold text-primary">Calculation Preview</h4>
 
-          {calculation.missingAttendanceDates?.length > 0 && (
+          {calculation.missingAttendanceDates?.length > 0 ? (
             <div className="p-3 bg-warning/10 text-warning rounded-lg text-sm border border-warning/20">
               <span className="font-medium">Missing Attendance:</span> Attendance must be recorded for all workdays before closing payroll.
               <ul className="list-disc list-inside mt-1">
@@ -99,7 +103,11 @@ export const PayrollClosureForm = ({ onClose }) => {
                 ))}
               </ul>
             </div>
-          )}
+          ) : !calculation.hasProcessedDays ? (
+            <div className="p-3 bg-primary/10 text-primary rounded-lg text-sm border border-primary/20">
+              <span className="font-medium">No Pending Payroll:</span> The current open period (starting {formatDate(calculation.startDate)}) has no attendance or overtime recorded yet.
+            </div>
+          ) : null}
 
           <div className="bg-main/50 rounded-lg p-4 space-y-3 text-sm border border-border/50">
             <div className="flex justify-between">
@@ -109,7 +117,7 @@ export const PayrollClosureForm = ({ onClose }) => {
             <div className="flex justify-between">
               <span className="text-secondary">Days Processed:</span>
               <span className="font-medium text-primary">
-                {calculation.dailyBreakdown?.length === 1 ? "1 Day" : `${calculation.dailyBreakdown?.length || 0} Days`}
+                {uniqueDaysProcessed === 1 ? "1 Day" : `${uniqueDaysProcessed} Days`}
               </span>
             </div>
             <div className="flex justify-between">

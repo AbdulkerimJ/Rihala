@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { Plus, Edit, Trash2, X } from "lucide-react";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { usePermission } from "../../../hooks/usePermission";
+import { useDebounce } from "../../../hooks/useDebounce";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { getTaskTypes, createTaskType, updateTaskType, deleteTaskType } from "../api";
 import { TaskTypeForm } from "../components/TaskTypeForm";
@@ -33,12 +34,13 @@ export const TaskTypesList = () => {
   const { can } = usePermission();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState({ search: "", isActive: "" });
+  const [filters, setFilters] = useState({ search: "", isActive: "" }); 
+  const debouncedSearch = useDebounce(filters.search, 300);
   const [isOpen, setIsOpen] = useState(false);
   const [editingTaskType, setEditingTaskType] = useState(null);
   const [deletingTaskType, setDeletingTaskType] = useState(null);
 
-  const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
+  const params = useMemo(() => cleanFilterParams({ ...filters, search: debouncedSearch }, { page, limit: 20 }), [filters, debouncedSearch, page]);
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["task-types", params],
@@ -146,6 +148,7 @@ export const TaskTypesList = () => {
       />
 
       <FilterBar 
+        filters={filters}
         searchPlaceholder="Search task types..."
         searchValue={filters.search}
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}

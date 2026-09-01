@@ -1,4 +1,5 @@
 import { usePermission } from "../../../hooks/usePermission";
+import { useDebounce } from "../../../hooks/useDebounce";
 import { Plus } from "lucide-react";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import React, { useMemo, useState } from "react";
@@ -50,11 +51,12 @@ export const OrdersList = () => {
     from: "",
     to: "",
     sort: "-expectedCompletionDate",
-  });
+  }); 
+  const debouncedSearch = useDebounce(filters.search, 300);
   const [isOpen, setIsOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
 
-  const params = useMemo(() => cleanFilterParams(filters, { page, limit: 20 }), [filters, page]);
+  const params = useMemo(() => cleanFilterParams({ ...filters, search: debouncedSearch }, { page, limit: 20 }), [filters, debouncedSearch, page]);
 
   const ordersQuery = useQuery({
     queryKey: ["orders", params],
@@ -176,7 +178,8 @@ export const OrdersList = () => {
         }
       />
 
-      <FilterBar
+      <FilterBar 
+        filters={filters}
         searchPlaceholder="Search description..."
         searchValue={filters.search}
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}

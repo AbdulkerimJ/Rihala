@@ -61,7 +61,7 @@ const expenseQuerySchema = z
     sort: z.string().trim().optional(),
     page: z.coerce.number().int().positive().optional(),
     limit: z.coerce.number().int().positive().optional(),
-    status: z.enum(["active", "voided"]).optional(),
+    status: z.enum(["active", "voided", "all"]).optional(),
     minAmount: z.coerce.number().positive().optional(),
     maxAmount: z.coerce.number().positive().optional(),
   })

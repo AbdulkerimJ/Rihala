@@ -11,8 +11,8 @@ const createEmployeePaymentSchema = z
     paymentDate: z.coerce.date({
       error: "Payment date must be a valid date.",
     }),
-    type: z.enum(["regular", "overtime", "bonus", "advance", "other"], {
-      errorMap: () => ({ message: "Payment type must be regular, overtime, bonus, advance, or other." }),
+    type: z.enum(["regular", "advance"], {
+      errorMap: () => ({ message: "Payment type must be regular or advance." }),
     }),
     note: z.string().trim().optional(),
   })
@@ -58,7 +58,7 @@ const employeePaymentQuerySchema = z
       .optional(),
     search: z.string().trim().optional(),
     paymentReference: z.string().trim().optional(),
-    type: z.enum(["regular", "overtime", "bonus", "advance", "other"]).optional(),
+    type: z.enum(["regular", "advance"]).optional(),
     status: z.enum(["active", "voided", "all"]).optional(),
     sort: z.string().trim().optional(),
     page: z.coerce.number().int().positive().optional(),
