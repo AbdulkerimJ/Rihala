@@ -3,7 +3,7 @@ import { Calculator, Plus } from "lucide-react";
 import { usePermission } from "../../../hooks/usePermission";
 import { useDebounce } from "../../../hooks/useDebounce";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { getWeeklyPayrolls } from "../api";
 import { getEmployees } from "../../employees/api";
 import { PageHeader } from "../../../components/ui/PageHeader";
@@ -28,10 +28,22 @@ export const WeeklyPayrollsList = () => {
   const { can } = usePermission();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({ search: "", employee: "", from: "", to: "" }); 
   const debouncedSearch = useDebounce(filters.search, 300);
   const [isOpen, setIsOpen] = useState(false);
+
+  React.useEffect(() => {
+    if (searchParams.get("action") === "new" && can("weeklyPayrolls.close")) {
+      setIsOpen(true);
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        next.delete("action");
+        return next;
+      }, { replace: true });
+    }
+  }, [searchParams, setSearchParams, can]);
 
   const { data: employeesData } = useQuery({ 
     queryKey: ["employees", "list"], 

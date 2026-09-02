@@ -102,13 +102,13 @@ export const OrderSummaryCards = ({
         subtitle={
           isFullyPaid
             ? "Fully settled"
-            : `Balance: ${formatCurrency(remainingBalance)}`
+            : `Remaining: ${formatCurrency(remainingBalance)}`
         }
       >
         <div className="space-y-1">
           <div className="flex justify-between text-xs text-secondary font-medium">
             <span>{paymentProgress}% paid</span>
-            <span>{isFullyPaid ? "Fully Paid" : `${formatCurrency(remainingBalance)} left`}</span>
+            <span>{isFullyPaid ? "Fully Paid" : "Pending"}</span>
           </div>
           <ProgressBar 
             progress={paymentProgress} 

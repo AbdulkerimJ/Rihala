@@ -4,7 +4,7 @@ import { usePermission } from "../../../hooks/usePermission";
 import { useDebounce } from "../../../hooks/useDebounce";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { createPurchase, getPurchases } from "../api";
 import { getSuppliers, createSupplier } from "../../suppliers/api";
 import { PurchaseForm } from "../components/PurchaseForm";
@@ -53,10 +53,22 @@ export const PurchasesList = () => {
   const { can } = usePermission();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({ search: "", supplier: "", paymentStatus: "", from: "", to: "" }); 
   const debouncedSearch = useDebounce(filters.search, 300);
   const [isOpen, setIsOpen] = useState(false);
+
+  React.useEffect(() => {
+    if (searchParams.get("action") === "new" && can("purchases.create")) {
+      setIsOpen(true);
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        next.delete("action");
+        return next;
+      }, { replace: true });
+    }
+  }, [searchParams, setSearchParams, can]);
 
   const { data: suppliersData } = useQuery({ 
     queryKey: ["suppliers", "list"], 

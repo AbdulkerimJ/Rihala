@@ -66,7 +66,8 @@ export const CreatableSelect = ({
         }
       >
         <Select
-          {...register(name)}
+          {...(register ? register(name) : {})}
+          name={name}
           placeholder={placeholder}
           options={options}
           error={error}

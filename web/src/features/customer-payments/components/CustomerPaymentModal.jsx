@@ -151,32 +151,44 @@ export const CustomerPaymentModal = ({
         ) : (
           <>
             <FormField label="Customer" required error={errors.customer?.message}>
-              <Select
-                {...register("customer")}
-                options={customers.map((c) => ({ value: c._id, label: c.name }))}
-                placeholder="Select a customer"
-                error={errors.customer?.message}
+              <Controller
+                name="customer"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    options={customers.map((c) => ({ value: c._id, label: c.name }))}
+                    placeholder="Select a customer"
+                    error={errors.customer?.message}
+                  />
+                )}
               />
             </FormField>
 
             <FormField label="Order" required error={errors.order?.message}>
-              <Select
-                {...register("order")}
-                disabled={!selectedCustomer || isLoadingOrders}
-                placeholder={
-                  !selectedCustomer
-                    ? "Select a customer first"
-                    : isLoadingOrders
-                    ? "Loading customer orders..."
-                    : orders.length === 0
-                    ? "No active orders found for this customer"
-                    : "Select an order"
-                }
-                options={orders.map((o) => ({
-                  value: o._id,
-                  label: `${o.orderNumber ? `[${o.orderNumber}] ` : ""}${o.description || o.items?.[0]?.description || "Order"} - ${o.agreedAmount} ETB`,
-                }))}
-                error={errors.order?.message}
+              <Controller
+                name="order"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    disabled={!selectedCustomer || isLoadingOrders}
+                    placeholder={
+                      !selectedCustomer
+                        ? "Select a customer first"
+                        : isLoadingOrders
+                        ? "Loading customer orders..."
+                        : orders.length === 0
+                        ? "No active orders found for this customer"
+                        : "Select an order"
+                    }
+                    options={orders.map((o) => ({
+                      value: o._id,
+                      label: `${o.orderNumber ? `[${o.orderNumber}] ` : ""}${o.description || o.items?.[0]?.description || "Order"} - ${o.agreedAmount} ETB`,
+                    }))}
+                    error={errors.order?.message}
+                  />
+                )}
               />
               {!selectedCustomer ? (
                 <p className="text-xs text-secondary mt-1">Select a customer first to see their orders.</p>

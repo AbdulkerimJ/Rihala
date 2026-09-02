@@ -156,20 +156,26 @@ export const SupplierPaymentModal = ({
     <Modal isOpen={isOpen} title="Record Payment to Supplier" onClose={onClose}>
       <form className="space-y-4 p-6" onSubmit={handleSubmit(handleFormSubmit)}>
         <FormRootError error={errors.root} />
-        <CreatableSelect
-          label="Supplier"
-          required
+        <Controller
           name="supplier"
-          register={register}
-          setValue={setValue}
-          error={errors.supplier?.message}
-          options={suppliers.map((s) => ({ value: s._id, label: s.name }))}
-          placeholder="Select a supplier"
-          disabled={!!preSelectedSupplier}
-          createTitle="New Supplier"
-          FormComponent={SupplierForm}
-          createMutationFn={createSupplier}
-          queryKey={["suppliers"]}
+          control={control}
+          render={({ field }) => (
+            <CreatableSelect
+              label="Supplier"
+              required
+              name="supplier"
+              {...field}
+              setValue={setValue}
+              error={errors.supplier?.message}
+              options={suppliers.map((s) => ({ value: s._id, label: s.name }))}
+              placeholder="Select a supplier"
+              disabled={!!preSelectedSupplier}
+              createTitle="New Supplier"
+              FormComponent={SupplierForm}
+              createMutationFn={createSupplier}
+              queryKey={["suppliers"]}
+            />
+          )}
         />
         {selectedSupplierObj && (
           <div className="mt-[-8px]">
@@ -184,37 +190,43 @@ export const SupplierPaymentModal = ({
         )}
 
         <FormField label="Purchase (Optional)" error={errors.purchase?.message}>
-          <Select
-            {...register("purchase", {
-              onChange: (e) => {
-                const purchaseId = e.target.value;
-                if (purchaseId) {
-                  const pObj = purchases.find(p => p._id === purchaseId);
-                  if (pObj) {
-                    const remaining = Math.max(0, pObj.totalAmount - (pObj.allocatedAmount || 0));
-                    if (remaining > 0) {
-                      setValue("amount", remaining, { shouldValidate: true, shouldDirty: true });
+          <Controller
+            name="purchase"
+            control={control}
+            render={({ field }) => (
+              <Select
+                {...field}
+                onChange={(e) => {
+                  field.onChange(e); // Trigger react-hook-form
+                  const purchaseId = e.target.value;
+                  if (purchaseId) {
+                    const pObj = purchases.find(p => p._id === purchaseId);
+                    if (pObj) {
+                      const remaining = Math.max(0, pObj.totalAmount - (pObj.allocatedAmount || 0));
+                      if (remaining > 0) {
+                        setValue("amount", remaining, { shouldValidate: true, shouldDirty: true });
+                      } else {
+                        setValue("amount", "", { shouldValidate: false });
+                      }
+                    }
+                  } else {
+                    // Reverted back to general payment, use supplier balance
+                    if (selectedSupplierObj && selectedSupplierObj.balance > 0) {
+                      setValue("amount", selectedSupplierObj.balance, { shouldValidate: true, shouldDirty: true });
                     } else {
                       setValue("amount", "", { shouldValidate: false });
                     }
                   }
-                } else {
-                  // Reverted back to general payment, use supplier balance
-                  if (selectedSupplierObj && selectedSupplierObj.balance > 0) {
-                    setValue("amount", selectedSupplierObj.balance, { shouldValidate: true, shouldDirty: true });
-                  } else {
-                    setValue("amount", "", { shouldValidate: false });
-                  }
-                }
-              }
-            })}
-            disabled={!selectedSupplier || !!preSelectedPurchase}
-            placeholder="Apply to general balance"
-            options={purchases.map((p) => ({
-              value: p._id,
-              label: `${p.purchaseNumber} - ${p.totalAmount} ETB`,
-            }))}
-            error={errors.purchase?.message}
+                }}
+                disabled={!selectedSupplier || !!preSelectedPurchase}
+                placeholder="Apply to general balance"
+                options={purchases.map((p) => ({
+                  value: p._id,
+                  label: `${p.purchaseNumber} - ${p.totalAmount} ETB`,
+                }))}
+                error={errors.purchase?.message}
+              />
+            )}
           />
           {!selectedSupplier && (
             <p className="text-xs text-secondary mt-1">Select a supplier first</p>

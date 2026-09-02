@@ -93,6 +93,7 @@
   body {
     @apply text-primary font-sans antialiased relative min-h-screen overflow-x-hidden select-none lg:select-auto;
     -webkit-tap-highlight-color: transparent;
+    touch-action: pan-x pan-y;
   }
 
   input, textarea, select {

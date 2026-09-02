@@ -4,7 +4,7 @@ import { usePermission } from "../../../hooks/usePermission";
 import { useDebounce } from "../../../hooks/useDebounce";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { createCustomerPayment, getCustomerPayments, voidCustomerPayment } from "../api";
 import { getCustomers } from "../../customers/api";
 import { getOrders } from "../../orders/api";
@@ -39,11 +39,23 @@ export const CustomerPaymentsList = () => {
   const { can } = usePermission();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [page, setPage] = useState(1);
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [filters, setFilters] = useState({ search: "", customer: "", status: "", from: "", to: "", sort: "-paymentDate" }); 
   const debouncedSearch = useDebounce(filters.search, 300);
   const [isOpen, setIsOpen] = useState(false);
+
+  React.useEffect(() => {
+    if (searchParams.get("action") === "new" && can("customerPayments.create")) {
+      setIsOpen(true);
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        next.delete("action");
+        return next;
+      }, { replace: true });
+    }
+  }, [searchParams, setSearchParams, can]);
 
   const { data: customersData } = useQuery({ 
     queryKey: ["customers", "list"], 

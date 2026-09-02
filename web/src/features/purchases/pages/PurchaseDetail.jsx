@@ -214,23 +214,29 @@ export const PurchaseDetail = () => {
 
           {/* Right side: Financials & Progress Bar */}
           <div className="flex-1 space-y-4 md:border-l md:border-border/50 md:pl-8 flex flex-col justify-center">
-            <div className="flex justify-between items-end mb-2">
-               <div className="text-secondary text-sm font-medium">Total Amount</div>
-               <div className="text-2xl font-bold text-primary"><MoneyDisplay amount={purchase.totalAmount || 0} /></div>
+            <div className="flex justify-between items-start mb-2">
+               <div>
+                 <div className="text-secondary text-sm font-medium mb-0.5">Total Amount</div>
+                 <div className="text-2xl font-bold text-primary"><MoneyDisplay amount={purchase.totalAmount || 0} /></div>
+               </div>
+               <div className="text-right">
+                 <div className="text-secondary text-sm font-medium mb-0.5">Remaining</div>
+                 <div className="text-xl font-bold text-warning">
+                    {purchase.remainingAmount > 0 ? (
+                      <MoneyDisplay amount={purchase.remainingAmount} />
+                    ) : (
+                      <span className="text-success text-base">Fully Paid</span>
+                    )}
+                 </div>
+               </div>
             </div>
             
-            <div className="space-y-3">
+            <div className="space-y-2 pt-2">
               <div className="flex justify-between text-sm">
                 <span className="text-finance-out font-semibold">Paid: <MoneyDisplay amount={purchase.allocatedAmount || 0} /></span>
-                {purchase.remainingAmount > 0 ? (
-                  <span className="text-warning font-semibold">
-                    Remaining: <MoneyDisplay amount={purchase.remainingAmount} />
-                  </span>
-                ) : (
-                  <span className="text-success font-semibold">
-                    Fully Paid
-                  </span>
-                )}
+                <span className="text-xs text-secondary font-medium">
+                  {purchase.totalAmount > 0 ? Math.min(100, Math.round(((purchase.allocatedAmount || 0) / purchase.totalAmount) * 100)) : 0}% Paid
+                </span>
               </div>
               <ProgressBar 
                 progress={purchase.totalAmount > 0 ? Math.round(((purchase.allocatedAmount || 0) / purchase.totalAmount) * 100) : 0} 
@@ -238,9 +244,6 @@ export const PurchaseDetail = () => {
                 size="md" 
                 animated={purchase.paymentStatus !== 'PAID'} 
               />
-              <div className="text-right text-xs text-secondary font-medium">
-                {purchase.totalAmount > 0 ? Math.min(100, Math.round(((purchase.allocatedAmount || 0) / purchase.totalAmount) * 100)) : 0}% Paid
-              </div>
             </div>
           </div>
 

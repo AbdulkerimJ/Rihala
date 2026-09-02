@@ -4,7 +4,7 @@ import { Plus } from "lucide-react";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import React, { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Can } from "../../../components/Can";
 import { createOrder, getOrders, updateOrder } from "../api";
 import { getCustomers } from "../../customers/api";
@@ -52,9 +52,23 @@ export const OrdersList = () => {
     to: "",
     sort: "-expectedCompletionDate",
   }); 
+  const [searchParams, setSearchParams] = useSearchParams();
   const debouncedSearch = useDebounce(filters.search, 300);
   const [isOpen, setIsOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
+
+  React.useEffect(() => {
+    if (searchParams.get("action") === "new" && can("orders.create")) {
+      setEditingOrder(null);
+      setIsOpen(true);
+      // Remove the query param so it doesn't re-trigger on refresh
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        next.delete("action");
+        return next;
+      }, { replace: true });
+    }
+  }, [searchParams, setSearchParams, can]);
 
   const params = useMemo(() => cleanFilterParams({ ...filters, search: debouncedSearch }, { page, limit: 20 }), [filters, debouncedSearch, page]);
 

@@ -8,32 +8,32 @@ export const DashboardQuickShortcuts = () => {
 
   const quickActions = [
     {
-      to: "/orders",
+      to: "/orders?action=new",
       icon: ShoppingCart,
       label: "New Order",
       variant: "brand",
       permission: "orders.read",
     },
     {
-      to: "/payments?tab=customers",
+      to: "/payments?tab=customers&action=new",
       icon: CreditCard,
       label: "Receive Payment",
       variant: "success",
       permission: "customerPayments.read",
     },
     {
-      to: "/purchases",
+      to: "/purchases?action=new",
       icon: Building2,
       label: "New Purchase",
       variant: "accent",
       permission: "purchases.read",
     },
     {
-      to: "/attendances",
+      to: "/weekly-payrolls?action=new",
       icon: Users,
-      label: "Roll-Call",
+      label: "Weekly Payroll",
       variant: "warning",
-      permission: "attendances.read",
+      permission: "weeklyPayrolls.read",
     },
   ];
 
