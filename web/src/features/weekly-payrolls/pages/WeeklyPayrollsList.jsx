@@ -126,6 +126,15 @@ export const WeeklyPayrollsList = () => {
         data={payrolls}
         keyExtractor={(row) => row._id}
         onRowClick={(row) => navigate(`/weekly-payrolls/${row._id}`)}
+        mobileRow={(row) => ({
+          title: row.employee?.name || "Unknown",
+          subtitle: `${formatDate(row.startDate)} - ${formatDate(row.endDate)}`,
+          right: (
+            <span className="text-xs font-bold text-accent tracking-tight shrink-0">
+              <MoneyDisplay amount={row.totalEarnings} />
+            </span>
+          )
+        })}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
         isLoading={isLoading}

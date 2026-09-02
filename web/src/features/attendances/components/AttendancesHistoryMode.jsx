@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { X } from "lucide-react";
+import { X, Edit } from "lucide-react";
 
 import { usePermission } from "../../../hooks/usePermission";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
@@ -85,14 +85,15 @@ export const AttendancesHistoryMode = ({ onEdit, onDelete }) => {
         <div className="flex justify-end gap-1.5">
           <Can permission="attendances.update">
             <Button
-              variant="secondary"
-              size="sm"
+              variant="ghost"
+              size="icon"
               onClick={(e) => {
                 e.stopPropagation();
                 onEdit(row);
               }}
             >
-              Edit
+              <span className="sr-only">Edit</span>
+              <Edit className="h-4 w-4 text-primary" />
             </Button>
           </Can>
           <Can permission="attendances.delete">
@@ -149,6 +150,50 @@ export const AttendancesHistoryMode = ({ onEdit, onDelete }) => {
         isLoading={isLoadingHistory}
         isFetching={isHistoryFetching}
         keyExtractor={(row) => row._id}
+        mobileRow={(row) => ({
+          title: row.employee?.name || "Unknown",
+          subtitle: formatDate(row.workDate || row.date),
+          right: (
+            <div className="flex flex-col items-end gap-1">
+              <div className="flex items-center gap-1 text-xs">
+                <span className="text-secondary">AM:</span> <StatusBadge status={row.morningStatus} className="scale-90 origin-right" />
+              </div>
+              <div className="flex items-center gap-1 text-xs">
+                <span className="text-secondary">PM:</span> <StatusBadge status={row.afternoonStatus} className="scale-90 origin-right" />
+              </div>
+            </div>
+          ),
+          actions: (
+            <>
+              <Can permission="attendances.update">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(row);
+                  }}
+                >
+                  <span className="sr-only">Edit</span>
+                  <Edit className="h-4 w-4 text-primary" />
+                </Button>
+              </Can>
+              <Can permission="attendances.delete">
+                <Button
+                  variant="danger-ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(row);
+                  }}
+                >
+                  <span className="sr-only">Delete</span>
+                  <X className="h-4 w-4 text-danger" />
+                </Button>
+              </Can>
+            </>
+          )
+        })}
         emptyState={
           <EmptyState
             title="No Attendance History"

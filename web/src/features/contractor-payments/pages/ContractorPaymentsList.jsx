@@ -140,6 +140,25 @@ export const ContractorPaymentsList = () => {
         data={payments}
         keyExtractor={(row) => row._id}
         onRowClick={(row) => setSelectedPayment(row)}
+        mobileRow={(row) => ({
+          title: row.contractor?.name || "Unknown",
+          subtitle: `Contract #${row.contract?.contractNumber || "-"} • ${formatDate(row.paymentDate)}`,
+          right: (
+            <div className="flex items-center gap-2 shrink-0">
+              <span className={`text-xs font-bold text-primary ${row.status === 'voided' ? 'line-through opacity-50 text-secondary' : ''}`}>
+                <MoneyDisplay amount={row.amount} className="text-inherit font-bold" />
+              </span>
+              <StatusBadge status={row.status} />
+            </div>
+          ),
+          actions: row.status !== 'voided' ? (
+            <Can permission="contractorPayments.void">
+              <Button variant="danger-ghost" size="sm" onClick={(e) => { e.stopPropagation(); setVoidingPayment(row); }}>
+                Void
+              </Button>
+            </Can>
+          ) : null
+        })}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
         isLoading={isLoading}

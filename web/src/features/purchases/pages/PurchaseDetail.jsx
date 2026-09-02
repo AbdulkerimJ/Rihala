@@ -8,7 +8,7 @@ import { ErrorState } from "../../../components/ui/ErrorState";
 import { Modal } from "../../../components/ui/Modal";
 import { DetailSection } from "../../../components/ui/DetailSection";
 import { SystemInfoSection } from "../../../components/ui/SystemInfoSection";
-import { DataTable } from "../../../components/ui/DataTable";
+import { ListGroup, ListItem } from "../../../components/ui/ListGroup";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { Button } from "../../../components/ui/Button";
@@ -81,59 +81,7 @@ export const PurchaseDetail = () => {
     return <ErrorState description={getApiErrorMessage(purchaseQuery.error, "Failed to load purchase details.")} />;
   }
 
-  const itemColumns = [
-    {
-      header: "Material",
-      accessor: (item) => (
-        <div>
-          <span className="font-medium text-primary">{item.materialName || item.material?.name || "Unknown Material"}</span>
-          {item.unit && <span className="text-xs text-secondary block mt-0.5">Unit: {item.unit}</span>}
-        </div>
-      ),
-    },
-    {
-      header: "Quantity",
-      accessor: "quantity",
-      className: "text-right",
-      headerClassName: "text-right",
-    },
-    {
-      header: "Unit Price",
-      accessor: (item) => <MoneyDisplay amount={item.unitPrice} />,
-      className: "text-right",
-      headerClassName: "text-right",
-    },
-    {
-      header: "Total",
-      accessor: (item) => <MoneyDisplay amount={item.quantity * item.unitPrice} />,
-      className: "font-semibold text-right",
-      headerClassName: "text-right",
-    },
-  ];
 
-  const paymentColumns = [
-    { header: "Date", accessor: (row) => formatDate(row.date) },
-    { header: "Reference", accessor: "paymentReference", className: "font-mono text-xs" },
-    { 
-      header: "Type", 
-      accessor: (row) => (
-        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${row.type === 'SPECIFIC' ? 'bg-primary/10 text-primary' : 'bg-secondary/10 text-secondary'}`}>
-          {row.type}
-        </span>
-      ) 
-    },
-    { 
-      header: "Applied Amount", 
-      accessor: (row) => {
-        const allocation = row.allocations?.find(a => a.purchase?._id === id || a.purchase === id);
-        const applied = allocation ? allocation.amount : 0;
-        return <MoneyDisplay amount={applied} variant="financeOut" />;
-      },
-      className: "text-right",
-      headerClassName: "text-right",
-    },
-    { header: "Status", accessor: (row) => <StatusBadge status={row.status} /> },
-  ];
 
   return (
     <div className="space-y-6">
@@ -253,11 +201,25 @@ export const PurchaseDetail = () => {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
           <DetailSection title="Purchased Items">
-            <DataTable
-              columns={itemColumns}
-              data={purchase.items}
-              keyExtractor={(_, index) => index}
-            />
+            <ListGroup>
+              {purchase.items?.map((item, index) => (
+                <ListItem
+                  key={index}
+                  title={item.materialName || item.material?.name || "Unknown Material"}
+                  subtitle={item.unit ? `Unit: ${item.unit} • Qty: ${item.quantity}` : `Qty: ${item.quantity}`}
+                  right={
+                    <div className="flex flex-col items-end">
+                      <span className="text-xs text-secondary">
+                        <MoneyDisplay amount={item.unitPrice} /> each
+                      </span>
+                      <span className="font-semibold text-sm">
+                        <MoneyDisplay amount={item.quantity * item.unitPrice} />
+                      </span>
+                    </div>
+                  }
+                />
+              ))}
+            </ListGroup>
             <div className="mt-4 flex justify-end items-center gap-4 pt-2">
               <span className="text-sm font-semibold text-primary">Grand Total:</span>
               <span className="text-lg font-bold text-finance-out">
@@ -268,17 +230,35 @@ export const PurchaseDetail = () => {
 
           <Can permission="supplierPayments.read">
             <DetailSection title="Related Payments">
-              <DataTable
-                columns={paymentColumns}
-                data={payments}
-                keyExtractor={(row) => row._id}
-                isLoading={isPaymentsLoading}
-                emptyState={
-                  <div className="text-center py-6 text-sm text-secondary">
-                    No payments have been recorded for this purchase yet.
-                  </div>
-                }
-              />
+              {isPaymentsLoading ? (
+                <DetailSkeleton />
+              ) : payments?.length > 0 ? (
+                <ListGroup>
+                  {payments.map((row) => {
+                    const allocation = row.allocations?.find(a => a.purchase?._id === id || a.purchase === id);
+                    const applied = allocation ? allocation.amount : 0;
+                    return (
+                      <ListItem
+                        key={row._id}
+                        title={row.paymentReference || "Payment"}
+                        subtitle={`${formatDate(row.date)} • ${row.type}`}
+                        right={
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-sm font-bold text-finance-out">
+                              <MoneyDisplay amount={applied} variant="financeOut" />
+                            </span>
+                            <StatusBadge status={row.status} />
+                          </div>
+                        }
+                      />
+                    );
+                  })}
+                </ListGroup>
+              ) : (
+                <div className="text-center py-6 text-sm text-secondary border border-dashed border-border/50 rounded-lg">
+                  No payments have been recorded for this purchase yet.
+                </div>
+              )}
             </DetailSection>
           </Can>
 

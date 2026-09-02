@@ -173,6 +173,50 @@ export const SuppliersList = () => {
         data={suppliers}
         keyExtractor={(row) => row._id}
         onRowClick={(row) => navigate(`/suppliers/${row._id}`)}
+        mobileRow={(row) => ({
+          to: `/suppliers/${row._id}`,
+          title: row.name,
+          subtitle: row.phone || "-",
+          right: (
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-xs sm:text-sm font-bold tracking-tight shrink-0">
+                <MoneyDisplay amount={row.balance || 0} variant={(row.balance || 0) > 0 ? "financeOut" : (row.balance || 0) < 0 ? "financeIn" : "default"} />
+              </span>
+              <StatusBadge status={row.status} className="shrink-0" />
+            </div>
+          ),
+          actions: (
+            <>
+              <Can permission="suppliers.update">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  leftIcon={Edit}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditingSupplier(row);
+                    setIsOpen(true);
+                  }}
+                >
+                  Edit
+                </Button>
+              </Can>
+              <Can permission="suppliers.delete">
+                <Button
+                  variant="danger-ghost"
+                  size="sm"
+                  leftIcon={Trash2}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeletingSupplier(row);
+                  }}
+                >
+                  Delete
+                </Button>
+              </Can>
+            </>
+          )
+        })}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
         isLoading={isLoading}

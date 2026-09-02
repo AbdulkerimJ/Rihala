@@ -5,7 +5,7 @@ import { usePermission } from "../hooks/usePermission";
 import { Button } from "../components/ui/Button";
 import { Header } from "../components/Header";
 import { ErrorBoundary } from "../components/ErrorBoundary";
-import { LayoutDashboard, Users, ShieldCheck, Key, Receipt, Contact, ClipboardList, Package, ShoppingCart, CreditCard, Briefcase, Clock, CalendarDays, Wallet, Settings, UserSquare2, BarChart2, FileText, ClipboardCheck, Hammer, ListTree, Banknote, HandCoins, Building2, BadgeDollarSign, HardHat, Store, PanelLeftClose,  } from "lucide-react";
+import { LayoutDashboard, Users, ShieldCheck, Key, Receipt, Contact, ClipboardList, Package, ShoppingCart, CreditCard, Briefcase, Clock, CalendarDays, Wallet, Settings, UserSquare2, BarChart2, FileText, Hammer, ListTree, Banknote, HandCoins, Building2, BadgeDollarSign, HardHat, Store, PanelLeftClose,  } from "lucide-react";
 
 import { NavGroup } from "./NavGroup";
 import { SidebarBrand } from "./SidebarBrand";
@@ -87,7 +87,6 @@ export const DashboardLayout = () => {
         { name: "Contracts", path: "/contracts", icon: FileText, permission: "contracts.read" },
         { name: "Weekly Payroll", path: "/weekly-payrolls", icon: Receipt, permission: "weeklyPayrolls.read" },
         { name: "Orders", path: "/orders", icon: ShoppingCart, permission: "orders.read" },
-        { name: "Completions", path: "/contract-completions", icon: ClipboardCheck, permission: "contractCompletions.read" },
       ]
     },
     {
