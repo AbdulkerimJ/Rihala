@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Plus, Edit, Trash2, X } from "lucide-react";
+import { Plus, Edit, Trash2, X, UserPlus } from "lucide-react";
 import { usePermission } from "../../../hooks/usePermission";
 import { useDebounce } from "../../../hooks/useDebounce";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
@@ -14,6 +14,7 @@ import { Can } from "../../../components/Can";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { Modal } from "../../../components/ui/Modal";
+import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { DataTable } from "../../../components/ui/DataTable";
 import { FilterBar } from "../../../components/ui/FilterBar";
@@ -175,6 +176,43 @@ export const EmployeesList = () => {
         data={employees}
         keyExtractor={(row) => row._id}
         onRowClick={(row) => navigate(`/employees/${row._id}`)}
+        mobileRow={(row) => ({
+          to: `/employees/${row._id}`,
+          title: row.name,
+          subtitle: `${row.phone || "-"} • Since ${formatDate(row.startDate)}`,
+          right: <StatusBadge status={row.isActive ? "active" : "inactive"} />,
+          actions: (
+            <>
+              <Can permission="employees.update">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  leftIcon={Edit}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditingEmployee(row);
+                    setIsOpen(true);
+                  }}
+                >
+                  Edit
+                </Button>
+              </Can>
+              <Can permission="employees.delete">
+                <Button
+                  variant="danger-ghost"
+                  size="sm"
+                  leftIcon={Trash2}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeletingEmployee(row);
+                  }}
+                >
+                  Delete
+                </Button>
+              </Can>
+            </>
+          )
+        })}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
         isLoading={isLoading}

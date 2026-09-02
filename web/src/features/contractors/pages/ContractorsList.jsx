@@ -166,6 +166,43 @@ export const ContractorsList = () => {
         data={contractors}
         keyExtractor={(row) => row._id}
         onRowClick={(row) => navigate(`/contractors/${row._id}`)}
+        mobileRow={(row) => ({
+          to: `/contractors/${row._id}`,
+          title: row.name,
+          subtitle: row.phone || "-",
+          right: <StatusBadge status={row.isActive ? "active" : "inactive"} />,
+          actions: (
+            <>
+              <Can permission="contractors.update">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  leftIcon={Edit}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditingContractor(row);
+                    setIsOpen(true);
+                  }}
+                >
+                  Edit
+                </Button>
+              </Can>
+              <Can permission="contractors.delete">
+                <Button
+                  variant="danger-ghost"
+                  size="sm"
+                  leftIcon={Trash2}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeletingContractor(row);
+                  }}
+                >
+                  Delete
+                </Button>
+              </Can>
+            </>
+          )
+        })}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
         isLoading={isLoading}

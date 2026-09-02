@@ -132,6 +132,27 @@ export const MaterialsList = () => {
         columns={columns}
         data={materials}
         keyExtractor={(row) => row._id}
+        mobileRow={(row) => ({
+          title: row.name,
+          subtitle: `${row.category?.name || "Unknown"} • ${row.unit}`,
+          right: <StatusBadge status={row.isActive ? "active" : "inactive"} />,
+          actions: (
+            <Can permission="materials.update">
+              <Button
+                variant="ghost"
+                size="sm"
+                leftIcon={Edit}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditingMaterial(row);
+                  setIsOpen(true);
+                }}
+              >
+                Edit
+              </Button>
+            </Can>
+          )
+        })}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
         isLoading={isLoading}

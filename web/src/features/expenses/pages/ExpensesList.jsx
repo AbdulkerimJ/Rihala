@@ -367,6 +367,55 @@ export const ExpensesList = () => {
         columns={columns}
         data={expenses}
         keyExtractor={(row) => row._id}
+        mobileRow={(row) => ({
+          title: (
+            <span className="flex items-center gap-2 min-w-0">
+              <StatusBadge status={row.category} label={row.category} className="shrink-0" />
+              <span className="truncate">{row.description || "-"}</span>
+            </span>
+          ),
+          subtitle: `${formatDate(row.date)} • by ${row.createdBy?.name || "Unknown"}`,
+          right: (
+            <div className="flex items-center gap-2 shrink-0">
+              <span className={`text-xs font-bold text-danger ${row.status === 'voided' ? 'line-through opacity-50 text-secondary' : ''}`}>
+                -<MoneyDisplay amount={row.amount} className="text-inherit font-bold" />
+              </span>
+              <StatusBadge status={row.status} />
+            </div>
+          ),
+          actions: (
+            <>
+              <Can permission="expenses.update">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  leftIcon={Edit}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditingExpense(row);
+                    setIsOpen(true);
+                  }}
+                >
+                  Edit
+                </Button>
+              </Can>
+              <Can permission="expenses.void">
+                {row.status !== "voided" && (
+                  <Button
+                    variant="danger-ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setVoidingExpense(row);
+                    }}
+                  >
+                    Void
+                  </Button>
+                )}
+              </Can>
+            </>
+          )
+        })}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
         isLoading={isLoading}
