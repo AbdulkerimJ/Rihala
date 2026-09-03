@@ -4,6 +4,7 @@ import { LoadingBar } from "./LoadingBar";
 import { ChevronLeft, ChevronRight, MoreVertical } from "lucide-react";
 import { ListGroup, ListItem, ListGroupSkeleton } from "./ListGroup";
 import { Modal } from "./Modal";
+import { MobileActionPopup } from "./MobileActionPopup";
 import { usePermission } from "../../hooks/usePermission";
 
 const getVisibleActionsCount = (actionsNode, can) => {
@@ -110,18 +111,10 @@ export const DataTable = ({
                               </button>
                               
                               {isDropdownOpen && (
-                                <>
-                                  <div 
-                                    className="fixed inset-0 z-40" 
-                                    onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); }} 
-                                  />
-                                  <div 
-                                    className="absolute right-0 top-8 z-50 bg-surface border border-border shadow-lg rounded-md p-1.5 flex flex-col gap-1 min-w-[120px] [&_button]:w-full [&_button]:justify-start [&_button]:px-3 [&_button]:h-9 [&_button]:text-sm [&_button_svg]:mr-2"
-                                    onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); }}
-                                  >
-                                    {mobile.actions}
-                                  </div>
-                                </>
+                                <MobileActionPopup 
+                                  actions={mobile.actions} 
+                                  onClose={() => setOpenDropdownId(null)} 
+                                />
                               )}
                             </div>
                           )}

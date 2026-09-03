@@ -168,27 +168,27 @@ export const AttendancesHistoryMode = ({ onEdit, onDelete }) => {
               <Can permission="attendances.update">
                 <Button
                   variant="ghost"
-                  size="icon"
+                  size="sm"
+                  leftIcon={Edit}
                   onClick={(e) => {
                     e.stopPropagation();
                     onEdit(row);
                   }}
                 >
-                  <span className="sr-only">Edit</span>
-                  <Edit className="h-4 w-4 text-primary" />
+                  Edit
                 </Button>
               </Can>
               <Can permission="attendances.delete">
                 <Button
                   variant="danger-ghost"
-                  size="icon"
+                  size="sm"
+                  leftIcon={Trash2}
                   onClick={(e) => {
                     e.stopPropagation();
                     onDelete(row);
                   }}
                 >
-                  <span className="sr-only">Delete</span>
-                  <X className="h-4 w-4 text-danger" />
+                  Delete
                 </Button>
               </Can>
             </>
