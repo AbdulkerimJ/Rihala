@@ -63,10 +63,7 @@ export const PermissionsList = () => {
       />
 
       <FilterBar 
-<<<<<<< HEAD
         filters={{ search }}
-=======
->>>>>>> 5734ce64b172a889c3bb721d67123397a41b56ba
         searchPlaceholder="Search permissions..."
         searchValue={search}
         onSearchChange={setSearch}

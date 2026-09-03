@@ -346,7 +346,7 @@ export const ContractsList = () => {
         onPageChange={setPage}
         isLoading={isLoading}
         isFetching={isFetching}
-        onRowClick={(row) => navigate(`/contracts/${row._id}`)}
+
         emptyState={
           <EmptyState
             title="No contracts found"
