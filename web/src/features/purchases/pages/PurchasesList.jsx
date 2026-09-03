@@ -186,6 +186,25 @@ export const PurchasesList = () => {
         data={purchases}
         keyExtractor={(row) => row._id}
         onRowClick={(row) => navigate(`/purchases/${row._id}`)}
+        mobileRow={(row) => ({
+          title: (
+            <span className="flex items-center gap-2 min-w-0">
+              <span className="font-mono text-[10px] font-bold text-secondary uppercase tracking-widest shrink-0">
+                {row.purchaseNumber || "-"}
+              </span>
+              <span className="truncate">{row.supplier?.name || "Unknown"}</span>
+            </span>
+          ),
+          subtitle: `${formatDate(row.date)} • ${row.items?.length || 0} items`,
+          right: (
+            <div className="flex items-center gap-2 shrink-0">
+              <StatusBadge status={row.paymentStatus} className="shrink-0" />
+              <span className="text-xs sm:text-sm font-bold text-finance-out tracking-tight shrink-0">
+                <MoneyDisplay amount={row.totalAmount} />
+              </span>
+            </div>
+          )
+        })}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
         isLoading={isLoading}

@@ -175,6 +175,18 @@ export const CustomerPaymentsList = () => {
         data={payments}
         keyExtractor={(row) => row._id}
         onRowClick={(row) => setSelectedPayment(row)}
+        mobileRow={(row) => ({
+          title: row.customerName || row.order?.customerName || row.order?.customer?.name || row.customer?.name || "Unknown",
+          subtitle: `${row.orderNumber || row.order?.orderNumber ? `Order #${row.orderNumber || row.order?.orderNumber}` : "Receipt"} • ${formatDate(row.paymentDate)}`,
+          right: (
+            <div className="flex items-center gap-2 shrink-0">
+              <span className={`text-xs font-bold text-finance-in ${row.status === 'voided' ? 'line-through opacity-50 text-secondary' : ''}`}>
+                +<MoneyDisplay amount={row.amount} className="text-inherit font-bold" />
+              </span>
+              <StatusBadge status={row.status} />
+            </div>
+          )
+        })}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
         isLoading={isLoading}

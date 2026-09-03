@@ -13,7 +13,7 @@ import { Button } from "../../../components/ui/Button";
 import { getApiErrorMessage, unwrapEntityResponse, unwrapListResponse } from "../../../utils/apiResponse";
 import { formatDate, formatDateTime } from "../../../utils/formatters";
 import { usePermission } from "../../../hooks/usePermission";
-import { DataTable } from "../../../components/ui/DataTable";
+import { ListGroup, ListItem } from "../../../components/ui/ListGroup";
 import { getWeeklyPayrolls } from "../../weekly-payrolls/api";
 import { getEmployeePayments } from "../../employee-payments/api";
 import { TrendingUp, TrendingDown, Wallet, Phone, Calendar, Clock, Banknote, FileText } from "lucide-react";
@@ -82,29 +82,7 @@ export const EmployeeDetail = () => {
     return name.trim().charAt(0).toUpperCase();
   };
 
-  const payrollColumns = [
-    { 
-      header: "Week", 
-      accessor: (row) => (
-        <Link to={`/weekly-payrolls/${row._id}`} className="font-medium text-accent hover:underline">
-          {formatDate(row.startDate)} - {formatDate(row.endDate)}
-        </Link>
-      ) 
-    },
-    { header: "Total Earnings", accessor: (row) => <MoneyDisplay amount={row.totalEarnings || 0} /> }
-  ];
 
-  const paymentColumns = [
-    { 
-      header: "Ref No", 
-      accessor: (row) => (
-        <span className="font-mono text-xs font-semibold text-primary">{row.paymentReference}</span>
-      ) 
-    },
-    { header: "Date", accessor: (row) => formatDateTime(row.paymentDate), className: "text-secondary" },
-    { header: "Amount", accessor: (row) => <MoneyDisplay amount={row.amount} className={row.status === 'voided' ? 'line-through opacity-50' : ''} /> },
-    { header: "Status", accessor: (row) => <StatusBadge status={row.status} /> }
-  ];
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-[fadeSlideUp_0.3s_ease_both]">
@@ -215,33 +193,58 @@ export const EmployeeDetail = () => {
           
           <div className="grid gap-6 lg:grid-cols-2 mt-6">
             <DetailSection title="Recent Payrolls">
-              <DataTable
-                columns={payrollColumns}
-                data={payrolls}
-                keyExtractor={(row) => row._id}
-                isLoading={isPayrollsLoading}
-                emptyState={
-                  <div className="text-center py-6 text-sm text-secondary flex flex-col items-center">
-                    <Banknote className="h-8 w-8 text-muted mb-2" />
-                    No payrolls generated for this employee.
-                  </div>
-                }
-              />
+              {isPayrollsLoading ? (
+                <DetailSkeleton />
+              ) : payrolls?.length > 0 ? (
+                <ListGroup>
+                  {payrolls.map(row => (
+                    <ListItem
+                      key={row._id}
+                      to={`/weekly-payrolls/${row._id}`}
+                      title={`${formatDate(row.startDate)} - ${formatDate(row.endDate)}`}
+                      right={
+                        <span className="text-sm font-bold text-finance-in">
+                          <MoneyDisplay amount={row.totalEarnings || 0} />
+                        </span>
+                      }
+                    />
+                  ))}
+                </ListGroup>
+              ) : (
+                <div className="text-center py-6 text-sm text-secondary flex flex-col items-center border border-dashed border-border/50 rounded-lg">
+                  <Banknote className="h-8 w-8 text-muted mb-2" />
+                  No payrolls generated for this employee.
+                </div>
+              )}
             </DetailSection>
 
             <DetailSection title="Payment History">
-              <DataTable
-                columns={paymentColumns}
-                data={payments}
-                keyExtractor={(row) => row._id}
-                isLoading={isPaymentsLoading}
-                emptyState={
-                  <div className="text-center py-6 text-sm text-secondary flex flex-col items-center">
-                    <FileText className="h-8 w-8 text-muted mb-2" />
-                    No payments have been recorded for this employee.
-                  </div>
-                }
-              />
+              {isPaymentsLoading ? (
+                <DetailSkeleton />
+              ) : payments?.length > 0 ? (
+                <ListGroup>
+                  {payments.map(row => (
+                    <ListItem
+                      key={row._id}
+                      title={<span className="font-mono text-[10px] font-bold text-primary tracking-widest">{row.paymentReference}</span>}
+                      subtitle={formatDateTime(row.paymentDate)}
+                      right={
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className={`text-xs sm:text-sm font-bold tracking-tight shrink-0 ${row.status === 'voided' ? 'line-through opacity-50 text-secondary' : 'text-primary'}`}>
+                            <MoneyDisplay amount={row.amount} />
+                          </span>
+                          <StatusBadge status={row.status} className="shrink-0" />
+                        </div>
+                      }
+                    />
+                  ))}
+                </ListGroup>
+              ) : (
+                <div className="text-center py-6 text-sm text-secondary flex flex-col items-center border border-dashed border-border/50 rounded-lg">
+                  <FileText className="h-8 w-8 text-muted mb-2" />
+                  No payments have been recorded for this employee.
+                </div>
+              )}
             </DetailSection>
           </div>
         </div>

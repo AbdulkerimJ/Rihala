@@ -280,6 +280,48 @@ export const OvertimesList = () => {
         columns={columns}
         data={overtimes}
         keyExtractor={(row) => row._id}
+        mobileRow={(row) => ({
+          title: row.employee?.name || "Unknown",
+          subtitle: `${formatDate(row.workDate)} • ${row.duration === 1 ? "Full Day" : row.duration === 0.5 ? "Half Day" : `${row.duration} Days`}`,
+          right: (
+            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+              row.duration === 1 ? "bg-accent/10 text-accent" : "bg-primary/10 text-primary"
+            }`}>
+              {row.duration === 1 ? "Full" : row.duration === 0.5 ? "Half" : row.duration}
+            </span>
+          ),
+          actions: (
+            <>
+              <Can permission="overtimes.update">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  leftIcon={Edit}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditingRecord(row);
+                    setIsOpen(true);
+                  }}
+                >
+                  Edit
+                </Button>
+              </Can>
+              <Can permission="overtimes.delete">
+                <Button
+                  variant="danger-ghost"
+                  size="sm"
+                  leftIcon={Trash2}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeletingRecord(row);
+                  }}
+                >
+                  Delete
+                </Button>
+              </Can>
+            </>
+          )
+        })}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
         isLoading={isLoading}

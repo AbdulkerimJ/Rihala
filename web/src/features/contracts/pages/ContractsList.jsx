@@ -321,6 +321,27 @@ export const ContractsList = () => {
         columns={columns}
         data={contracts}
         keyExtractor={(row) => row._id}
+        onRowClick={(row) => navigate(`/contracts/${row._id}`)}
+        mobileRow={(row) => ({
+          to: `/contracts/${row._id}`,
+          title: (
+            <span className="flex items-center gap-2 min-w-0">
+              <span className="font-mono text-[10px] font-bold text-secondary uppercase tracking-widest shrink-0">
+                #{row.contractNumber}
+              </span>
+              <span className="truncate">{row.contractor?.name || "-"}</span>
+            </span>
+          ),
+          subtitle: `${row.taskTypeName || "-"} • ${row.task?.name || "-"} • ${formatDate(row.contractDate)}`,
+          right: (
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-xs sm:text-sm font-bold text-primary tracking-tight shrink-0">
+                <MoneyDisplay amount={row.quantity * row.unitPrice} />
+              </span>
+              <StatusBadge status={row.status} className="shrink-0" />
+            </div>
+          )
+        })}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
         isLoading={isLoading}

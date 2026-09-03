@@ -157,6 +157,27 @@ export const CustomersList = () => {
         columns={columns}
         data={customers}
         keyExtractor={(row) => row._id}
+        mobileRow={(row) => ({
+          title: row.name,
+          subtitle: row.phone || "-",
+          right: <StatusBadge status={row.isActive ? "active" : "inactive"} />,
+          actions: (
+            <Can permission="customers.update">
+              <Button
+                variant="ghost"
+                size="sm"
+                leftIcon={Edit}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditingCustomer(row);
+                  setIsOpen(true);
+                }}
+              >
+                Edit
+              </Button>
+            </Can>
+          )
+        })}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
         isLoading={isLoading}

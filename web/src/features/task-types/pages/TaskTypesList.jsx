@@ -169,6 +169,42 @@ export const TaskTypesList = () => {
         columns={columns}
         data={taskTypes}
         keyExtractor={(row) => row._id}
+        mobileRow={(row) => ({
+          title: row.name,
+          subtitle: `Created ${formatDate(row.createdAt)}`,
+          right: <StatusBadge status={row.isActive ? "active" : "inactive"} />,
+          actions: (
+            <>
+              <Can permission="taskTypes.update">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  leftIcon={Edit}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditingTaskType(row);
+                    setIsOpen(true);
+                  }}
+                >
+                  Edit
+                </Button>
+              </Can>
+              <Can permission="taskTypes.delete">
+                <Button
+                  variant="danger-ghost"
+                  size="sm"
+                  leftIcon={Trash2}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeletingTaskType(row);
+                  }}
+                >
+                  Delete
+                </Button>
+              </Can>
+            </>
+          )
+        })}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
         isLoading={isLoading}

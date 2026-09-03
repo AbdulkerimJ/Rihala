@@ -18,7 +18,7 @@ import { getSupplierPayments } from "../../supplier-payments/api";
 import { getApiErrorMessage, unwrapEntityResponse, unwrapListResponse } from "../../../utils/apiResponse";
 import { formatDateTime } from "../../../utils/formatters";
 import { DetailSection } from "../../../components/ui/DetailSection";
-import { DataTable } from "../../../components/ui/DataTable";
+import { ListGroup, ListItem } from "../../../components/ui/ListGroup";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { Phone, Wallet, TrendingUp, TrendingDown, ShoppingBag, FileText, CreditCard, Edit, Plus } from "lucide-react";
 import { BackButton } from "../../../components/ui/BackButton";
@@ -81,31 +81,7 @@ export const SupplierDetail = () => {
     return <ErrorState description={getApiErrorMessage(supplierQuery.error, "Failed to load supplier details.")} />;
   }
 
-  const purchaseColumns = [
-    { 
-      header: "Ref No", 
-      accessor: (row) => (
-        <Link to={`/purchases/${row._id}`} className="font-mono text-xs text-accent hover:underline">
-          {row.purchaseNumber || "-"}
-        </Link>
-      ) 
-    },
-    { header: "Date", accessor: (row) => formatDateTime(row.date), className: "text-secondary" },
-    { header: "Total Amount", accessor: (row) => <MoneyDisplay amount={row.totalAmount} /> },
-    { header: "Payment Status", accessor: (row) => <StatusBadge status={row.paymentStatus} /> }
-  ];
 
-  const paymentColumns = [
-    { 
-      header: "Ref No", 
-      accessor: (row) => (
-        <span className="font-mono text-xs font-semibold text-primary">{row.paymentReference}</span>
-      ) 
-    },
-    { header: "Date", accessor: (row) => formatDateTime(row.paymentDate), className: "text-secondary" },
-    { header: "Amount", accessor: (row) => <MoneyDisplay amount={row.amount} className={row.status === 'voided' ? 'line-through opacity-50' : ''} /> },
-    { header: "Status", accessor: (row) => <StatusBadge status={row.status} /> }
-  ];
 
   return (
     <div className="space-y-6">
@@ -195,35 +171,64 @@ export const SupplierDetail = () => {
         <div className="grid gap-6 lg:grid-cols-2">
           <Can permission="purchases.read">
             <DetailSection title="Recent Purchases">
-              <DataTable
-                columns={purchaseColumns}
-                data={purchases}
-                keyExtractor={(row) => row._id}
-                isLoading={isPurchasesLoading}
-                emptyState={
-                  <div className="text-center py-6 text-sm text-secondary flex flex-col items-center">
-                    <ShoppingBag className="h-8 w-8 text-muted mb-2" />
-                    No purchases recorded from this supplier.
-                  </div>
-                }
-              />
+              {isPurchasesLoading ? (
+                <DetailSkeleton />
+              ) : purchases?.length > 0 ? (
+                <ListGroup>
+                  {purchases.map(row => (
+                    <ListItem
+                      key={row._id}
+                      to={`/purchases/${row._id}`}
+                      title={<span className="font-mono text-[10px] font-bold text-accent uppercase tracking-widest">{row.purchaseNumber || "-"}</span>}
+                      subtitle={formatDateTime(row.date)}
+                      right={
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-xs sm:text-sm font-bold text-primary tracking-tight shrink-0">
+                            <MoneyDisplay amount={row.totalAmount} />
+                          </span>
+                          <StatusBadge status={row.paymentStatus} className="shrink-0" />
+                        </div>
+                      }
+                    />
+                  ))}
+                </ListGroup>
+              ) : (
+                <div className="text-center py-6 text-sm text-secondary flex flex-col items-center border border-dashed border-border/50 rounded-lg">
+                  <ShoppingBag className="h-8 w-8 text-muted mb-2" />
+                  No purchases recorded from this supplier.
+                </div>
+              )}
             </DetailSection>
           </Can>
 
           <Can permission="supplierPayments.read">
             <DetailSection title="Payment History">
-              <DataTable
-                columns={paymentColumns}
-                data={payments}
-                keyExtractor={(row) => row._id}
-                isLoading={isPaymentsLoading}
-                emptyState={
-                  <div className="text-center py-6 text-sm text-secondary flex flex-col items-center">
-                    <FileText className="h-8 w-8 text-muted mb-2" />
-                    No payments have been recorded for this supplier.
-                  </div>
-                }
-              />
+              {isPaymentsLoading ? (
+                <DetailSkeleton />
+              ) : payments?.length > 0 ? (
+                <ListGroup>
+                  {payments.map(row => (
+                    <ListItem
+                      key={row._id}
+                      title={<span className="font-mono text-[10px] font-bold text-primary tracking-widest">{row.paymentReference}</span>}
+                      subtitle={formatDateTime(row.paymentDate)}
+                      right={
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className={`text-xs sm:text-sm font-bold tracking-tight shrink-0 ${row.status === 'voided' ? 'line-through opacity-50 text-secondary' : 'text-primary'}`}>
+                            <MoneyDisplay amount={row.amount} />
+                          </span>
+                          <StatusBadge status={row.status} className="shrink-0" />
+                        </div>
+                      }
+                    />
+                  ))}
+                </ListGroup>
+              ) : (
+                <div className="text-center py-6 text-sm text-secondary flex flex-col items-center border border-dashed border-border/50 rounded-lg">
+                  <FileText className="h-8 w-8 text-muted mb-2" />
+                  No payments have been recorded for this supplier.
+                </div>
+              )}
             </DetailSection>
           </Can>
         </div>

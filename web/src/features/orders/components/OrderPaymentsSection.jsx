@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Plus, Receipt, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DetailSection } from "../../../components/ui/DetailSection";
-import { DataTable } from "../../../components/ui/DataTable";
+import { ListGroup, ListItem } from "../../../components/ui/ListGroup";
 import { Button } from "../../../components/ui/Button";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
@@ -21,39 +21,6 @@ export const OrderPaymentsSection = ({
   const navigate = useNavigate();
   const [selectedPayment, setSelectedPayment] = useState(null);
   const isCancelled = order?.status === "cancelled";
-
-  const paymentColumns = [
-    {
-      header: "Payment Date",
-      accessor: (row) => formatDate(row.paymentDate),
-      className: "text-secondary",
-    },
-    {
-      header: "Amount",
-      accessor: (row) => (
-        <MoneyDisplay
-          amount={row.amount}
-          className={
-            row.status === "voided"
-              ? "line-through opacity-50"
-              : "font-bold"
-          }
-        />
-      ),
-    },
-    {
-      header: "Notes",
-      accessor: (row) => (
-        <span className="text-xs text-secondary truncate max-w-[200px] block">
-          {row.note || "-"}
-        </span>
-      ),
-    },
-    {
-      header: "Status",
-      accessor: (row) => <StatusBadge status={row.status} showDot />,
-    },
-  ];
 
   return (
     <DetailSection title="Customer Payments History" className="relative">
@@ -90,32 +57,45 @@ export const OrderPaymentsSection = ({
           </div>
         </div>
 
-        <DataTable
-          columns={paymentColumns}
-          data={payments}
-          keyExtractor={(row) => row._id}
-          onRowClick={(row) => setSelectedPayment(row)}
-          isLoading={isLoading}
-          emptyState={
-            <div className="flex flex-col items-center justify-center p-8 text-center bg-surface border border-dashed border-border/60 rounded-xl">
-              <Receipt className="w-8 h-8 mx-auto mb-2 text-muted opacity-50" />
-              <p>No customer payments recorded for this order yet.</p>
-              <Can permission="customerPayments.create">
-                {remainingBalance > 0 && !isCancelled && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="mt-3"
-                    leftIcon={Plus}
-                    onClick={onOpenPaymentModal}
-                  >
-                    Record Initial Payment
-                  </Button>
-                )}
-              </Can>
-            </div>
-          }
-        />
+        {payments.length === 0 ? (
+          <div className="flex flex-col items-center justify-center p-8 text-center bg-surface border border-dashed border-border/60 rounded-xl">
+            <Receipt className="w-8 h-8 mx-auto mb-2 text-muted opacity-50" />
+            <p className="text-secondary text-sm">No customer payments recorded for this order yet.</p>
+            <Can permission="customerPayments.create">
+              {remainingBalance > 0 && !isCancelled && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="mt-3"
+                  leftIcon={Plus}
+                  onClick={onOpenPaymentModal}
+                >
+                  Record Initial Payment
+                </Button>
+              )}
+            </Can>
+          </div>
+        ) : (
+          <ListGroup>
+            {payments.map(payment => (
+              <ListItem
+                key={payment._id}
+                title={formatDate(payment.paymentDate)}
+                subtitle={payment.note || "No notes"}
+                right={
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className={`text-xs sm:text-sm font-bold tracking-tight ${payment.status === 'voided' ? 'line-through opacity-50 text-secondary' : 'text-finance-in'}`}>
+                      <MoneyDisplay amount={payment.amount} className="text-inherit font-bold" />
+                    </span>
+                    <StatusBadge status={payment.status} className="shrink-0" />
+                  </div>
+                }
+                onClick={() => setSelectedPayment(payment)}
+                isClickable
+              />
+            ))}
+          </ListGroup>
+        )}
       </div>
 
       <PaymentDetailsModal
@@ -127,3 +107,4 @@ export const OrderPaymentsSection = ({
     </DetailSection>
   );
 };
+

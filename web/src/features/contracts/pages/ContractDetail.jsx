@@ -17,7 +17,7 @@ import { SummaryCard } from "../../../components/ui/SummaryCard";
 import { DetailSection, DetailItem } from "../../../components/ui/DetailSection";
 import { SystemInfoSection } from "../../../components/ui/SystemInfoSection";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
-import { DataTable } from "../../../components/ui/DataTable";
+import { ListGroup, ListItem } from "../../../components/ui/ListGroup";
 import { Modal } from "../../../components/ui/Modal";
 import { VoidReasonDialog } from "../../../components/ui/VoidReasonDialog";
 import { FormRootError } from "../../../components/ui/FormRootError";
@@ -213,40 +213,7 @@ export const ContractDetail = () => {
   const isOverdue = stats.isOverdue && contract.status === "ACTIVE";
 
   // Tables
-  const completionsColumns = [
-    { header: "Date", accessor: (row) => formatDate(row.recordedAt), className: "text-secondary" },
-    { header: "Quantity", accessor: "quantity" },
-    { header: "Status", accessor: (row) => <StatusBadge status={row.status} /> },
-    { 
-      header: "Actions", 
-      isActions: true,
-      accessor: (row) => (
-        <Can permission="contractCompletions.void">
-          {row.status === 'active' && contract.status === 'ACTIVE' && (
-            <Button variant="danger-ghost" size="sm" onClick={() => setVoidingCompletion(row)}>Void</Button>
-          )}
-        </Can>
-      ) 
-    }
-  ];
 
-  const paymentsColumns = [
-    { header: "Ref", accessor: "paymentReference", className: "font-mono text-xs" },
-    { header: "Date", accessor: (row) => formatDate(row.paymentDate), className: "text-secondary" },
-    { header: "Amount", accessor: (row) => <MoneyDisplay amount={row.amount} className={row.status === 'voided' ? 'line-through opacity-50' : ''} /> },
-    { header: "Status", accessor: (row) => <StatusBadge status={row.status} /> },
-    { 
-      header: "Actions", 
-      isActions: true,
-      accessor: (row) => (
-        <Can permission="contractorPayments.void">
-          {row.status === 'active' && (
-            <Button variant="danger-ghost" size="sm" onClick={() => setVoidingPayment(row)}>Void</Button>
-          )}
-        </Can>
-      ) 
-    }
-  ];
 
   return (
     <div className="space-y-6">
@@ -324,21 +291,62 @@ export const ContractDetail = () => {
           </DetailSection>
 
           <DetailSection title="Completions Log">
-            <DataTable 
-              columns={completionsColumns} 
-              data={contract.completions || []} 
-              keyExtractor={(row) => row._id} 
-              emptyState={<div className="text-sm text-secondary p-4 text-center">No completions recorded yet.</div>}
-            />
+            {contract.completions?.length > 0 ? (
+              <ListGroup>
+                {contract.completions.map(row => (
+                  <ListItem
+                    key={row._id}
+                    title={formatDate(row.recordedAt)}
+                    subtitle={`Quantity: ${row.quantity}`}
+                    right={
+                      <div className="flex items-center gap-2 shrink-0">
+                        <StatusBadge status={row.status} className="shrink-0" />
+                      </div>
+                    }
+                    actions={
+                      <Can permission="contractCompletions.void">
+                        {row.status === 'active' && contract.status === 'ACTIVE' && (
+                          <Button variant="danger-ghost" size="sm" onClick={() => setVoidingCompletion(row)}>Void</Button>
+                        )}
+                      </Can>
+                    }
+                  />
+                ))}
+              </ListGroup>
+            ) : (
+              <div className="text-sm text-secondary p-4 text-center border border-dashed border-border/50 rounded-lg">No completions recorded yet.</div>
+            )}
           </DetailSection>
 
           <DetailSection title="Payments Log">
-            <DataTable 
-              columns={paymentsColumns} 
-              data={contract.payments || []} 
-              keyExtractor={(row) => row._id} 
-              emptyState={<div className="text-sm text-secondary p-4 text-center">No payments recorded yet.</div>}
-            />
+            {contract.payments?.length > 0 ? (
+              <ListGroup>
+                {contract.payments.map(row => (
+                  <ListItem
+                    key={row._id}
+                    title={<span className="font-mono text-[10px] font-bold text-primary tracking-widest">{row.paymentReference}</span>}
+                    subtitle={formatDate(row.paymentDate)}
+                    right={
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className={`text-xs sm:text-sm font-bold tracking-tight shrink-0 ${row.status === 'voided' ? 'line-through opacity-50 text-secondary' : 'text-primary'}`}>
+                          <MoneyDisplay amount={row.amount} />
+                        </span>
+                        <StatusBadge status={row.status} className="shrink-0" />
+                      </div>
+                    }
+                    actions={
+                      <Can permission="contractorPayments.void">
+                        {row.status === 'active' && (
+                          <Button variant="danger-ghost" size="sm" onClick={() => setVoidingPayment(row)}>Void</Button>
+                        )}
+                      </Can>
+                    }
+                  />
+                ))}
+              </ListGroup>
+            ) : (
+              <div className="text-sm text-secondary p-4 text-center border border-dashed border-border/50 rounded-lg">No payments recorded yet.</div>
+            )}
           </DetailSection>
         </div>
 

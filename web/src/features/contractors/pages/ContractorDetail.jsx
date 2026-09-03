@@ -15,7 +15,7 @@ import { Can } from "../../../components/Can";
 import { ContractorForm } from "../components/ContractorForm";
 import { getApiErrorMessage, unwrapEntityResponse, unwrapListResponse } from "../../../utils/apiResponse";
 import { usePermission } from "../../../hooks/usePermission";
-import { DataTable } from "../../../components/ui/DataTable";
+import { ListGroup, ListItem } from "../../../components/ui/ListGroup";
 import { formatDate, formatDateTime } from "../../../utils/formatters";
 import { Phone, TrendingUp, TrendingDown, Wallet, HardHat, FileText, ClipboardList } from "lucide-react";
 import { BackButton } from "../../../components/ui/BackButton";
@@ -82,31 +82,7 @@ export const ContractorDetail = () => {
     );
   }
 
-  const contractColumns = [
-    { 
-      header: "Contract No", 
-      accessor: (row) => (
-        <Link to={`/contracts/${row._id}`} className="font-mono text-xs text-accent hover:underline">
-          {row.contractNumber || "-"}
-        </Link>
-      ) 
-    },
-    { header: "Date", accessor: (row) => formatDate(row.contractDate), className: "text-secondary" },
-    { header: "Value", accessor: (row) => <MoneyDisplay amount={row.quantity * row.unitPrice || 0} /> },
-    { header: "Status", accessor: (row) => <StatusBadge status={row.status} /> }
-  ];
 
-  const paymentColumns = [
-    { 
-      header: "Ref No", 
-      accessor: (row) => (
-        <span className="font-mono text-xs font-semibold text-primary">{row.paymentReference}</span>
-      ) 
-    },
-    { header: "Date", accessor: (row) => formatDateTime(row.paymentDate), className: "text-secondary" },
-    { header: "Amount", accessor: (row) => <MoneyDisplay amount={row.amount} className={row.status === 'voided' ? 'line-through opacity-50' : ''} /> },
-    { header: "Status", accessor: (row) => <StatusBadge status={row.status} /> }
-  ];
 
   const balanceColor =
     !stats
@@ -246,18 +222,33 @@ export const ContractorDetail = () => {
       {activeTab === "contracts" && (
         <Can permission="contracts.read">
           <DetailSection title="Assigned Contracts">
-            <DataTable
-              columns={contractColumns}
-              data={contracts}
-              keyExtractor={(row) => row._id}
-              isLoading={isContractsLoading}
-              emptyState={
-                <div className="text-center py-6 text-sm text-secondary flex flex-col items-center">
-                  <HardHat className="h-8 w-8 text-muted mb-2" />
-                  No contracts assigned to this contractor.
-                </div>
-              }
-            />
+            {isContractsLoading ? (
+              <DetailSkeleton />
+            ) : contracts?.length > 0 ? (
+              <ListGroup>
+                {contracts.map(row => (
+                  <ListItem
+                    key={row._id}
+                    to={`/contracts/${row._id}`}
+                    title={<span className="font-mono text-[10px] font-bold text-accent uppercase tracking-widest">#{row.contractNumber || "-"}</span>}
+                    subtitle={formatDate(row.contractDate)}
+                    right={
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-sm font-bold text-finance-out">
+                          <MoneyDisplay amount={row.quantity * row.unitPrice || 0} />
+                        </span>
+                        <StatusBadge status={row.status} className="shrink-0" />
+                      </div>
+                    }
+                  />
+                ))}
+              </ListGroup>
+            ) : (
+              <div className="text-center py-6 text-sm text-secondary flex flex-col items-center border border-dashed border-border/50 rounded-lg">
+                <HardHat className="h-8 w-8 text-muted mb-2" />
+                No contracts assigned to this contractor.
+              </div>
+            )}
           </DetailSection>
         </Can>
       )}
@@ -265,18 +256,32 @@ export const ContractorDetail = () => {
       {activeTab === "financials" && (
         <Can permission="contractorPayments.read">
           <DetailSection title="Payment History">
-            <DataTable
-              columns={paymentColumns}
-              data={payments}
-              keyExtractor={(row) => row._id}
-              isLoading={isPaymentsLoading}
-              emptyState={
-                <div className="text-center py-6 text-sm text-secondary flex flex-col items-center">
-                  <FileText className="h-8 w-8 text-muted mb-2" />
-                  No payments have been recorded for this contractor.
-                </div>
-              }
-            />
+            {isPaymentsLoading ? (
+              <DetailSkeleton />
+            ) : payments?.length > 0 ? (
+              <ListGroup>
+                {payments.map(row => (
+                  <ListItem
+                    key={row._id}
+                    title={<span className="font-mono text-[10px] font-bold text-primary tracking-widest">{row.paymentReference}</span>}
+                    subtitle={formatDateTime(row.paymentDate)}
+                    right={
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className={`text-xs sm:text-sm font-bold tracking-tight shrink-0 ${row.status === 'voided' ? 'line-through opacity-50 text-secondary' : 'text-primary'}`}>
+                          <MoneyDisplay amount={row.amount} />
+                        </span>
+                        <StatusBadge status={row.status} className="shrink-0" />
+                      </div>
+                    }
+                  />
+                ))}
+              </ListGroup>
+            ) : (
+              <div className="text-center py-6 text-sm text-secondary flex flex-col items-center border border-dashed border-border/50 rounded-lg">
+                <FileText className="h-8 w-8 text-muted mb-2" />
+                No payments have been recorded for this contractor.
+              </div>
+            )}
           </DetailSection>
         </Can>
       )}

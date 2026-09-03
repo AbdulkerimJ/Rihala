@@ -232,6 +232,25 @@ export const OrdersList = () => {
         data={orders}
         keyExtractor={(row) => row._id}
         onRowClick={(row) => navigate(`/orders/${row._id}`)}
+        mobileRow={(row) => ({
+          title: (
+            <span className="flex items-center gap-2 min-w-0">
+              <span className="font-mono text-[10px] font-bold text-secondary uppercase tracking-widest shrink-0">
+                {row.orderNumber}
+              </span>
+              <span className="truncate">{row.description || row.items?.[0]?.description || "-"}</span>
+            </span>
+          ),
+          subtitle: `${row.customer?.name || "-"} • Due ${formatDate(row.expectedCompletionDate)}`,
+          right: (
+            <div className="flex items-center gap-2 shrink-0">
+              <StatusBadge status={row.status} className="shrink-0" />
+              <span className="text-xs sm:text-sm font-bold text-primary tracking-tight shrink-0">
+                <MoneyDisplay amount={row.agreedAmount} />
+              </span>
+            </div>
+          )
+        })}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
         isLoading={ordersQuery.isLoading}

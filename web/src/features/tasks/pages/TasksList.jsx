@@ -187,6 +187,49 @@ export const TasksList = () => {
         columns={columns}
         data={tasks}
         keyExtractor={(row) => row._id}
+        mobileRow={(row) => ({
+          title: row.name,
+          subtitle: row.taskType?.name || "-",
+          right: (
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-xs font-bold tracking-tight text-primary">
+                <MoneyDisplay amount={row.defaultUnitPrice} />
+              </span>
+              <StatusBadge status={row.isActive ? "active" : "inactive"} className="shrink-0" />
+            </div>
+          ),
+          actions: (
+            <>
+              <Can permission="tasks.update">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  leftIcon={Edit}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditingTask(row);
+                    setIsOpen(true);
+                  }}
+                >
+                  Edit
+                </Button>
+              </Can>
+              <Can permission="tasks.delete">
+                <Button
+                  variant="danger-ghost"
+                  size="sm"
+                  leftIcon={Trash2}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeletingTask(row);
+                  }}
+                >
+                  Delete
+                </Button>
+              </Can>
+            </>
+          )
+        })}
         pagination={{ ...pagination, page }}
         onPageChange={setPage}
         isLoading={isLoading}

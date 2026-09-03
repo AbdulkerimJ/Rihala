@@ -63,7 +63,10 @@ export const PermissionsList = () => {
       />
 
       <FilterBar 
+<<<<<<< HEAD
         filters={{ search }}
+=======
+>>>>>>> 5734ce64b172a889c3bb721d67123397a41b56ba
         searchPlaceholder="Search permissions..."
         searchValue={search}
         onSearchChange={setSearch}
@@ -76,6 +79,10 @@ export const PermissionsList = () => {
         keyExtractor={(row) => row._id || row.name}
         isLoading={isLoading}
         isFetching={isFetching}
+        mobileRow={(row) => ({
+          title: <span className="font-mono">{row.name}</span>,
+          subtitle: row.description || "No description available",
+        })}
         emptyState={
           <EmptyState
             title="No permissions found"
