@@ -200,3 +200,20 @@ export const getPaginatedQueryResult = async (
     },
   };
 };
+
+export const buildDateRangeTransforms = (dateField = "date") => ({
+  from: (value) => ({
+    field: dateField,
+    operator: "$gte",
+    value: new Date(value),
+  }),
+  to: (value) => {
+    const date = new Date(value);
+    date.setHours(23, 59, 59, 999);
+    return {
+      field: dateField,
+      operator: "$lte",
+      value: date,
+    };
+  },
+});

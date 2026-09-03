@@ -39,6 +39,7 @@ const voidCustomerPaymentSchema = z.object({
 const customerPaymentQuerySchema = z
   .object({
     order: z.string().regex(mongoIdRegex, "Invalid order id.").optional(),
+    customer: z.string().regex(mongoIdRegex, "Invalid customer id.").optional(),
     status: z.enum(["active", "voided"]).optional(),
     from: z.coerce
       .date({ error: "The from date must be a valid date." })

@@ -31,7 +31,8 @@ const taskTypeQuerySchema = z.object({
   sort: z.string().optional(),
   search: z.string().optional(),
   isActive: z.enum(["true", "false"]).transform((val) => val === "true").optional(),
-});
+})
+  .strict({ error: "Invalid query parameters." });
 
 export {
   createTaskTypeSchema,

@@ -1,3 +1,4 @@
+import { buildDateRangeTransforms } from "../../core/utils/query.js";
 const customerPaymentQueryConfig = {
   searchableFields: ["note", "orderNumber", "customerName"],
   sortableFields: ["paymentDate", "amount", "createdAt"],
@@ -8,16 +9,9 @@ const customerPaymentQueryConfig = {
     { path: "voidedBy", select: "name" },
   ],
   filterTransforms: {
-    from: (value) => ({
-      field: "paymentDate",
-      operator: "$gte",
-      value: new Date(value),
-    }),
-    to: (value) => ({
-      field: "paymentDate",
-      operator: "$lte",
-      value: new Date(value),
-    }),
+    ...buildDateRangeTransforms("paymentDate"),
+    
+    
     minAmount: (value) => ({
       field: "amount",
       operator: "$gte",

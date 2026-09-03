@@ -64,7 +64,8 @@ const materialQuerySchema = z.object({
   unit: z.enum(UNITS).optional(),
   status: z.enum(["active", "inactive"]).optional(),
   search: z.string().optional(),
-});
+})
+  .strict({ error: "Invalid query parameters." });
 
 export {
   createMaterialSchema,

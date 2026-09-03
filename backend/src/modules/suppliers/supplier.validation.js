@@ -64,7 +64,8 @@ const supplierQuerySchema = z.object({
   sort: z.string().optional(),
   status: z.enum(["active", "inactive"]).optional(),
   search: z.string().optional(),
-});
+})
+  .strict({ error: "Invalid query parameters." });
 
 export {
   createSupplierSchema,

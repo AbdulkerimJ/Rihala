@@ -1,3 +1,4 @@
+import { buildDateRangeTransforms } from "../../core/utils/query.js";
 const supplierPaymentQueryConfig = {
   searchableFields: ["paymentReference"],
   filterableFields: ["supplier", "type", "status"],
@@ -9,16 +10,9 @@ const supplierPaymentQueryConfig = {
     { path: "voidedBy", select: "name email" },
   ],
   filterTransforms: {
-    from: (value) => ({
-      field: "date",
-      operator: "$gte",
-      value: new Date(value),
-    }),
-    to: (value) => ({
-      field: "date",
-      operator: "$lte",
-      value: new Date(value),
-    }),
+    ...buildDateRangeTransforms("date"),
+    
+    
   },
 };
 

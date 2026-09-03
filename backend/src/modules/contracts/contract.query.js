@@ -1,3 +1,4 @@
+import { buildDateRangeTransforms } from "../../core/utils/query.js";
 const contractQueryConfig = {
   searchableFields: ["contractNumber", "note"],
   sortableFields: ["contractDate", "expectedCompletionDate", "createdAt", "quantity", "unitPrice"],
@@ -5,16 +6,9 @@ const contractQueryConfig = {
   defaultSort: "-contractDate",
   populate: "contractor task createdBy cancelledBy",
   filterTransforms: {
-    from: (value) => ({
-      field: "contractDate",
-      operator: "$gte",
-      value: new Date(value),
-    }),
-    to: (value) => ({
-      field: "contractDate",
-      operator: "$lte",
-      value: new Date(value),
-    }),
+    ...buildDateRangeTransforms("contractDate"),
+    
+    
   },
 };
 

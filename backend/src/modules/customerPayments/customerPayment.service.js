@@ -76,12 +76,21 @@ const createCustomerPaymentService = async (data, userId) => {
 };
 
 const getCustomerPaymentsService = async (filters = {}) => {
+  const queryFilters = { ...filters };
+  let customQuery = {};
+
+  if (queryFilters.customer) {
+    const ordersForCustomer = await Order.find({ customer: queryFilters.customer }).select("_id");
+    const orderIds = ordersForCustomer.map(o => o._id);
+    customQuery.order = { $in: orderIds };
+    delete queryFilters.customer;
+  }
 
   return getPaginatedQueryResult(
     CustomerPayment,
-    filters,
+    queryFilters,
     customerPaymentQueryConfig,
-    { populate: "order voidedBy createdBy" }
+    { populate: "order voidedBy createdBy", query: customQuery }
   );
 };
 

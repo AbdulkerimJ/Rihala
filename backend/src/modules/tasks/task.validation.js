@@ -36,7 +36,8 @@ const taskQuerySchema = z.object({
   search: z.string().optional(),
   taskType: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid task type ID").optional(),
   isActive: z.enum(["true", "false"]).transform((val) => val === "true").optional(),
-});
+})
+  .strict({ error: "Invalid query parameters." });
 
 export {
   createTaskSchema,

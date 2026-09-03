@@ -36,7 +36,8 @@ const contractQuerySchema = z.object({
   status: z.enum(["ACTIVE", "COMPLETED", "CANCELLED"]).optional(),
   from: z.coerce.date().optional(),
   to: z.coerce.date().optional(),
-});
+})
+  .strict({ error: "Invalid query parameters." });
 
 export {
   createContractSchema,

@@ -53,7 +53,8 @@ const contractorQuerySchema = z.object({
   sort: z.string().optional(),
   search: z.string().optional(),
   status: z.enum(["active", "inactive"]).optional(),
-});
+})
+  .strict({ error: "Invalid query parameters." });
 
 export {
   createContractorSchema,

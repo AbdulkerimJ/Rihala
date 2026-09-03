@@ -32,8 +32,11 @@ const purchaseQuerySchema = z.object({
   supplier: z.string().regex(/^[0-9a-fA-F]{24}$/).optional(),
   paymentStatus: z.enum(["UNPAID", "PARTIALLY_PAID", "PAID"]).optional(),
   paymentStatuses: z.string().optional(),
+  from: z.coerce.date({ error: "The from date must be a valid date." }).optional(),
+  to: z.coerce.date({ error: "The to date must be a valid date." }).optional(),
   search: z.string().optional(),
-});
+})
+  .strict({ error: "Invalid query parameters." });
 
 export {
   createPurchaseSchema,

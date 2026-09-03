@@ -24,7 +24,8 @@ const contractorPaymentQuerySchema = z.object({
   status: z.enum(["active", "voided"]).optional(),
   from: z.coerce.date().optional(),
   to: z.coerce.date().optional(),
-});
+})
+  .strict({ error: "Invalid query parameters." });
 
 export {
   createContractorPaymentSchema,

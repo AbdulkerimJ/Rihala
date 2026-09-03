@@ -1,13 +1,10 @@
+import { buildDateRangeTransforms } from "../../core/utils/query.js";
 const purchaseQueryConfig = {
   searchableFields: ["purchaseNumber"],
   filterableFields: ["supplier", "paymentStatus"],
   filterTransforms: {
-    from: (val) => ({ field: "date", operator: "$gte", value: new Date(val) }),
-    to: (val) => {
-      const date = new Date(val);
-      date.setHours(23, 59, 59, 999);
-      return { field: "date", operator: "$lte", value: date };
-    },
+    ...buildDateRangeTransforms("date"),
+
     paymentStatuses: (val) => ({
       field: "paymentStatus",
       operator: "$in",

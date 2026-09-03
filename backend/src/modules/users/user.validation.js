@@ -45,6 +45,7 @@ const userQuerySchema = z.object({
   search: z.string().optional(),
   sort: z.string().optional(),
   status: z.enum(["active", "inactive", "invited"]).optional(),
-});
+})
+  .strict({ error: "Invalid query parameters." });
 
 export { createUserSchema, updateUserSchema, userIdSchema, userQuerySchema };

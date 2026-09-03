@@ -22,7 +22,8 @@ const contractCompletionQuerySchema = z.object({
   search: z.string().optional(),
   contract: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid contract ID").optional(),
   status: z.enum(["ACTIVE", "VOIDED"]).optional(),
-});
+})
+  .strict({ error: "Invalid query parameters." });
 
 export {
   createContractCompletionSchema,

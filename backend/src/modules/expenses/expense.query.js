@@ -1,19 +1,13 @@
+import { buildDateRangeTransforms } from "../../core/utils/query.js";
 const expenseQueryConfig = {
   searchableFields: ["description"],
   sortableFields: ["date", "amount", "createdAt"],
   filterableFields: ["category", "status"],
   defaultSort: "-date",
   filterTransforms: {
-    from: (value) => ({
-      field: "date",
-      operator: "$gte",
-      value: new Date(value),
-    }),
-    to: (value) => ({
-      field: "date",
-      operator: "$lte",
-      value: new Date(value),
-    }),
+    ...buildDateRangeTransforms("date"),
+    
+    
     minAmount: (value) => ({
       field: "amount",
       operator: "$gte",
