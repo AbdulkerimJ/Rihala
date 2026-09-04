@@ -3,7 +3,7 @@ const contractQueryConfig = {
   searchableFields: ["contractNumber", "note"],
   sortableFields: ["contractDate", "expectedCompletionDate", "createdAt", "quantity", "unitPrice"],
   filterableFields: ["contractor", "task", "status"],
-  defaultSort: "-contractDate",
+  defaultSort: "-createdAt",
   populate: "contractor task createdBy cancelledBy",
   filterTransforms: {
     ...buildDateRangeTransforms("contractDate"),

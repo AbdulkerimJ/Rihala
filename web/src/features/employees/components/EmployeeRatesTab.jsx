@@ -1,13 +1,12 @@
 import React, { useMemo, useState } from "react";
-import { Save, X, Plus } from "lucide-react";
+import { Save, X, Plus, Edit, Trash2 } from "lucide-react";
 import { usePermission } from "../../../hooks/usePermission";
 import { useDebounce } from "../../../hooks/useDebounce";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { employeeRatesApi } from "../api";
-import { getEmployees, createEmployee } from "../../employees/api";
-import { EmployeeForm } from "../../employees/components/EmployeeForm";
-import { PageHeader } from "../../../components/ui/PageHeader";
+import { employeeRatesApi } from "../../employee-rates/api";
+import { getEmployees, createEmployee } from "../api";
+import { EmployeeForm } from "./EmployeeForm";
 import { Button } from "../../../components/ui/Button";
 import { Can } from "../../../components/Can";
 
@@ -30,7 +29,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
 import { applyServerErrors, cleanFilterParams, getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
-import { formatDate, formatCurrency } from "../../../utils/formatters";
+import { formatDate, formatCurrency, getLocalISODate } from "../../../utils/formatters";
 
 const employeeRateSchema = z.object({
   employee: z.string().min(1, "Employee is required"),
@@ -53,12 +52,12 @@ const EmployeeRateForm = ({ initialData, onSubmit, onClose }) => {
     defaultValues: initialData ? {
       employee: initialData.employee?._id || initialData.employee,
       dailyRate: initialData.dailyRate,
-      effectiveDate: initialData.effectiveDate ? new Date(initialData.effectiveDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+      effectiveDate: initialData.effectiveDate ? getLocalISODate(initialData.effectiveDate) : getLocalISODate(),
       note: initialData.note || "",
     } : {
       employee: "",
       dailyRate: "",
-      effectiveDate: new Date().toISOString().split("T")[0],
+      effectiveDate: getLocalISODate(),
       note: "",
     },
   });
@@ -139,7 +138,7 @@ const EmployeeRateForm = ({ initialData, onSubmit, onClose }) => {
   );
 };
 
-export const EmployeeRatesList = () => {
+export const EmployeeRatesTab = () => {
   const { can } = usePermission();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
@@ -230,28 +229,28 @@ export const EmployeeRatesList = () => {
         <div className="flex justify-end gap-2">
           <Can permission="employeeRates.update">
             <Button
-              variant="secondary"
-              size="sm"
+              variant="ghost"
+              size="icon"
+              leftIcon={Edit}
+              title="Edit"
               onClick={(e) => {
                 e.stopPropagation();
                 setEditingRate(row);
                 setIsOpen(true);
               }}
-            >
-              Edit
-            </Button>
+            />
           </Can>
           <Can permission="employeeRates.delete">
             <Button
               variant="danger-ghost"
-              size="sm"
+              size="icon"
+              leftIcon={Trash2}
+              title="Delete"
               onClick={(e) => {
                 e.stopPropagation();
                 setDeletingRate(row);
               }}
-            >
-              Delete
-            </Button>
+            />
           </Can>
         </div>
       ),
@@ -261,33 +260,32 @@ export const EmployeeRatesList = () => {
   if (isError) return <ErrorState description={getApiErrorMessage(error, "Failed to load employee rates.")} />;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Employee Rates"
-        description="Manage daily wage rates for employees."
-        actions={
-          <Can permission="employeeRates.create">
-            <Button onClick={() => { setEditingRate(null); setIsOpen(true); }}>Set Rate</Button>
-          </Can>
-        }
-      />
-
-      <FilterBar 
-        filters={filters}
-        searchPlaceholder="Search notes..."
-        searchValue={filters.search}
-        onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}
-        onClear={Object.values(filters).some(Boolean) ? () => { setFilters({ search: "", employee: "" }); setPage(1); } : undefined}
-      >
-        <Select
-          value={filters.employee}
-          onChange={(e) => { setFilters(p => ({ ...p, employee: e.target.value })); setPage(1); }}
-          options={[
-            { value: "", label: "All Employees" },
-            ...employees.map(e => ({ value: e._id, label: e.name }))
-          ]}
-        />
-      </FilterBar>
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row gap-4 items-start justify-between">
+        <div className="flex-1 w-full min-w-0">
+          <FilterBar 
+            filters={filters}
+            searchPlaceholder="Search notes..."
+            searchValue={filters.search}
+            onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}
+            onClear={Object.values(filters).some(Boolean) ? () => { setFilters({ search: "", employee: "" }); setPage(1); } : undefined}
+          >
+            <Select
+              value={filters.employee}
+              onChange={(e) => { setFilters(p => ({ ...p, employee: e.target.value })); setPage(1); }}
+              options={[
+                { value: "", label: "All Employees" },
+                ...employees.map(e => ({ value: e._id, label: e.name }))
+              ]}
+            />
+          </FilterBar>
+        </div>
+        <Can permission="employeeRates.create">
+          <Button onClick={() => { setEditingRate(null); setIsOpen(true); }} leftIcon={Plus} className="shrink-0 w-full sm:w-auto">
+            Set Rate
+          </Button>
+        </Can>
+      </div>
 
       <DataTable 
         columns={columns}

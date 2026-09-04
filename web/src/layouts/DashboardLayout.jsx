@@ -38,7 +38,7 @@ export const DashboardLayout = () => {
       "/dashboard": "Dashboard",
       "/users": "Users",
       "/roles": "Roles",
-      "/permissions": "Permissions",
+
       "/customers": "Customers",
       "/orders": "Orders",
       "/suppliers": "Suppliers",
@@ -46,7 +46,7 @@ export const DashboardLayout = () => {
       "/purchases": "Purchases",
       "/employee-payments": "Employee Payments",
       "/employees": "Employees",
-      "/employee-rates": "Employee Rates",
+
       "/attendances": "Attendance",
       "/overtimes": "Overtime",
       "/weekly-payrolls": "Weekly Payroll",
@@ -82,46 +82,33 @@ export const DashboardLayout = () => {
       defaultExpanded: true,
       items: [
         { name: "Attendance", path: "/attendances", icon: CalendarDays, permission: "attendances.read" },
-        { name: "Overtime", path: "/overtimes", icon: Clock, permission: "overtimes.read" },
-        { name: "Purchases", path: "/purchases", icon: ClipboardList, permission: "purchases.read" },
         { name: "Contracts", path: "/contracts", icon: FileText, permission: "contracts.read" },
-        { name: "Weekly Payroll", path: "/weekly-payrolls", icon: Receipt, permission: "weeklyPayrolls.read" },
         { name: "Orders", path: "/orders", icon: ShoppingCart, permission: "orders.read" },
+        { name: "Overtime", path: "/overtimes", icon: Clock, permission: "overtimes.read" },
+        { name: "Payments", path: "/payments", icon: Wallet },
+        { name: "Purchases", path: "/purchases", icon: ClipboardList },
+        { name: "Weekly Payroll", path: "/weekly-payrolls", icon: Receipt, permission: "weeklyPayrolls.read" },
       ]
     },
     {
       title: "People",
       icon: Users,
       items: [
-        { name: "Employees", path: "/employees", icon: UserSquare2, permission: "employees.read" },
         { name: "Contractors", path: "/contractors", icon: HardHat, permission: "contractors.read" },
         { name: "Customers", path: "/customers", icon: Store, permission: "customers.read" },
+        { name: "Employees", path: "/employees", icon: UserSquare2, permission: "employees.read" },
       ]
     },
-    {
-      title: "Payments",
-      icon: Wallet,
-      items: [
-        { name: "Payments", path: "/payments", icon: Wallet },
-      ]
-    },
-    {
-      title: "Inventory",
-      icon: Package,
-      items: [
-        { name: "Materials", path: "/materials", icon: Package, permission: "materials.read" },
-        { name: "Suppliers", path: "/suppliers", icon: Building2, permission: "suppliers.read" },
-      ]
-    },
+
+
     {
       title: "Administration",
       icon: Settings,
       items: [
-        { name: "Tasks", path: "/tasks", icon: Hammer, permission: "tasks.read" },
-        { name: "Task Types", path: "/task-types", icon: ListTree, permission: "taskTypes.read" },
-        { name: "Users", path: "/users", icon: Users, permission: "users.read" },
+
         { name: "Roles", path: "/roles", icon: ShieldCheck, permission: "roles.read" },
-        { name: "Permissions", path: "/permissions", icon: Key, permission: "permissions.read" },
+        { name: "Tasks", path: "/tasks", icon: Hammer, permission: "tasks.read" },
+        { name: "Users", path: "/users", icon: Users, permission: "users.read" },
       ]
     }
   ];

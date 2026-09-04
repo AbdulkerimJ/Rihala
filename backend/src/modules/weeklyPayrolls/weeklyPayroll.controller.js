@@ -39,6 +39,7 @@ const getCurrentPayrollCalculationController = catchAsync(async (req, res) => {
 const closeEmployeeWeeklyPayrollController = catchAsync(async (req, res) => {
   const payroll = await closeEmployeeWeeklyPayrollService(
     req.validatedParams.employeeId,
+    req.validatedBody
   );
 
   res.status(201).json({

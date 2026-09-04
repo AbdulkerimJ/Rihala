@@ -7,7 +7,9 @@ import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tansta
 import { useNavigate } from "react-router-dom";
 import { createEmployee, getEmployees, updateEmployee, deleteEmployee } from "../api";
 import { EmployeeForm } from "../components/EmployeeForm";
+import { EmployeeRatesTab } from "../components/EmployeeRatesTab";
 import { PageHeader } from "../../../components/ui/PageHeader";
+import { Tabs } from "../../../components/ui/Tabs";
 import { Button } from "../../../components/ui/Button";
 import { Can } from "../../../components/Can";
 
@@ -37,6 +39,7 @@ export const EmployeesList = () => {
   const { can } = usePermission();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("directory");
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({ search: "", status: "" }); 
   const debouncedSearch = useDebounce(filters.search, 300);
@@ -143,22 +146,35 @@ export const EmployeesList = () => {
   if (isError)
     return <ErrorState description={getApiErrorMessage(error, "Failed to load employees.")} />;
 
+  const tabs = [
+    { id: "directory", label: "Directory" },
+    { id: "rates", label: "Rates History" }
+  ];
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Employees"
         description="Manage workshop staff, contact info, and employment periods."
         actions={
-          <Can permission="employees.create">
-            <Button variant="primary" leftIcon={Plus} onClick={() => { setEditingEmployee(null); setIsOpen(true); }}>
-              Add Employee
-            </Button>
-          </Can>
+          activeTab === "directory" && (
+            <Can permission="employees.create">
+              <Button leftIcon={Plus} onClick={() => { setEditingEmployee(null); setIsOpen(true); }}>
+                Add Employee
+              </Button>
+            </Can>
+          )
         }
       />
 
-      <FilterBar 
-        filters={filters}
+      <div className="flex-1 min-w-0 overflow-x-auto hide-scrollbar pb-1">
+        <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+      </div>
+
+      {activeTab === "directory" && (
+        <>
+          <FilterBar 
+            filters={filters}
         searchPlaceholder="Search employees..."
         searchValue={filters.search}
         onSearchChange={(val) => { setFilters((p) => ({ ...p, search: val })); setPage(1); }}
@@ -179,8 +195,8 @@ export const EmployeesList = () => {
         mobileRow={(row) => ({
           to: `/employees/${row._id}`,
           title: row.name,
-          subtitle: `${row.phone || "-"} • Since ${formatDate(row.startDate)}`,
-          right: <StatusBadge status={row.isActive ? "active" : "inactive"} />,
+          subtitle: `${row.phone || "-"} • Since ${formatDate(row.employmentStartDate)}`,
+          right: <StatusBadge status={row.status} />,
           actions: (
             <>
               <Can permission="employees.update">
@@ -227,6 +243,10 @@ export const EmployeesList = () => {
           />
         }
       />
+        </>
+      )}
+
+      {activeTab === "rates" && <EmployeeRatesTab />}
 
       <Modal isOpen={isOpen} title={editingEmployee ? "Edit Employee" : "New Employee"} onClose={() => setIsOpen(false)}>
         <EmployeeForm

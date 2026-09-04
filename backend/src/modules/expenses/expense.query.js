@@ -3,7 +3,7 @@ const expenseQueryConfig = {
   searchableFields: ["description"],
   sortableFields: ["date", "amount", "createdAt"],
   filterableFields: ["category", "status"],
-  defaultSort: "-date",
+  defaultSort: "-createdAt",
   filterTransforms: {
     ...buildDateRangeTransforms("date"),
     

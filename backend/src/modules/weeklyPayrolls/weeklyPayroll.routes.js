@@ -13,6 +13,7 @@ import {
   employeeIdSchema,
   weeklyPayrollIdSchema,
   weeklyPayrollQuerySchema,
+  closePayrollBodySchema,
 } from "./weeklyPayroll.validation.js";
 
 const router = express.Router();
@@ -41,6 +42,7 @@ router.post(
   "/employees/:employeeId/close",
   authorize("weeklyPayrolls.close"),
   validate(employeeIdSchema, "Please check the employee id.", "params"),
+  validate(closePayrollBodySchema, "Please check the payload.", "body"),
   closeEmployeeWeeklyPayrollController,
 );
 

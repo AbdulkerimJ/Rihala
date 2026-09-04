@@ -37,7 +37,7 @@ import {
   getApiErrorMessage,
   unwrapListResponse,
 } from "../../../utils/apiResponse";
-import { formatDate } from "../../../utils/formatters";
+import { formatDate, getLocalISODate } from "../../../utils/formatters";
 
 const expenseSchema = z.object({
   category: z.enum(EXPENSE_CATEGORIES, {
@@ -77,7 +77,7 @@ const ExpenseForm = ({ initialData, onSubmit, onClose }) => {
           category: EXPENSE_CATEGORIES[0],
           amount: "",
           description: "",
-          date: new Date().toISOString().slice(0, 10),
+          date: getLocalISODate(),
         },
   });
 

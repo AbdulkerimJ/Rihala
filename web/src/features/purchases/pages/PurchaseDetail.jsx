@@ -14,7 +14,7 @@ import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { Button } from "../../../components/ui/Button";
 import { Can } from "../../../components/Can";
 import { getApiErrorMessage, unwrapEntityResponse, unwrapListResponse } from "../../../utils/apiResponse";
-import { formatDate } from "../../../utils/formatters";
+import { formatDate, getLocalISODate } from "../../../utils/formatters";
 import { usePermission } from "../../../hooks/usePermission";
 import { ShoppingBag, Calendar, Building2, Edit, CreditCard } from "lucide-react";
 import { ProgressBar } from "../../../components/ui/ProgressBar";
@@ -289,7 +289,7 @@ export const PurchaseDetail = () => {
           <PurchaseForm
             initialData={{
               supplier: purchase.supplier?._id || purchase.supplier || "",
-              purchaseDate: purchase.date ? new Date(purchase.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+              purchaseDate: purchase.date ? getLocalISODate(purchase.date) : getLocalISODate(),
               notes: purchase.note || "",
               items: purchase.items?.map(i => ({
                 material: i.material?._id || i.material || "",

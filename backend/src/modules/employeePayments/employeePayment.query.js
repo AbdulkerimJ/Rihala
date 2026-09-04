@@ -3,7 +3,7 @@ const employeePaymentQueryConfig = {
   searchableFields: ["note", "paymentReference"],
   sortableFields: ["paymentDate", "amount", "createdAt"],
   filterableFields: ["employee", "type", "status", "paymentReference"],
-  defaultSort: "-paymentDate",
+  defaultSort: "-createdAt",
   populate: [
     { path: "voidedBy", select: "name" },
   ],

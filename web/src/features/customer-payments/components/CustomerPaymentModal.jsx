@@ -18,6 +18,7 @@ import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { CurrencyInput } from "../../../components/ui/CurrencyInput";
 import { applyServerErrors, unwrapListResponse } from "../../../utils/apiResponse";
+import { getLocalISODate } from "../../../utils/formatters";
 
 const paymentSchema = z.object({
   customer: z.string().min(1, "Customer is required"),
@@ -60,7 +61,7 @@ export const CustomerPaymentModal = ({
       order: preSelectedOrder?._id || preSelectedOrder || "",
       amount: "",
       notes: "",
-      paymentDate: new Date().toISOString().split("T")[0],
+      paymentDate: getLocalISODate(),
     },
   });
 
@@ -73,7 +74,7 @@ export const CustomerPaymentModal = ({
         order: preSelectedOrder?._id || preSelectedOrder || "",
         amount: remaining > 0 ? remaining : "",
         notes: "",
-        paymentDate: new Date().toISOString().split("T")[0],
+        paymentDate: getLocalISODate(),
       });
     }
   }, [isOpen, reset, preSelectedCustomer, preSelectedOrder]);

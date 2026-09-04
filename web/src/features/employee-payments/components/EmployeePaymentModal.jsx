@@ -8,6 +8,7 @@ import { usePermission } from "../../../hooks/usePermission";
 import { getEmployees, createEmployee } from "../../employees/api";
 import { EmployeeForm } from "../../employees/components/EmployeeForm";
 import { unwrapListResponse, applyServerErrors } from "../../../utils/apiResponse";
+import { getLocalISODate } from "../../../utils/formatters";
 
 import { Modal } from "../../../components/ui/Modal";
 import { FormField } from "../../../components/ui/FormField";
@@ -48,7 +49,7 @@ export const EmployeePaymentModal = ({
       employee: preSelectedEmployee?._id || preSelectedEmployee || "",
       amount: "",
       type: "regular",
-      paymentDate: new Date().toISOString().split("T")[0],
+      paymentDate: getLocalISODate(),
       note: "",
     },
   });

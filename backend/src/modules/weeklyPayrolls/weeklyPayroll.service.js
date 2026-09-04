@@ -11,6 +11,8 @@ import NotFoundError from "../../core/errors/NotFoundError.js";
 import ValidationError from "../../core/errors/ValidationError.js";
 import { getPaginatedQueryResult } from "../../core/utils/query.js";
 import { normalizeDateValue, isWorkday } from "../../core/utils/date.js";
+import Counter from "../../core/models/counter.model.js";
+import EmployeePayment from "../employeePayments/employeePayment.model.js";
 
 const getLatestClosedPayroll = async (employeeId, session = null) => {
   return WeeklyPayroll.findOne({
@@ -192,10 +194,13 @@ const calculatePayrollData = async (
     });
   }
 
+  const hasProcessedDays = dailyBreakdown.length > 0 || overtimeBreakdown.length > 0;
+  const isComplete = missingAttendanceDates.length === 0 && hasProcessedDays;
+
   return {
     missingAttendanceDates,
-    isComplete: missingAttendanceDates.length === 0 && (dailyBreakdown.length > 0 || overtimeBreakdown.length > 0),
-    hasProcessedDays: dailyBreakdown.length > 0 || overtimeBreakdown.length > 0,
+    isComplete,
+    hasProcessedDays,
     normalEarnings,
     overtimeEarnings,
     totalEarnings: normalEarnings + overtimeEarnings,
@@ -260,7 +265,7 @@ const getWeeklyPayrollByIdService = async (weeklyPayrollId) => {
   return payroll;
 };
 
-const closeEmployeeWeeklyPayrollService = async (employeeId) => {
+const closeEmployeeWeeklyPayrollService = async (employeeId, data = {}) => {
   // Resolve employee outside the transaction (read-only, no financial impact).
   const employee = await ensureEmployeeExists(employeeId);
 
@@ -336,6 +341,31 @@ const closeEmployeeWeeklyPayrollService = async (employeeId) => {
           ],
           { session },
         );
+
+        if (data?.initialPayment) {
+          if (data.initialPayment.amount > payrollData.totalEarnings) {
+            throw new ValidationError(`Payment (${data.initialPayment.amount}) cannot exceed total earnings for this period (${payrollData.totalEarnings})`);
+          }
+          
+          const counter = await Counter.findOneAndUpdate(
+            { _id: "paymentReference" },
+            { $inc: { seq: 1 } },
+            { upsert: true, new: true, setDefaultsOnInsert: true },
+            { session }
+          );
+          const paymentReference = `PAY-${counter.seq + 1000}`;
+          
+          await EmployeePayment.create([{
+            employee: employeeId,
+            employeeName: employee.name,
+            paymentReference,
+            amount: data.initialPayment.amount,
+            paymentDate: data.initialPayment.paymentDate,
+            type: "regular",
+            note: data.initialPayment.note,
+            status: "active",
+          }], { session });
+        }
 
         return createdPayroll[0].populate("employee");
       } catch (error) {

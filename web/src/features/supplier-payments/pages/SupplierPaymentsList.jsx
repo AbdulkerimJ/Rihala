@@ -145,9 +145,9 @@ export const SupplierPaymentsList = () => {
           value={filters.status}
           onChange={(e) => { setFilters(p => ({ ...p, status: e.target.value })); setPage(1); }}
           options={[
-            { value: "", label: "All Statuses" },
-            { value: "active", label: "Active" },
+            { value: "", label: "Active" },
             { value: "voided", label: "Voided" },
+            { value: "all", label: "All Statuses" },
           ]}
         />
         <Input

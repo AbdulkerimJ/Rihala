@@ -1,6 +1,6 @@
 import React from "react";
 import { Save, X, Plus } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { FormField } from "../../../components/ui/FormField";
@@ -11,6 +11,8 @@ import { FormRootError } from "../../../components/ui/FormRootError";
 import { ethiopianPhone } from "../../../utils/validation";
 import { ACTIVE_INACTIVE_OPTIONS } from "../../../constants/options";
 import { applyServerErrors } from "../../../utils/apiResponse";
+import { CurrencyInput } from "../../../components/ui/CurrencyInput";
+import { getLocalISODate } from "../../../utils/formatters";
 
 const employeeSchema = z
   .object({
@@ -22,6 +24,7 @@ const employeeSchema = z
     employmentStartDate: z.string().min(1, "Employment start date is required"),
     employmentEndDate: z.string().optional().or(z.literal("")),
     status: z.enum(["active", "inactive"]).default("active"),
+    initialDailyRate: z.coerce.number().positive("Rate must be positive").optional().or(z.literal("")),
   })
   .refine(
     (data) => {
@@ -38,6 +41,7 @@ export const EmployeeForm = ({ initialData, onSubmit, onClose }) => {
   const {
     register,
     handleSubmit,
+    control,
     setError,
     formState: { errors, isSubmitting },
   } = useForm({
@@ -47,19 +51,20 @@ export const EmployeeForm = ({ initialData, onSubmit, onClose }) => {
           name: initialData.name || "",
           phone: initialData.phone || "",
           employmentStartDate: initialData.employmentStartDate
-            ? new Date(initialData.employmentStartDate).toISOString().split("T")[0]
-            : new Date().toISOString().split("T")[0],
+            ? getLocalISODate(initialData.employmentStartDate)
+            : getLocalISODate(),
           employmentEndDate: initialData.employmentEndDate
-            ? new Date(initialData.employmentEndDate).toISOString().split("T")[0]
+            ? getLocalISODate(initialData.employmentEndDate)
             : "",
           status: initialData.status || "active",
         }
       : {
           name: "",
           phone: "",
-          employmentStartDate: new Date().toISOString().split("T")[0],
+          employmentStartDate: getLocalISODate(),
           employmentEndDate: "",
           status: "active",
+          initialDailyRate: "",
         },
   });
 
@@ -68,6 +73,7 @@ export const EmployeeForm = ({ initialData, onSubmit, onClose }) => {
       const payload = {
         ...data,
         employmentEndDate: data.employmentEndDate ? data.employmentEndDate : undefined,
+        initialDailyRate: data.initialDailyRate ? data.initialDailyRate : undefined,
       };
       await onSubmit(payload);
     } catch (error) {
@@ -107,6 +113,23 @@ export const EmployeeForm = ({ initialData, onSubmit, onClose }) => {
             options={ACTIVE_INACTIVE_OPTIONS}
           />
         </FormField>
+
+        {!initialData && (
+          <FormField label="Initial Daily Rate (Optional)" error={errors.initialDailyRate?.message}>
+            <Controller
+              name="initialDailyRate"
+              control={control}
+              render={({ field: { onChange, value } }) => (
+                <CurrencyInput
+                  value={value}
+                  onValueChange={onChange}
+                  placeholder="e.g. 500"
+                  error={errors.initialDailyRate?.message}
+                />
+              )}
+            />
+          </FormField>
+        )}
       </div>
 
       <div className="flex justify-end gap-2.5 pt-3 mt-1 border-t border-border/50">

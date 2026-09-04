@@ -10,7 +10,7 @@ const ADMIN_ROLE_NAME = "Admin";
 // Create a new role.
 // The Admin role name is reserved and cannot be created manually.
 // New roles start with zero permissions.
-const createRoleService = async ({ name }) => {
+const createRoleService = async ({ name, permissions = [] }) => {
   if (name.trim().toLowerCase() === ADMIN_ROLE_NAME.toLowerCase()) {
     const msg = `The role name "${ADMIN_ROLE_NAME}" is reserved and cannot be created manually.`;
     throw new ConflictError(msg, [{ field: "name", message: msg }]);
@@ -23,7 +23,19 @@ const createRoleService = async ({ name }) => {
     throw new ConflictError(msg, [{ field: "name", message: msg }]);
   }
 
-  const role = await Role.create({ name: name.trim(), permissions: [] });
+  let finalPermissions = [];
+  if (permissions && permissions.length > 0) {
+    const validPermissions = await Permission.find({
+      _id: { $in: permissions },
+    }).select("_id");
+
+    if (validPermissions.length !== permissions.length) {
+      throw new NotFoundError("One or more permission ids are invalid.");
+    }
+    finalPermissions = validPermissions.map((p) => p._id);
+  }
+
+  const role = await Role.create({ name: name.trim(), permissions: finalPermissions });
 
   return role;
 };

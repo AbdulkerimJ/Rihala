@@ -17,10 +17,6 @@ export const Finance = () => {
   // Define all available tabs, filtering them by permissions
   const availableTabs = useMemo(() => {
     const tabs = [];
-    
-    if (can("expenses.read")) {
-      tabs.push({ id: "expenses", label: "Expenses", icon: Receipt });
-    }
     if (can("supplierPayments.read")) {
       tabs.push({ id: "suppliers", label: "Supplier Payments", icon: HandCoins });
     }
@@ -29,6 +25,9 @@ export const Finance = () => {
     }
     if (can("contractorPayments.read")) {
       tabs.push({ id: "contractors", label: "Contractor Payments", icon: BadgeDollarSign });
+    }
+    if (can("expenses.read")) {
+      tabs.push({ id: "expenses", label: "Expenses", icon: Receipt });
     }
     if (can("customerPayments.read")) {
       tabs.push({ id: "customers", label: "Customer Payments", icon: CreditCard });

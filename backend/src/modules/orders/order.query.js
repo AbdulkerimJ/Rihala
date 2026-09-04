@@ -3,7 +3,7 @@ const orderQueryConfig = {
   searchableFields: ["orderNumber", "customerName", "customerPhone", "description"],
   sortableFields: ["createdAt", "date", "expectedCompletionDate", "agreedAmount", "orderNumber"],
   filterableFields: ["status", "customer", "createdBy"],
-  defaultSort: "-date",
+  defaultSort: "-createdAt",
   filterTransforms: {
     ...buildDateRangeTransforms("date"),
     

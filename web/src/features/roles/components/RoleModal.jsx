@@ -1,5 +1,5 @@
-import React from "react";
-import { Save, X, Plus } from "lucide-react";
+import React, { useState } from "react";
+import { Save, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -8,12 +8,20 @@ import { FormField } from "../../../components/ui/FormField";
 import { Input } from "../../../components/ui/Input";
 import { FormRootError } from "../../../components/ui/FormRootError";
 import { applyServerErrors } from "../../../utils/apiResponse";
+import { PermissionsSelector } from "./PermissionsSelector";
 
 const roleSchema = z.object({
   name: z.string().trim().min(2, "Role name must be at least 2 characters"),
 });
 
 export const RoleForm = ({ initialData, onSubmit, onClose }) => {
+  const [selectedPermissions, setSelectedPermissions] = useState(() => {
+    const initialIds = (initialData?.permissions || []).map((p) =>
+      typeof p === "string" ? p : p._id
+    );
+    return new Set(initialIds);
+  });
+
   const {
     register,
     handleSubmit,
@@ -28,7 +36,7 @@ export const RoleForm = ({ initialData, onSubmit, onClose }) => {
 
   const handleFormSubmit = async (data) => {
     try {
-      await onSubmit(data);
+      await onSubmit({ ...data, permissions: Array.from(selectedPermissions) });
       onClose();
     } catch (error) {
       applyServerErrors(setError, error);
@@ -36,24 +44,34 @@ export const RoleForm = ({ initialData, onSubmit, onClose }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="p-6 space-y-4">
-      <FormRootError error={errors.root} />
-      <FormField label="Role Name" required error={errors.name?.message}>
-        <Input
-          type="text"
-          error={errors.name?.message}
-          {...register("name")}
-        />
-      </FormField>
+    <div className="relative flex flex-col h-full">
+      <div className="p-6 overflow-y-auto space-y-6 flex-1">
+        <FormRootError error={errors.root} />
+        <FormField label="Role Name" required error={errors.name?.message}>
+          <Input
+            type="text"
+            error={errors.name?.message}
+            {...register("name")}
+          />
+        </FormField>
 
-      <div className="mt-6 flex justify-end gap-3 border-t border-border/50 pt-4">
+        <div>
+          <h4 className="text-sm font-semibold text-primary mb-3">Permissions</h4>
+          <PermissionsSelector
+            selectedPermissions={selectedPermissions}
+            onChange={setSelectedPermissions}
+          />
+        </div>
+      </div>
+
+      <div className="sticky bottom-0 bg-surface border-t border-border px-6 py-4 flex justify-end gap-3 z-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] shrink-0">
         <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting} leftIcon={X}>
           Cancel
         </Button>
-        <Button type="submit" isLoading={isSubmitting} leftIcon={Save}>
-          Save
+        <Button type="button" onClick={handleSubmit(handleFormSubmit)} isLoading={isSubmitting} leftIcon={Save}>
+          Save Role
         </Button>
       </div>
-    </form>
+    </div>
   );
 };

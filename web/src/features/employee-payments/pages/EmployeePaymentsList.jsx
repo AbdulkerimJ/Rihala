@@ -121,7 +121,7 @@ export const EmployeePaymentsList = () => {
     <div className="space-y-6">
       <PageHeader
         title="Employee Payments"
-        description="Record and track payments made to staff (salaries, advances, bonuses)."
+        description="Record and track payments made to staff."
         actions={
           <Can permission="employeePayments.create">
             <Button leftIcon={Banknote} onClick={() => setIsOpen(true)}>

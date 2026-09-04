@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, CheckCheck, Calendar, RotateCcw } from "luci
 import { Button } from "../../../components/ui/Button";
 import { Input } from "../../../components/ui/Input";
 import { Can } from "../../../components/Can";
+import { getLocalISODate } from "../../../utils/formatters";
 
 export const RollCallHeader = ({
   rollCallDate,
@@ -12,7 +13,7 @@ export const RollCallHeader = ({
   isMarkingAll,
   hasEmployees,
 }) => {
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = getLocalISODate();
 
   const handleStepDate = (days) => {
     const current = new Date(rollCallDate);
@@ -23,7 +24,7 @@ export const RollCallHeader = ({
       current.setDate(current.getDate() + (days > 0 ? 1 : -1));
     }
     
-    onDateChange(current.toISOString().split("T")[0]);
+    onDateChange(getLocalISODate(current));
   };
 
   const formattedDateString = new Date(rollCallDate).toLocaleDateString("en-US", {

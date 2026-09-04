@@ -15,12 +15,13 @@ import { RollCallCard } from "./RollCallCard";
 
 import { getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
 import { isWorkday } from "../../../utils/validation";
+import { getLocalISODate } from "../../../utils/formatters";
 
 export const AttendancesRollCallMode = () => {
   const { can } = usePermission();
   const queryClient = useQueryClient();
 
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = getLocalISODate();
   const [rollCallDate, setRollCallDate] = useState(todayStr);
   const isValidRollCallDate = isWorkday(rollCallDate);
   const [isMarkingAll, setIsMarkingAll] = useState(false);
@@ -80,6 +81,7 @@ export const AttendancesRollCallMode = () => {
       await Promise.all(promises);
       queryClient.invalidateQueries({ queryKey: ["attendances"] });
       queryClient.invalidateQueries({ queryKey: ["payroll-calculation"] });
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
       toast.success("All active employees marked as Present!");
     } catch (err) {
       toast.error(getApiErrorMessage(err, "Failed to mark all present"));
@@ -116,7 +118,7 @@ export const AttendancesRollCallMode = () => {
             onClick={() => {
               const prev = new Date(rollCallDate);
               prev.setDate(prev.getDate() - 1);
-              setRollCallDate(prev.toISOString().split("T")[0]);
+              setRollCallDate(getLocalISODate(prev));
             }}
           >
             View Saturday Attendance
