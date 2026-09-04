@@ -41,6 +41,8 @@ const createEmployeeSchema = z
         .optional(),
     ),
 
+    initialDailyRate: z.coerce.number().positive().optional(),
+
     status: employeeStatusSchema.optional().default("active"),
   })
   .strict({

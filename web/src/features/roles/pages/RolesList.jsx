@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from "react"; 
+import React, { useState, useEffect, useMemo } from "react"; 
 import { useDebounce } from "../../../hooks/useDebounce";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { getRoles, createRole, updateRole, deleteRole } from "../api";
+import { getPermissions } from "../../permissions/api";
 import { Can } from "../../../components/Can";
-import { Plus, Edit2, Trash2, Key, X } from "lucide-react";
+import { usePermission } from "../../../hooks/usePermission";
+import { Plus, Edit2, Trash2, Key, Search, ShieldCheck } from "lucide-react";
 import toast from "react-hot-toast";
 import { RoleForm } from "../components/RoleModal";
 import { AssignPermissionsForm } from "../components/AssignPermissionsModal";
-import { TableSkeleton } from "../../../components/ui/skeletons";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
@@ -15,32 +16,52 @@ import { Modal } from "../../../components/ui/Modal";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { getApiErrorMessage } from "../../../utils/apiResponse";
+import { Tabs } from "../../../components/ui/Tabs";
+import { FilterBar } from "../../../components/ui/FilterBar";
+import { DataTable } from "../../../components/ui/DataTable";
 
 export const RolesList = () => {
-  const [page, setPage] = useState(1);
+  const { can } = usePermission();
+  const queryClient = useQueryClient();
+
+  // Tab State
+  const [activeTab, setActiveTab] = useState("roles");
+
+  // Roles State
+  const [rolesPage, setRolesPage] = useState(1);
+  const [rolesSearch, setRolesSearch] = useState("");
+  const debouncedRolesSearch = useDebounce(rolesSearch, 300);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRole, setEditingRole] = useState(null);
-  
   const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
   const [permissionsRole, setPermissionsRole] = useState(null);
-
   const [roleToDelete, setRoleToDelete] = useState(null);
-  const queryClient = useQueryClient();
   const limit = 10;
 
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["roles", { page, limit }],
-    queryFn: () => getRoles({ page, limit }),
+  // Permissions State
+  const [permissionsSearch, setPermissionsSearch] = useState("");
+
+  // Queries
+  const { data: rolesData, isLoading: rolesLoading, isError: rolesError, error: rolesErrorData } = useQuery({
+    queryKey: ["roles", { page: rolesPage, limit, search: debouncedRolesSearch }],
+    queryFn: () => getRoles({ page: rolesPage, limit, search: debouncedRolesSearch }),
     placeholderData: keepPreviousData,
   });
 
+  const { data: permissionsData, isLoading: permissionsLoading, isFetching: permissionsFetching } = useQuery({
+    queryKey: ["permissions"],
+    queryFn: getPermissions,
+    enabled: can("permissions.read") && activeTab === "permissions",
+  });
+
+  // Mutations
   const createMutation = useMutation({
     mutationFn: createRole,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["roles"] });
       toast.success("Role created successfully");
+      setIsModalOpen(false);
     },
-    meta: { suppressToast: true },
   });
 
   const updateMutation = useMutation({
@@ -48,8 +69,8 @@ export const RolesList = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["roles"] });
       toast.success("Role updated successfully");
+      setIsModalOpen(false);
     },
-    meta: { suppressToast: true },
   });
 
   const deleteMutation = useMutation({
@@ -57,14 +78,11 @@ export const RolesList = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["roles"] });
       toast.success("Role deleted successfully");
+      setRoleToDelete(null);
     },
   });
 
-  const handleOpenModal = (role = null) => {
-    setEditingRole(role);
-    setIsModalOpen(true);
-  };
-
+  // Handlers
   const handleSubmit = async (data) => {
     if (editingRole) {
       await updateMutation.mutateAsync({ id: editingRole._id, data });
@@ -76,145 +94,217 @@ export const RolesList = () => {
   const handlePermissionsSubmit = async (data) => {
     if (permissionsRole) {
       await updateMutation.mutateAsync({ id: permissionsRole._id, data });
+      setIsPermissionsModalOpen(false);
     }
   };
 
   const handleDeleteConfirm = async () => {
     if (roleToDelete) {
       await deleteMutation.mutateAsync(roleToDelete);
-      setRoleToDelete(null);
     }
   };
 
-  const roles = Array.isArray(data?.data) ? data.data : data?.data?.roles || [];
-  const total = data?.data?.total || roles.length;
-  const totalPages = Math.ceil(total / limit) || 1;
+  // Data processing
+  const roles = Array.isArray(rolesData?.data) ? rolesData.data : rolesData?.data?.roles || [];
+  const rolesTotal = rolesData?.data?.total || roles.length;
+  const rolesTotalPages = Math.ceil(rolesTotal / limit) || 1;
 
+  const permissions = Array.isArray(permissionsData?.data) ? permissionsData.data : permissionsData?.data?.permissions || [];
+  const filteredPermissions = useMemo(() => {
+    if (!permissionsSearch.trim()) return permissions;
+    const lower = permissionsSearch.toLowerCase();
+    return permissions.filter(p => 
+      p.name.toLowerCase().includes(lower) || 
+      (p.description && p.description.toLowerCase().includes(lower))
+    );
+  }, [permissions, permissionsSearch]);
+
+  // Prefetch next page
   useEffect(() => {
-    if (page < totalPages) {
+    if (rolesPage < rolesTotalPages) {
       queryClient.prefetchQuery({
-        queryKey: ["roles", { page: page + 1, limit }],
-        queryFn: () => getRoles({ page: page + 1, limit }),
+        queryKey: ["roles", { page: rolesPage + 1, limit, search: debouncedRolesSearch }],
+        queryFn: () => getRoles({ page: rolesPage + 1, limit, search: debouncedRolesSearch }),
       });
     }
-  }, [page, totalPages, limit, queryClient]);
+  }, [rolesPage, rolesTotalPages, limit, debouncedRolesSearch, queryClient]);
 
+  // Columns definition
+  const roleColumns = [
+    { 
+      header: "Role Name", 
+      accessor: (row) => (
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-brand" />
+          <span className="font-semibold">{row.name}</span>
+        </div>
+      ) 
+    },
+    { 
+      header: "Permissions Count", 
+      accessor: (row) => (
+        <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-brand/10 text-brand inline-flex items-center gap-1">
+          {row.permissions?.length || 0} assigned
+        </span>
+      ) 
+    },
+    {
+      header: "Actions",
+      isActions: true,
+      accessor: (row) => (
+        <div className="flex justify-end gap-1">
+          <Can permission="roles.assign-permission">
+            <Button
+              variant="ghost"
+              size="icon"
+              leftIcon={Key}
+              onClick={(e) => { e.stopPropagation(); setPermissionsRole(row); setIsPermissionsModalOpen(true); }}
+              title="Manage Permissions"
+            />
+          </Can>
+          <Can permission="roles.update">
+            <Button
+              variant="ghost"
+              size="icon"
+              leftIcon={Edit2}
+              onClick={(e) => { e.stopPropagation(); setEditingRole(row); setIsModalOpen(true); }}
+              title="Edit Role"
+            />
+          </Can>
+          <Can permission="roles.delete">
+            <Button
+              variant="danger-ghost"
+              size="icon"
+              leftIcon={Trash2}
+              onClick={(e) => { e.stopPropagation(); setRoleToDelete(row._id); }}
+              title="Delete Role"
+            />
+          </Can>
+        </div>
+      )
+    }
+  ];
 
+  const permissionColumns = [
+    {
+      header: "Permission Node",
+      accessor: (row) => (
+        <div className="flex items-center">
+          <Key className="w-4 h-4 text-muted mr-2" />
+          <span className="text-sm font-medium text-primary font-mono bg-main px-2 py-1 rounded border border-border/50 shadow-sm">
+            {row.name}
+          </span>
+        </div>
+      ),
+    },
+    {
+      header: "Description",
+      accessor: (row) => row.description || <span className="italic text-muted">No description available</span>,
+      className: "text-secondary",
+    },
+  ];
 
-  if (isError) {
-    return (
-      <ErrorState
-        description={getApiErrorMessage(error, "Failed to load roles.")}
-      />
-    );
-  }
+  if (rolesError) return <ErrorState description={getApiErrorMessage(rolesErrorData, "Failed to load roles.")} />;
+
+  const tabs = [
+    { id: "roles", label: "Roles" },
+    { id: "permissions", label: "System Permissions" }
+  ];
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Roles"
-        description="Create roles and manage their permissions."
+        title="Roles & Permissions"
+        description="Manage system access levels and explore available permissions."
         actions={
-          <Can permission="roles.create">
-            <Button variant="primary" leftIcon={Plus} onClick={() => handleOpenModal()}>Create Role</Button>
-          </Can>
+          activeTab === "roles" && (
+            <Can permission="roles.create">
+              <Button leftIcon={Plus} onClick={() => { setEditingRole(null); setIsModalOpen(true); }}>
+                Create Role
+              </Button>
+            </Can>
+          )
         }
       />
 
-      {isLoading ? (
-        <TableSkeleton columns={3} rows={6} />
-      ) : (
-        <div className="bg-surface shadow rounded-lg overflow-hidden border border-border">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-border">
-            <thead className="bg-main">
-              <tr>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
-                >
-                  Role Name
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
-                >
-                  Permissions Count
-                </th>
-                <th scope="col" className="relative px-6 py-3">
-                  <span className="sr-only">Actions</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-surface divide-y divide-border">
-              {roles.map((role) => (
-                <tr key={role._id} className="hover:bg-main transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-primary">
-                      {role.name}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-brand/10 text-brand">
-                      {role.permissions?.length || 0} permissions
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end gap-1">
-                      <Can permission="roles.assign-permission">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          leftIcon={Key}
-                          onClick={() => {
-                            setPermissionsRole(role);
-                            setIsPermissionsModalOpen(true);
-                          }}
-                          title="Manage Permissions"
-                        />
-                      </Can>
-                      <Can permission="roles.update">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          leftIcon={Edit2}
-                          onClick={() => handleOpenModal(role)}
-                          title="Edit Role"
-                        />
-                      </Can>
-                      <Can permission="roles.delete">
-                        <Button
-                          variant="danger-ghost"
-                          size="icon"
-                          leftIcon={Trash2}
-                          onClick={() => setRoleToDelete(role._id)}
-                          title="Delete Role"
-                        />
-                      </Can>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {roles.length === 0 && (
-                <tr>
-                  <td
-                    colSpan="3"
-                    className="px-6 py-10 text-center text-sm text-secondary"
-                  >
-                    No roles found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+      <div className="flex-1 min-w-0 overflow-x-auto hide-scrollbar pb-1">
+        <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
       </div>
+
+      {activeTab === "roles" && (
+        <>
+          <FilterBar 
+            filters={{ search: rolesSearch }}
+            searchPlaceholder="Search roles by name..."
+            searchValue={rolesSearch}
+            onSearchChange={(val) => { setRolesSearch(val); setRolesPage(1); }}
+            onClear={rolesSearch ? () => { setRolesSearch(""); setRolesPage(1); } : undefined}
+          />
+          <DataTable 
+            columns={roleColumns}
+            data={roles}
+            keyExtractor={r => r._id}
+            isLoading={rolesLoading}
+            pagination={{ page: rolesPage, totalPages: rolesTotalPages }}
+            onPageChange={setRolesPage}
+            mobileRow={(row) => ({
+              title: <div className="flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-brand" />{row.name}</div>,
+              subtitle: `${row.permissions?.length || 0} permissions assigned`,
+              actions: (
+                <>
+                  <Can permission="roles.assign-permission">
+                    <Button variant="ghost" size="sm" leftIcon={Key} onClick={(e) => { e.stopPropagation(); setPermissionsRole(row); setIsPermissionsModalOpen(true); }}>
+                      Permissions
+                    </Button>
+                  </Can>
+                  <Can permission="roles.update">
+                    <Button variant="ghost" size="sm" leftIcon={Edit2} onClick={(e) => { e.stopPropagation(); setEditingRole(row); setIsModalOpen(true); }}>
+                      Edit
+                    </Button>
+                  </Can>
+                  <Can permission="roles.delete">
+                    <Button variant="danger-ghost" size="sm" leftIcon={Trash2} onClick={(e) => { e.stopPropagation(); setRoleToDelete(row._id); }}>
+                      Delete
+                    </Button>
+                  </Can>
+                </>
+              )
+            })}
+            emptyState={<EmptyState title="No roles found" description="Get started by creating a new role." actionLabel={can("roles.create") ? "Create Role" : null} onAction={can("roles.create") ? () => { setEditingRole(null); setIsModalOpen(true); } : undefined} />}
+          />
+        </>
       )}
+
+      {activeTab === "permissions" && (
+        <>
+          <FilterBar 
+            filters={{ search: permissionsSearch }}
+            searchPlaceholder="Search permission nodes or descriptions..."
+            searchValue={permissionsSearch}
+            onSearchChange={setPermissionsSearch}
+            onClear={permissionsSearch ? () => setPermissionsSearch("") : undefined}
+          />
+          <DataTable 
+            columns={permissionColumns}
+            data={filteredPermissions}
+            keyExtractor={p => p.name}
+            isLoading={permissionsLoading}
+            isFetching={permissionsFetching}
+            mobileRow={(row) => ({
+              title: <span className="font-mono bg-main px-1.5 py-0.5 rounded border border-border/50 text-xs shadow-sm">{row.name}</span>,
+              subtitle: row.description || "No description",
+            })}
+            emptyState={<EmptyState title="No permissions found" description="Try adjusting your search query." />}
+          />
+        </>
+      )}
+
+      {/* Modals */}
       <Modal
         isOpen={isModalOpen}
         title={editingRole ? "Edit Role" : "Create New Role"}
         onClose={() => setIsModalOpen(false)}
-        maxWidth="max-w-md"
+        maxWidth="max-w-4xl"
       >
         <RoleForm
           initialData={editingRole}
@@ -222,6 +312,7 @@ export const RolesList = () => {
           onSubmit={handleSubmit}
         />
       </Modal>
+
       <Modal
         isOpen={isPermissionsModalOpen}
         title="Manage Permissions"
@@ -235,6 +326,7 @@ export const RolesList = () => {
           isSubmitting={updateMutation.isPending}
         />
       </Modal>
+
       <ConfirmDialog
         isOpen={!!roleToDelete}
         title="Delete Role"

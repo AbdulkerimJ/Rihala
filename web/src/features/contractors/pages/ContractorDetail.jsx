@@ -230,8 +230,24 @@ export const ContractorDetail = () => {
                   <ListItem
                     key={row._id}
                     to={`/contracts/${row._id}`}
-                    title={<span className="font-mono text-[10px] font-bold text-accent uppercase tracking-widest">#{row.contractNumber || "-"}</span>}
-                    subtitle={formatDate(row.contractDate)}
+                    title={
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono text-[10px] font-bold text-accent uppercase tracking-widest bg-accent/10 px-1.5 py-0.5 rounded">
+                          #{row.contractNumber || "-"}
+                        </span>
+                        <span className="text-primary font-medium">{row.taskName}</span>
+                      </div>
+                    }
+                    subtitle={
+                      <div className="flex flex-col mt-1">
+                        <span className="text-sm text-secondary">
+                          {row.taskTypeName} • {row.quantity} units @ <MoneyDisplay amount={row.unitPrice} />
+                        </span>
+                        <span className="text-xs text-muted mt-0.5">
+                          Dated {formatDate(row.contractDate)}
+                        </span>
+                      </div>
+                    }
                     right={
                       <div className="flex items-center gap-2 shrink-0">
                         <span className="text-sm font-bold text-finance-out">

@@ -78,6 +78,25 @@ const createOrderService = async (data, userId) => {
 
       const [order] = await Order.create([normalizedData], { session });
       
+      if (data.initialPayment) {
+        if (data.initialPayment.amount > order.agreedAmount) {
+          throw new ValidationError(`Initial payment cannot exceed agreed amount (${order.agreedAmount})`);
+        }
+        await CustomerPayment.create([{
+          order: order._id,
+          amount: data.initialPayment.amount,
+          paymentDate: data.initialPayment.paymentDate,
+          customerName: order.customerName,
+          orderNumber: order.orderNumber,
+          note: data.initialPayment.note,
+          status: "active",
+          createdBy: userId,
+        }], { session });
+        
+        order.totalPaid = data.initialPayment.amount;
+        await order.save({ session });
+      }
+
       return order.populate(["customer", "createdBy", "statusHistory.changedBy"]);
     });
   } finally {

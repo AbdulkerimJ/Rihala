@@ -3,7 +3,7 @@ const customerPaymentQueryConfig = {
   searchableFields: ["note", "orderNumber", "customerName"],
   sortableFields: ["paymentDate", "amount", "createdAt"],
   filterableFields: ["order", "status"],
-  defaultSort: "-paymentDate",
+  defaultSort: "-createdAt",
   populate: [
     { path: "createdBy", select: "name" },
     { path: "voidedBy", select: "name" },

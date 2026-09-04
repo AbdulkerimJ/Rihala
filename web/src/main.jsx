@@ -29,7 +29,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           />
         </AuthProvider>
       </ThemeProvider>
-      <ReactQueryDevtools initialIsOpen={false} />
+      <div className="hidden md:block">
+        <ReactQueryDevtools initialIsOpen={false} />
+      </div>
     </QueryClientProvider>
   </React.StrictMode>
 );

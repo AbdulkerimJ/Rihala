@@ -11,9 +11,9 @@ import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { getApiErrorMessage, unwrapEntityResponse } from "../../../utils/apiResponse";
 import { formatDate, formatCurrency } from "../../../utils/formatters";
-import { Calendar, Wallet, Clock, User, DollarSign } from "lucide-react";
+import { Calendar, Wallet, Clock, User, DollarSign, CalendarDays } from "lucide-react";
 import { BackButton } from "../../../components/ui/BackButton";
-
+import { ListGroup, ListItem } from "../../../components/ui/ListGroup";
 export const WeeklyPayrollDetail = () => {
   const { id } = useParams();
   
@@ -86,7 +86,7 @@ export const WeeklyPayrollDetail = () => {
                 <span className="text-primary"><MoneyDisplay amount={payroll.overtimeEarnings} /></span>
               </div>
               <div className="p-4 flex justify-between items-center bg-accent/5 border-t-2 border-accent/20">
-                <span className="text-primary font-bold text-lg">Total Payable</span>
+                <span className="text-primary font-bold text-lg">Total Earnings</span>
                 <MoneyDisplay amount={payroll.totalEarnings} variant="accent" className="text-xl" />
               </div>
             </div>
@@ -94,27 +94,27 @@ export const WeeklyPayrollDetail = () => {
           
           <DetailSection title={`Daily Rate & Attendance Snapshot (${payroll.dailyBreakdown?.length === 1 ? "1 Day" : `${payroll.dailyBreakdown?.length || 0} Days`})`} className="p-0 bg-transparent border-0 shadow-none">
             {payroll.dailyBreakdown?.length > 0 ? (
-              <div className="flex flex-col gap-3 mt-4">
+              <ListGroup variant="card" className="mt-4">
                 {payroll.dailyBreakdown.map((item, index) => (
-                  <div key={item._id || index} className="p-4 rounded-xl border border-border/80 bg-surface shadow-sm hover:shadow-md transition-all">
-                    <div className="flex justify-between items-start mb-3 pb-3 border-b border-border/50">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-primary">{formatDate(item.workDate)}</span>
-                        <span className="text-xs text-secondary mt-0.5">
-                          {item.portion === 1 ? "Full Day" : item.portion === 0.5 ? "Half Day" : "Absent"} • Rate: {formatCurrency(item.dailyRate)}
+                  <ListItem
+                    key={item._id || index}
+                    icon={CalendarDays}
+                    title={formatDate(item.workDate)}
+                    subtitle={`${item.portion === 1 ? "Full Day" : item.portion === 0.5 ? "Half Day" : "Absent"} • Rate: ${formatCurrency(item.dailyRate)}`}
+                    right={
+                      <div className="flex flex-col items-end gap-1">
+                        <span className="font-bold text-primary tracking-tight">
+                          <MoneyDisplay amount={item.earnings} />
                         </span>
+                        <div className="flex items-center gap-1">
+                          <StatusBadge status={item.morningStatus} className="text-[10px] px-1.5 py-0" />
+                          <StatusBadge status={item.afternoonStatus} className="text-[10px] px-1.5 py-0" />
+                        </div>
                       </div>
-                      <span className="text-base font-black text-primary tracking-tight">
-                        <MoneyDisplay amount={item.earnings} />
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <StatusBadge status={item.morningStatus} className="text-[10px] px-2 py-0.5" />
-                      <StatusBadge status={item.afternoonStatus} className="text-[10px] px-2 py-0.5" />
-                    </div>
-                  </div>
+                    }
+                  />
                 ))}
-              </div>
+              </ListGroup>
             ) : (
               <div className="p-8 mt-4 text-center rounded-xl border border-dashed border-border/80 bg-surface/50">
                 <Calendar className="h-8 w-8 mx-auto text-muted mb-2" />
@@ -125,23 +125,21 @@ export const WeeklyPayrollDetail = () => {
 
           <DetailSection title={`Overtime Snapshot (${payroll.overtimeBreakdown?.length === 1 ? "1 Day" : `${payroll.overtimeBreakdown?.length || 0} Days`})`} className="p-0 bg-transparent border-0 shadow-none mt-6">
             {payroll.overtimeBreakdown?.length > 0 ? (
-              <div className="flex flex-col gap-3 mt-4">
+              <ListGroup variant="card" className="mt-4">
                 {payroll.overtimeBreakdown.map((item, index) => (
-                  <div key={item._id || index} className="p-4 rounded-xl border border-border/80 bg-surface shadow-sm">
-                    <div className="flex justify-between items-start mb-3 pb-3 border-b border-border/50">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-primary">{formatDate(item.workDate)}</span>
-                        <span className="text-xs text-secondary mt-0.5">
-                          {item.duration === 'FULL_DAY' ? "Full Day Overtime" : "Half Day Overtime"} • Rate: {formatCurrency(item.dailyRate)}
-                        </span>
-                      </div>
-                      <span className="text-base font-black text-primary tracking-tight">
+                  <ListItem
+                    key={item._id || index}
+                    icon={Clock}
+                    title={formatDate(item.workDate)}
+                    subtitle={`${item.duration === 'FULL_DAY' ? "Full Day Overtime" : "Half Day Overtime"} • Rate: ${formatCurrency(item.dailyRate)}`}
+                    right={
+                      <span className="font-bold text-primary tracking-tight">
                         <MoneyDisplay amount={item.earnings} />
                       </span>
-                    </div>
-                  </div>
+                    }
+                  />
                 ))}
-              </div>
+              </ListGroup>
             ) : (
               <div className="p-8 mt-4 text-center rounded-xl border border-dashed border-border/80 bg-surface/50">
                 <Clock className="h-8 w-8 mx-auto text-muted mb-2" />

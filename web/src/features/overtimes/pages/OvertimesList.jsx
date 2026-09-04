@@ -28,7 +28,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
 import { applyServerErrors, cleanFilterParams, getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
-import { formatDate } from "../../../utils/formatters";
+import { formatDate, getLocalISODate } from "../../../utils/formatters";
 
 const OVERTIME_DURATIONS = [
   { value: "HALF_DAY", label: "Half Day" },
@@ -57,12 +57,12 @@ const OvertimeForm = ({ initialData, onSubmit, onClose }) => {
     resolver: zodResolver(overtimeSchema),
     defaultValues: initialData ? {
       employee: initialData.employee?._id || initialData.employee,
-      workDate: initialData.workDate ? new Date(initialData.workDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+      workDate: initialData.workDate ? getLocalISODate(initialData.workDate) : getLocalISODate(),
       duration: initialData.duration || "HALF_DAY",
       note: initialData.note || "",
     } : {
       employee: "",
-      workDate: new Date().toISOString().split("T")[0],
+      workDate: getLocalISODate(),
       duration: "HALF_DAY",
       note: "",
     },
@@ -147,7 +147,7 @@ export const OvertimesList = () => {
   });
   const employees = unwrapListResponse(employeesData).items || [];
 
-  const params = useMemo(() => cleanFilterParams({ ...filters, search: debouncedSearch }, { page, limit: 20 }), [filters, debouncedSearch, page]);
+  const params = useMemo(() => cleanFilterParams({ ...filters, search: debouncedSearch }, { page, limit: 20, sort: "-workDate" }), [filters, debouncedSearch, page]);
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
     queryKey: ["overtimes", params],
@@ -171,6 +171,7 @@ export const OvertimesList = () => {
       queryClient.invalidateQueries({ queryKey: ["overtimes"] });
       queryClient.invalidateQueries({ queryKey: ["weeklyPayrolls"] });
       queryClient.invalidateQueries({ queryKey: ["payroll-calculation"] });
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
       toast.success("Overtime recorded successfully");
       setIsOpen(false);
     },
@@ -182,6 +183,7 @@ export const OvertimesList = () => {
       queryClient.invalidateQueries({ queryKey: ["overtimes"] });
       queryClient.invalidateQueries({ queryKey: ["weeklyPayrolls"] });
       queryClient.invalidateQueries({ queryKey: ["payroll-calculation"] });
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
       toast.success("Overtime updated successfully");
       setIsOpen(false);
     },
@@ -193,6 +195,7 @@ export const OvertimesList = () => {
       queryClient.invalidateQueries({ queryKey: ["overtimes"] });
       queryClient.invalidateQueries({ queryKey: ["weeklyPayrolls"] });
       queryClient.invalidateQueries({ queryKey: ["payroll-calculation"] });
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
       toast.success("Overtime deleted successfully");
       setRecordToDelete(null);
     },

@@ -30,4 +30,12 @@ const weeklyPayrollQuerySchema = z
       "Only employee, from, to, search, sort, page, and limit are allowed.",
   });
 
-export { employeeIdSchema, weeklyPayrollIdSchema, weeklyPayrollQuerySchema };
+const closePayrollBodySchema = z.object({
+  initialPayment: z.object({
+    amount: z.number().positive("Payment amount must be positive"),
+    paymentDate: z.string().datetime({ message: "Invalid ISO datetime string" }),
+    note: z.string().max(1000).optional().nullable(),
+  }).optional(),
+}).strict({ error: "Only initialPayment is allowed." });
+
+export { employeeIdSchema, weeklyPayrollIdSchema, weeklyPayrollQuerySchema, closePayrollBodySchema };

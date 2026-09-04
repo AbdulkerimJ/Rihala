@@ -8,6 +8,11 @@ const createRoleSchema = z.object({
       error: "Role name is required.",
     })
     .min(2, "Role name must be at least 2 characters."),
+  permissions: z
+    .array(
+      z.string().regex(mongoIdRegex, "Each permission id must be a valid ObjectId.")
+    )
+    .optional(),
 });
 
 const updateRoleSchema = z

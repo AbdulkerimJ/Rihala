@@ -32,7 +32,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
 import { applyServerErrors, cleanFilterParams, getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
-import { formatDate } from "../../../utils/formatters";
+import { formatDate, getLocalISODate } from "../../../utils/formatters";
 
 const contractSchema = z
   .object({
@@ -78,7 +78,7 @@ const ContractForm = ({ onSubmit, onClose }) => {
       task: "",
       quantity: 1,
       unitPrice: "",
-      contractDate: new Date().toISOString().split("T")[0],
+      contractDate: getLocalISODate(),
       expectedCompletionDate: "",
       note: "",
     },

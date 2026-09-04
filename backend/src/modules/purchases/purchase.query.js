@@ -12,7 +12,7 @@ const purchaseQueryConfig = {
     }),
   },
   sortableFields: ["date", "createdAt", "updatedAt", "totalAmount", "purchaseNumber"],
-  defaultSort: "-date",
+  defaultSort: "-createdAt",
   populate: [
     { path: "supplier", select: "name phone balance" },
     { path: "items.material", select: "name category unit" },

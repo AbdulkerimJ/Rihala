@@ -11,6 +11,7 @@ import SupplierPayment from "../supplierPayments/supplierPayment.model.js";
 import * as allocationService from "../supplierPayments/allocation.service.js";
 import Counter from "../../core/models/counter.model.js";
 import User from "../users/user.model.js";
+import { createSupplierPaymentInSession } from "../supplierPayments/supplierPayment.service.js";
 
 const generatePurchaseNumber = async () => {
   const counter = await Counter.findOneAndUpdate(
@@ -101,6 +102,20 @@ const createPurchaseService = async (data, userId) => {
 
       // Check and apply existing supplier credit to the new purchase
       await allocationService.applyCreditToPurchase(purchase._id, session);
+
+      if (data.initialPayment) {
+        if (data.initialPayment.amount > totalAmount) {
+          throw new ValidationError(`Initial payment (${data.initialPayment.amount}) cannot exceed purchase total (${totalAmount})`);
+        }
+        await createSupplierPaymentInSession({
+          supplier: supplier._id,
+          type: data.initialPayment.type || "SPECIFIC",
+          purchaseId: purchase._id,
+          amount: data.initialPayment.amount,
+          date: data.initialPayment.date,
+          note: data.initialPayment.note,
+        }, session);
+      }
 
       // Refetch to get the updated allocatedAmount and paymentStatus
       const updatedPurchase = await Purchase.findById(purchase._id).populate(purchaseQueryConfig.populate).session(session);

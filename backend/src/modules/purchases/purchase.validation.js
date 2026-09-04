@@ -12,6 +12,12 @@ const createPurchaseSchema = z.object({
   date: z.string().datetime({ message: "Invalid ISO datetime string" }),
   items: z.array(purchaseItemSchema).min(1, "At least one item is required"),
   note: z.string().max(1000).optional().nullable(),
+  initialPayment: z.object({
+    amount: z.number().positive("Payment amount must be positive"),
+    date: z.string().datetime({ message: "Invalid ISO datetime string" }),
+    type: z.enum(["SPECIFIC", "GENERAL"]).default("SPECIFIC"),
+    note: z.string().max(1000).optional().nullable(),
+  }).optional(),
 });
 
 const updatePurchaseSchema = z.object({

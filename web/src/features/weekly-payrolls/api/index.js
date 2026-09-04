@@ -15,7 +15,7 @@ export const getCurrentPayrollCalculation = async (employeeId) => {
   return response.data;
 };
 
-export const closeWeeklyPayroll = async (employeeId) => {
-  const response = await api.post(`/weekly-payrolls/employees/${employeeId}/close`);
+export const closeWeeklyPayroll = async (employeeId, payload = {}) => {
+  const response = await api.post(`/weekly-payrolls/employees/${employeeId}/close`, payload);
   return response.data;
 };

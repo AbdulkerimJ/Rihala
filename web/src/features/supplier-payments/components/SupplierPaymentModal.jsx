@@ -9,6 +9,7 @@ import { getSuppliers, createSupplier } from "../../suppliers/api";
 import { SupplierForm } from "../../suppliers/components/SupplierForm";
 import { getPurchases } from "../../purchases/api";
 import { unwrapListResponse, applyServerErrors } from "../../../utils/apiResponse";
+import { getLocalISODate } from "../../../utils/formatters";
 
 import { Modal } from "../../../components/ui/Modal";
 import { FormField } from "../../../components/ui/FormField";
@@ -61,7 +62,7 @@ export const SupplierPaymentModal = ({
       purchase: preSelectedPurchase?._id || "",
       amount: preSelectedPurchase ? Math.max(0, preSelectedPurchase.totalAmount - (preSelectedPurchase.allocatedAmount || 0)) || "" : "",
       notes: "",
-      paymentDate: new Date().toISOString().split("T")[0],
+      paymentDate: getLocalISODate(),
     },
   });
 
@@ -74,7 +75,7 @@ export const SupplierPaymentModal = ({
         purchase: preSelectedPurchase?._id || "",
         amount: remaining > 0 ? remaining : "",
         notes: "",
-        paymentDate: new Date().toISOString().split("T")[0],
+        paymentDate: getLocalISODate(),
       });
     }
   }, [isOpen, preSelectedSupplier, preSelectedPurchase, reset]);

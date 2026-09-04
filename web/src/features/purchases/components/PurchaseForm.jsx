@@ -18,6 +18,7 @@ import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { applyServerErrors, unwrapListResponse } from "../../../utils/apiResponse";
+import { getLocalISODate } from "../../../utils/formatters";
 import { Plus, Trash2, Save, X } from "lucide-react";
 
 const purchaseItemSchema = z.object({
@@ -31,6 +32,21 @@ const purchaseSchema = z.object({
   purchaseDate: z.string().min(1, "Purchase date is required"),
   notes: z.string().optional(),
   items: z.array(purchaseItemSchema).min(1, "At least one item is required"),
+  recordPayment: z.boolean().optional(),
+  initialPayment: z.object({
+    amount: z.coerce.number().positive("Payment amount must be positive").optional(),
+    paymentDate: z.string().optional(),
+    note: z.string().optional(),
+  }).optional(),
+}).superRefine((data, ctx) => {
+  if (data.recordPayment) {
+    if (!data.initialPayment?.amount) {
+      ctx.addIssue({ path: ["initialPayment", "amount"], code: z.ZodIssueCode.custom, message: "Amount is required" });
+    }
+    if (!data.initialPayment?.paymentDate) {
+      ctx.addIssue({ path: ["initialPayment", "paymentDate"], code: z.ZodIssueCode.custom, message: "Date is required" });
+    }
+  }
 });
 
 export const PurchaseForm = ({ initialData, onSubmit, onClose, isFullyPaid }) => {
@@ -54,9 +70,15 @@ export const PurchaseForm = ({ initialData, onSubmit, onClose, isFullyPaid }) =>
     resolver: zodResolver(purchaseSchema),
     defaultValues: initialData || {
       supplier: "",
-      purchaseDate: new Date().toISOString().split("T")[0],
+      purchaseDate: getLocalISODate(),
       notes: "",
       items: [{ material: "", quantity: "", unitPrice: "" }],
+      recordPayment: false,
+      initialPayment: {
+        amount: "",
+        paymentDate: getLocalISODate(),
+        note: "",
+      }
     },
   });
 
@@ -67,11 +89,18 @@ export const PurchaseForm = ({ initialData, onSubmit, onClose, isFullyPaid }) =>
 
   const watchItems = watch("items");
   const watchSupplier = watch("supplier");
+  const watchRecordPayment = watch("recordPayment");
   const selectedSupplierObj = React.useMemo(() => {
     return suppliers.find((s) => s._id === watchSupplier);
   }, [suppliers, watchSupplier]);
 
   const totalAmount = watchItems.reduce((sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0), 0);
+
+  React.useEffect(() => {
+    if (watchRecordPayment && !initialData) {
+      setValue("initialPayment.amount", totalAmount, { shouldValidate: true });
+    }
+  }, [watchRecordPayment, totalAmount, initialData, setValue]);
 
   const handleFormSubmit = async (data) => {
     try {
@@ -82,6 +111,18 @@ export const PurchaseForm = ({ initialData, onSubmit, onClose, isFullyPaid }) =>
       };
       delete payload.purchaseDate;
       delete payload.notes;
+      delete payload.recordPayment;
+      
+      if (data.recordPayment && !initialData) {
+        payload.initialPayment = {
+          amount: Number(data.initialPayment.amount),
+          date: new Date(data.initialPayment.paymentDate).toISOString(),
+          type: "SPECIFIC",
+          note: data.initialPayment.note || undefined,
+        };
+      } else {
+        delete payload.initialPayment;
+      }
       
       if (isFullyPaid) {
         delete payload.items;
@@ -212,6 +253,45 @@ export const PurchaseForm = ({ initialData, onSubmit, onClose, isFullyPaid }) =>
       <FormField label="Notes" error={errors.notes?.message}>
         <Textarea {...register("notes")} rows={2} error={errors.notes?.message} placeholder="Optional purchase notes" />
       </FormField>
+
+      {!initialData && (
+        <div className="pt-4 mt-2 border-t border-border/50">
+          <label className="flex items-center gap-2 cursor-pointer mb-3 w-max">
+            <input 
+              type="checkbox" 
+              {...register("recordPayment")} 
+              className="rounded border-border text-primary focus:ring-primary/20 cursor-pointer"
+            />
+            <span className="text-sm font-medium text-primary cursor-pointer select-none">Record Payment Now</span>
+          </label>
+
+          {watchRecordPayment && (
+            <div className="bg-main/30 p-4 rounded-lg border border-border/50 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <FormField label="Payment Amount (ETB)" required error={errors.initialPayment?.amount?.message}>
+                  <Controller
+                    name="initialPayment.amount"
+                    control={control}
+                    render={({ field }) => (
+                      <CurrencyInput
+                        {...field}
+                        placeholder="Amount"
+                        error={errors.initialPayment?.amount?.message}
+                      />
+                    )}
+                  />
+                </FormField>
+                <FormField label="Payment Date" required error={errors.initialPayment?.paymentDate?.message}>
+                  <Input type="date" {...register("initialPayment.paymentDate")} error={errors.initialPayment?.paymentDate?.message} />
+                </FormField>
+              </div>
+              <FormField label="Payment Note" error={errors.initialPayment?.note?.message}>
+                <Textarea {...register("initialPayment.note")} rows={1} error={errors.initialPayment?.note?.message} placeholder="Optional payment note" />
+              </FormField>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="flex justify-end gap-2.5 pt-3 mt-1 border-t border-border/50">
         <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting} leftIcon={X}>Cancel</Button>

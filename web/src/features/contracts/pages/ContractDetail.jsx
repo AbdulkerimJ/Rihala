@@ -30,7 +30,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
-import { formatDate, formatDateTime } from "../../../utils/formatters";
+import { formatDate, formatDateTime, getLocalISODate } from "../../../utils/formatters";
 import { applyServerErrors, getApiErrorMessage, unwrapEntityResponse } from "../../../utils/apiResponse";
 
 // --- Forms ---
@@ -43,7 +43,7 @@ const completionSchema = z.object({
 const CompletionForm = ({ contract, onSubmit, onClose }) => {
   const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(completionSchema),
-    defaultValues: { quantity: 1, recordedAt: new Date().toISOString().split("T")[0], note: "" }
+    defaultValues: { quantity: 1, recordedAt: getLocalISODate(), note: "" }
   });
   const maxQty = contract.quantity - contract.stats.completedQuantity;
 
@@ -87,7 +87,7 @@ const paymentSchema = z.object({
 const PaymentForm = ({ contract, onSubmit, onClose }) => {
   const { register, control, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(paymentSchema),
-    defaultValues: { amount: contract.stats.payableAmount, paymentDate: new Date().toISOString().split("T")[0], note: "" }
+    defaultValues: { amount: contract.stats.payableAmount, paymentDate: getLocalISODate(), note: "" }
   });
 
   const handleFormSubmit = async (data) => {
@@ -168,6 +168,7 @@ export const ContractDetail = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
       queryClient.invalidateQueries({ queryKey: ["contractors"] });
+      queryClient.invalidateQueries({ queryKey: ["contractor-payments"] });
       toast.success("Payment recorded");
       setPaymentModalOpen(false);
     },

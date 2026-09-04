@@ -83,9 +83,11 @@ export const MaterialsList = () => {
       header: "Actions", 
       isActions: true,
       accessor: (row) => (
-        <Can permission="materials.update">
-          <Button variant="ghost" size="icon" leftIcon={Edit} onClick={(e) => { e.stopPropagation(); setEditingMaterial(row); setIsOpen(true); }} title="Edit" />
-        </Can>
+        <div className="flex justify-end gap-2">
+          <Can permission="materials.update">
+            <Button variant="ghost" size="icon" leftIcon={Edit} onClick={(e) => { e.stopPropagation(); setEditingMaterial(row); setIsOpen(true); }} title="Edit" />
+          </Can>
+        </div>
       ) 
     }
   ];
@@ -135,7 +137,7 @@ export const MaterialsList = () => {
         mobileRow={(row) => ({
           title: row.name,
           subtitle: `${row.category?.name || "Unknown"} • ${row.unit}`,
-          right: <StatusBadge status={row.isActive ? "active" : "inactive"} />,
+          right: <StatusBadge status={row.status} />,
           actions: (
             <Can permission="materials.update">
               <Button

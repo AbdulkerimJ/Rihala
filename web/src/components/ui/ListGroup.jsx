@@ -14,7 +14,7 @@ export const ListGroup = ({
 }) => {
   const baseStyles =
     variant === "card"
-      ? "divide-y divide-border/60 rounded-sm border border-border bg-surface shadow-xs"
+      ? "divide-y divide-border/60 rounded-sm border border-border bg-surface shadow-xs [&>*:first-child]:rounded-t-sm [&>*:last-child]:rounded-b-sm"
       : "divide-y divide-border/60";
 
   return (

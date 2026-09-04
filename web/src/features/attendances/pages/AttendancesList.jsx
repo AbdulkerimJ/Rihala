@@ -42,6 +42,7 @@ export const AttendancesList = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendances"] });
       queryClient.invalidateQueries({ queryKey: ["payroll-calculation"] });
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
       toast.success("Attendance record created successfully");
       setIsOpen(false);
     },
@@ -55,6 +56,7 @@ export const AttendancesList = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendances"] });
       queryClient.invalidateQueries({ queryKey: ["payroll-calculation"] });
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
       toast.success("Attendance record updated successfully");
       setIsOpen(false);
     },
@@ -67,6 +69,7 @@ export const AttendancesList = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendances"] });
       queryClient.invalidateQueries({ queryKey: ["payroll-calculation"] });
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
       toast.success("Attendance record deleted successfully");
       setDeletingAttendance(null);
     },

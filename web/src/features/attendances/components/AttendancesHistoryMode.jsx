@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { X, Edit } from "lucide-react";
+import { X, Edit, Trash2 } from "lucide-react";
 
 import { usePermission } from "../../../hooks/usePermission";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";

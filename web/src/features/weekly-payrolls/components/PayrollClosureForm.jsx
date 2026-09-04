@@ -5,12 +5,14 @@ import { closeWeeklyPayroll, getCurrentPayrollCalculation } from "../api";
 import { getEmployees, getEmployeeStats } from "../../employees/api";
 import { Button } from "../../../components/ui/Button";
 import { FormField } from "../../../components/ui/FormField";
+import { Input } from "../../../components/ui/Input";
 import { Select } from "../../../components/ui/Select";
+import { CurrencyInput } from "../../../components/ui/CurrencyInput";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import toast from "react-hot-toast";
 import { getApiErrorMessage, unwrapListResponse, unwrapEntityResponse } from "../../../utils/apiResponse";
-import { formatDate } from "../../../utils/formatters";
-import { CheckCircle, ChevronDown, ChevronUp, Clock, CalendarDays, X } from "lucide-react";
+import { formatDate, getLocalISODate } from "../../../utils/formatters";
+import { CheckCircle, ChevronDown, ChevronUp, Clock, CalendarDays, X, Receipt } from "lucide-react";
 import { Skeleton } from "../../../components/ui/skeletons";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 
@@ -19,6 +21,10 @@ export const PayrollClosureForm = ({ onClose }) => {
   const queryClient = useQueryClient();
   const [selectedEmployee, setSelectedEmployee] = useState("");
   const [showBreakdown, setShowBreakdown] = useState(false);
+  const [recordPayment, setRecordPayment] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState("");
+  const [paymentDate, setPaymentDate] = useState(getLocalISODate());
+  const [paymentNote, setPaymentNote] = useState("");
 
   const { data: employeesData } = useQuery({ 
     queryKey: ["employees", "list", "active"], 
@@ -47,21 +53,44 @@ export const PayrollClosureForm = ({ onClose }) => {
   });
   const employeeStats = statsData?.data ?? null;
 
+  const priorBalance = (employeeStats?.currentBalance || 0) - (calculation?.totalEarnings || 0);
+  const newBalance = (employeeStats?.currentBalance || 0) - Number(paymentAmount || 0);
+
   const closeMutation = useMutation({
-    mutationFn: () => closeWeeklyPayroll(selectedEmployee),
+    mutationFn: () => {
+      const payload = {};
+      if (recordPayment && paymentAmount) {
+        payload.initialPayment = {
+          amount: Number(paymentAmount),
+          paymentDate: new Date(paymentDate).toISOString(),
+          note: paymentNote || undefined
+        };
+      }
+      return closeWeeklyPayroll(selectedEmployee, payload);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["weekly-payrolls"] });
       queryClient.invalidateQueries({ queryKey: ["employees"] }); 
+      queryClient.invalidateQueries({ queryKey: ["employee-payments"] });
+      queryClient.invalidateQueries({ queryKey: ["payroll-calculation"] });
       toast.success("Payroll closed successfully");
       setSelectedEmployee("");
+      onClose();
       onClose();
     },
   });
 
+  React.useEffect(() => {
+    if (recordPayment && employeeStats) {
+      const netPayable = Math.max(0, employeeStats.currentBalance || 0);
+      setPaymentAmount(netPayable);
+    }
+  }, [recordPayment, employeeStats]);
+
   return (
     <div className="space-y-4 p-6">
       <p className="text-sm text-secondary mb-4">
-        Select a daily-wage employee to view their unclosed attendance and overtime, and close the payroll period.
+        Select an employee to view their unclosed attendance and overtime, and close the payroll period.
       </p>
 
       <FormField label="Employee">
@@ -72,6 +101,14 @@ export const PayrollClosureForm = ({ onClose }) => {
           options={employees.map(e => ({ value: e._id, label: e.name }))}
         />
       </FormField>
+
+      {!selectedEmployee && (
+        <div className="flex flex-col items-center justify-center py-16 px-4 text-center border border-dashed border-border/50 rounded-lg bg-main/5 mt-6">
+           <Receipt className="w-12 h-12 mb-3 text-secondary/50" />
+           <p className="text-secondary font-medium">No Employee Selected</p>
+           <p className="text-sm text-secondary/70 mt-1 max-w-xs">Select an employee from the dropdown above to preview their unclosed payroll records.</p>
+        </div>
+      )}
 
       {selectedEmployee && isCalculating && (
         <div className="space-y-4 pt-4 border-t border-border/50">
@@ -129,15 +166,28 @@ export const PayrollClosureForm = ({ onClose }) => {
               <span className="font-medium text-primary"><MoneyDisplay amount={calculation.overtimeEarnings} /></span>
             </div>
             <div className="flex justify-between pt-1">
-              <span className="font-bold text-primary">Total Payable:</span>
-              <MoneyDisplay amount={calculation.totalEarnings} variant="accent" />
+              <span className="text-secondary">Earnings This Period:</span>
+              <span className="font-medium text-primary">
+                <MoneyDisplay amount={calculation.totalEarnings} />
+              </span>
             </div>
-            <div className="flex justify-between pt-3 border-t border-border/50 mt-1">
-              <span className="text-secondary">Current Balance (Prior):</span>
+            <div className="flex justify-between pb-2">
+              <span className="text-secondary">Advance:</span>
               {isStatsLoading ? (
                 <span className="h-4 w-20 bg-main animate-pulse rounded" />
               ) : (
-                <span className={`font-semibold ${
+                <span className={`font-medium ${priorBalance >= 0 ? "text-success" : "text-danger"}`}>
+                  {priorBalance < 0 ? "-" : ""}
+                  <MoneyDisplay amount={Math.abs(priorBalance)} />
+                </span>
+              )}
+            </div>
+            <div className="flex justify-between pt-3 border-t border-border/50 mt-1">
+              <span className="font-bold text-primary">Total Payable:</span>
+              {isStatsLoading ? (
+                <span className="h-4 w-20 bg-main animate-pulse rounded" />
+              ) : (
+                <span className={`font-bold text-lg ${
                   !employeeStats || employeeStats.currentBalance >= 0 ? "text-success" : "text-danger"
                 }`}>
                   {employeeStats?.currentBalance < 0 ? "-" : ""}
@@ -145,6 +195,20 @@ export const PayrollClosureForm = ({ onClose }) => {
                 </span>
               )}
             </div>
+            
+            {recordPayment && (
+              <div className="flex justify-between pt-2">
+                <span className="font-bold text-primary">Balance After Payment:</span>
+                {isStatsLoading ? (
+                  <span className="h-4 w-20 bg-main animate-pulse rounded" />
+                ) : (
+                  <span className={`font-bold ${newBalance >= 0 ? "text-success" : "text-danger"}`}>
+                    {newBalance < 0 ? "-" : ""}
+                    <MoneyDisplay amount={Math.abs(newBalance)} />
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Breakdown Toggle */}
@@ -242,6 +306,49 @@ export const PayrollClosureForm = ({ onClose }) => {
               </div>
             </div>
           )}
+
+          {/* Record Payment Toggle */}
+          <div className="pt-4 border-t border-border/50">
+            <div className="flex justify-end mb-3">
+              <label className="flex items-center gap-2 cursor-pointer w-max">
+                <input 
+                  type="checkbox" 
+                  checked={recordPayment}
+                  onChange={(e) => setRecordPayment(e.target.checked)}
+                  className="rounded border-border text-primary focus:ring-primary/20 cursor-pointer"
+                />
+                <span className="text-sm font-medium text-primary select-none">Record Payment Now</span>
+              </label>
+            </div>
+
+            {recordPayment && (
+              <div className="bg-main/30 p-4 rounded-lg border border-border/50 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <FormField label="Payment Amount (ETB)" required>
+                    <CurrencyInput
+                      value={paymentAmount}
+                      onChange={setPaymentAmount}
+                      placeholder="Amount"
+                    />
+                  </FormField>
+                  <FormField label="Payment Date" required>
+                    <Input 
+                      type="date" 
+                      value={paymentDate}
+                      onChange={(e) => setPaymentDate(e.target.value)} 
+                    />
+                  </FormField>
+                </div>
+                <FormField label="Payment Note">
+                  <Input 
+                    value={paymentNote}
+                    onChange={(e) => setPaymentNote(e.target.value)} 
+                    placeholder="Optional payment note" 
+                  />
+                </FormField>
+              </div>
+            )}
+          </div>
 
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="ghost" onClick={onClose} disabled={closeMutation.isPending} leftIcon={X}>Cancel</Button>

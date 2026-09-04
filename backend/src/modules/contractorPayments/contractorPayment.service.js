@@ -69,7 +69,21 @@ const createPaymentService = async (data, userId) => {
 };
 
 const getPaymentsService = async (filters = {}) => {
-  return getPaginatedQueryResult(ContractorPayment, filters, contractorPaymentQueryConfig);
+  const queryFilters = { ...filters };
+  if (queryFilters.status === undefined) {
+    queryFilters.status = "active";
+  } else if (queryFilters.status === "all") {
+    delete queryFilters.status;
+  }
+
+  const customQuery = {};
+  if (queryFilters.contractor) {
+    const contracts = await Contract.find({ contractor: queryFilters.contractor }).select("_id");
+    customQuery.contract = { $in: contracts.map(c => c._id) };
+    delete queryFilters.contractor;
+  }
+
+  return getPaginatedQueryResult(ContractorPayment, queryFilters, contractorPaymentQueryConfig, { query: customQuery });
 };
 
 const getPaymentByIdService = async (id) => {

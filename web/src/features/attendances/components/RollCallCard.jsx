@@ -45,6 +45,7 @@ export const RollCallCard = ({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendances"] });
       queryClient.invalidateQueries({ queryKey: ["payroll-calculation"] });
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
       toast.success(`Recorded attendance for ${employee.name}`);
     },
     onError: (err) =>
@@ -57,6 +58,7 @@ export const RollCallCard = ({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendances"] });
       queryClient.invalidateQueries({ queryKey: ["payroll-calculation"] });
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
       toast.success(`Updated attendance for ${employee.name}`);
     },
     onError: (err) =>

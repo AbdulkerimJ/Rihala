@@ -21,7 +21,8 @@ const contractorPaymentQuerySchema = z.object({
   sort: z.string().optional(),
   search: z.string().optional(),
   contract: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid contract ID").optional(),
-  status: z.enum(["active", "voided"]).optional(),
+  contractor: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid contractor ID").optional(),
+  status: z.enum(["active", "voided", "all"]).optional(),
   from: z.coerce.date().optional(),
   to: z.coerce.date().optional(),
 })

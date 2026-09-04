@@ -77,6 +77,12 @@ const createCustomerPaymentService = async (data, userId) => {
 
 const getCustomerPaymentsService = async (filters = {}) => {
   const queryFilters = { ...filters };
+  if (queryFilters.status === undefined) {
+    queryFilters.status = "active";
+  } else if (queryFilters.status === "all") {
+    delete queryFilters.status;
+  }
+  
   let customQuery = {};
 
   if (queryFilters.customer) {

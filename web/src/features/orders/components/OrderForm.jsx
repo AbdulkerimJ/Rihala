@@ -13,6 +13,7 @@ import { Select } from "../../../components/ui/Select";
 import { CreatableSelect } from "../../../components/ui/CreatableSelect";
 import { FormRootError } from "../../../components/ui/FormRootError";
 import { applyServerErrors } from "../../../utils/apiResponse";
+import { getLocalISODate } from "../../../utils/formatters";
 import { CustomerForm } from "../../customers/components/CustomerForm";
 import { createCustomer } from "../../customers/api";
 
@@ -25,6 +26,21 @@ const orderSchema = z.object({
   status: z
     .enum(["pending", "in_progress", "ready", "completed", "cancelled"])
     .optional(),
+  recordPayment: z.boolean().optional(),
+  initialPayment: z.object({
+    amount: z.coerce.number().positive("Payment amount must be positive").optional(),
+    paymentDate: z.string().optional(),
+    note: z.string().optional(),
+  }).optional(),
+}).superRefine((data, ctx) => {
+  if (data.recordPayment) {
+    if (!data.initialPayment?.amount) {
+      ctx.addIssue({ path: ["initialPayment", "amount"], code: z.ZodIssueCode.custom, message: "Amount is required" });
+    }
+    if (!data.initialPayment?.paymentDate) {
+      ctx.addIssue({ path: ["initialPayment", "paymentDate"], code: z.ZodIssueCode.custom, message: "Date is required" });
+    }
+  }
 });
 
 export const OrderForm = ({ initialData, customers = [], onSubmit, onClose }) => {
@@ -60,6 +76,7 @@ export const OrderForm = ({ initialData, customers = [], onSubmit, onClose }) =>
     register,
     control,
     handleSubmit,
+    watch,
     setError,
     setValue,
     formState: { errors, isSubmitting },
@@ -83,8 +100,16 @@ export const OrderForm = ({ initialData, customers = [], onSubmit, onClose }) =>
           agreedAmount: "",
           expectedCompletionDate: "",
           notes: "",
+          recordPayment: false,
+          initialPayment: {
+            amount: "",
+            paymentDate: getLocalISODate(),
+            note: "",
+          },
         },
   });
+
+  const watchRecordPayment = watch("recordPayment");
 
   const handleFormSubmit = async (data) => {
     try {
@@ -96,6 +121,18 @@ export const OrderForm = ({ initialData, customers = [], onSubmit, onClose }) =>
           data.expectedCompletionDate
         ).toISOString(),
       };
+      
+      delete payload.recordPayment;
+      
+      if (data.recordPayment && !initialData) {
+        payload.initialPayment = {
+          amount: Number(data.initialPayment.amount),
+          paymentDate: new Date(data.initialPayment.paymentDate).toISOString(),
+          note: data.initialPayment.note || undefined,
+        };
+      } else {
+        delete payload.initialPayment;
+      }
 
       await onSubmit(payload);
     } catch (error) {
@@ -194,6 +231,45 @@ export const OrderForm = ({ initialData, customers = [], onSubmit, onClose }) =>
             ]}
           />
         </FormField>
+      )}
+
+      {!isEditing && (
+        <div className="pt-4 mt-2 border-t border-border/50">
+          <label className="flex items-center gap-2 cursor-pointer mb-3 w-max">
+            <input 
+              type="checkbox" 
+              {...register("recordPayment")} 
+              className="rounded border-border text-primary focus:ring-primary/20 cursor-pointer"
+            />
+            <span className="text-sm font-medium text-primary cursor-pointer select-none">Record Payment Now</span>
+          </label>
+
+          {watchRecordPayment && (
+            <div className="bg-main/30 p-4 rounded-lg border border-border/50 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <FormField label="Payment Amount (ETB)" required error={errors.initialPayment?.amount?.message}>
+                  <Controller
+                    name="initialPayment.amount"
+                    control={control}
+                    render={({ field }) => (
+                      <CurrencyInput
+                        {...field}
+                        placeholder="Amount"
+                        error={errors.initialPayment?.amount?.message}
+                      />
+                    )}
+                  />
+                </FormField>
+                <FormField label="Payment Date" required error={errors.initialPayment?.paymentDate?.message}>
+                  <Input type="date" {...register("initialPayment.paymentDate")} error={errors.initialPayment?.paymentDate?.message} />
+                </FormField>
+              </div>
+              <FormField label="Payment Note" error={errors.initialPayment?.note?.message}>
+                <Textarea {...register("initialPayment.note")} rows={1} error={errors.initialPayment?.note?.message} placeholder="Optional payment note" />
+              </FormField>
+            </div>
+          )}
+        </div>
       )}
 
       <div className="flex justify-end gap-2.5 pt-3 mt-1 border-t border-border/50">

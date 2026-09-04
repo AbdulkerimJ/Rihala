@@ -13,6 +13,7 @@ import { usePermission } from "../../../hooks/usePermission";
 import { getEmployees } from "../../employees/api";
 import { ATTENDANCE_STATUSES, attendanceSchema } from "../constants";
 import { applyServerErrors, unwrapListResponse } from "../../../utils/apiResponse";
+import { getLocalISODate } from "../../../utils/formatters";
 
 export const AttendanceFormModal = ({
   isOpen,
@@ -41,14 +42,14 @@ export const AttendanceFormModal = ({
       ? {
           employee: initialData.employee?._id || initialData.employee,
           workDate: initialData.workDate
-            ? new Date(initialData.workDate).toISOString().split("T")[0]
-            : new Date().toISOString().split("T")[0],
+            ? getLocalISODate(initialData.workDate)
+            : getLocalISODate(),
           morningStatus: initialData.morningStatus || "PRESENT",
           afternoonStatus: initialData.afternoonStatus || "PRESENT",
         }
       : {
           employee: "",
-          workDate: new Date().toISOString().split("T")[0],
+          workDate: getLocalISODate(),
           morningStatus: "PRESENT",
           afternoonStatus: "PRESENT",
         },
@@ -59,15 +60,15 @@ export const AttendanceFormModal = ({
       reset({
         employee: initialData.employee?._id || initialData.employee,
         workDate: initialData.workDate
-          ? new Date(initialData.workDate).toISOString().split("T")[0]
-          : new Date().toISOString().split("T")[0],
+          ? getLocalISODate(initialData.workDate)
+          : getLocalISODate(),
         morningStatus: initialData.morningStatus || "PRESENT",
         afternoonStatus: initialData.afternoonStatus || "PRESENT",
       });
     } else {
       reset({
         employee: "",
-        workDate: new Date().toISOString().split("T")[0],
+        workDate: getLocalISODate(),
         morningStatus: "PRESENT",
         afternoonStatus: "PRESENT",
       });

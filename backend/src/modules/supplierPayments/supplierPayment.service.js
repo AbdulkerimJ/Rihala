@@ -18,55 +18,59 @@ const generatePaymentReference = async () => {
   return `PAY-${counter.seq + 1000}`;
 };
 
+const createSupplierPaymentInSession = async (data, session) => {
+  const supplier = await Supplier.findById(data.supplier).session(session);
+  if (!supplier) {
+    throw new NotFoundError("Supplier not found");
+  }
+
+  if (supplier.status === "inactive") {
+    throw new ValidationError("Cannot create payment for an inactive supplier");
+  }
+
+  const paymentReference = data.paymentReference || (await generatePaymentReference());
+
+  const existing = await SupplierPayment.findOne({ paymentReference }).session(session);
+  if (existing) {
+    const msg = "Payment reference already exists";
+    throw new ConflictError(msg, [{ field: "paymentReference", message: msg }]);
+  }
+
+  const payment = new SupplierPayment({
+    paymentReference,
+    supplier: supplier._id,
+    type: data.type,
+    amount: data.amount,
+    date: data.date,
+    note: data.note,
+    allocations: [],
+    unallocatedAmount: data.amount, // Default before hooks
+  });
+
+  if (data.type === "SPECIFIC") {
+    payment.purchaseId = data.purchaseId;
+  }
+
+  // We don't save it yet, we pass it to the allocation engine which will save it.
+  
+  if (data.type === "SPECIFIC") {
+    await allocateSpecificPayment(payment, data.purchaseId, session);
+  } else if (data.type === "GENERAL") {
+    await allocateGeneralPayment(payment, null, session);
+  }
+
+  // Update supplier balance
+  await Supplier.findByIdAndUpdate(supplier._id, { $inc: { balance: -payment.amount } }, { session });
+
+  const finalPayment = await SupplierPayment.findById(payment._id).populate(supplierPaymentQueryConfig.populate).session(session);
+  return finalPayment;
+};
+
 const createSupplierPaymentService = async (data) => {
   const session = await mongoose.startSession();
   try {
     return await session.withTransaction(async () => {
-      const supplier = await Supplier.findById(data.supplier).session(session);
-      if (!supplier) {
-        throw new NotFoundError("Supplier not found");
-      }
-
-      if (supplier.status === "inactive") {
-        throw new ValidationError("Cannot create payment for an inactive supplier");
-      }
-
-      const paymentReference = data.paymentReference || (await generatePaymentReference());
-
-      const existing = await SupplierPayment.findOne({ paymentReference }).session(session);
-      if (existing) {
-        const msg = "Payment reference already exists";
-        throw new ConflictError(msg, [{ field: "paymentReference", message: msg }]);
-      }
-
-      const payment = new SupplierPayment({
-        paymentReference,
-        supplier: supplier._id,
-        type: data.type,
-        amount: data.amount,
-        date: data.date,
-        note: data.note,
-        allocations: [],
-        unallocatedAmount: data.amount, // Default before hooks
-      });
-
-      if (data.type === "SPECIFIC") {
-        payment.purchaseId = data.purchaseId;
-      }
-
-      // We don't save it yet, we pass it to the allocation engine which will save it.
-      
-      if (data.type === "SPECIFIC") {
-        await allocateSpecificPayment(payment, data.purchaseId, session);
-      } else if (data.type === "GENERAL") {
-        await allocateGeneralPayment(payment, null, session);
-      }
-
-      // Update supplier balance
-      await Supplier.findByIdAndUpdate(supplier._id, { $inc: { balance: -payment.amount } }, { session });
-
-      const finalPayment = await SupplierPayment.findById(payment._id).populate(supplierPaymentQueryConfig.populate).session(session);
-      return finalPayment;
+      return await createSupplierPaymentInSession(data, session);
     });
   } finally {
     session.endSession();
@@ -76,6 +80,8 @@ const createSupplierPaymentService = async (data) => {
 const getSupplierPaymentsService = async (filters = {}) => {
   if (!filters.status) {
     filters.status = "active";
+  } else if (filters.status === "all") {
+    delete filters.status;
   }
 
   const customQuery = {};
@@ -184,6 +190,7 @@ const voidSupplierPaymentService = async (paymentId, voidReason, userId) => {
 
 export {
   createSupplierPaymentService,
+  createSupplierPaymentInSession,
   getSupplierPaymentsService,
   getSupplierPaymentByIdService,
   updateSupplierPaymentService,

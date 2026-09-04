@@ -19,10 +19,15 @@ const createOrderSchema = z
       .min(1, "Agreed amount must be at least 1."),
     expectedCompletionDate: z.string().datetime({ message: "Invalid ISO datetime string" }),
     notes: z.string().trim().optional().nullable(),
+    initialPayment: z.object({
+      amount: z.number().positive("Payment amount must be positive"),
+      paymentDate: z.string().datetime({ message: "Invalid ISO datetime string" }),
+      note: z.string().max(1000).optional().nullable(),
+    }).optional(),
   })
   .strict({
     error:
-      "Only customer, date, description, agreedAmount, expectedCompletionDate, and notes can be submitted.",
+      "Only customer, date, description, agreedAmount, expectedCompletionDate, notes, and initialPayment can be submitted.",
   });
 
 const updateOrderSchema = z

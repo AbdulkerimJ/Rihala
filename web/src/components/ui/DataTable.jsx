@@ -23,6 +23,14 @@ const getVisibleActionsCount = (actionsNode, can) => {
   return count;
 };
 
+const getResponsiveClasses = (className) => {
+  if (!className) return "";
+  return className
+    .split(" ")
+    .filter((c) => c === "hidden" || c.includes("table-cell") || c.includes("block"))
+    .join(" ");
+};
+
 export const DataTable = ({
   columns,
   data,
@@ -84,7 +92,7 @@ export const DataTable = ({
                 <div key={rowId} className="flex flex-col bg-surface relative">
                   <ListItem
                     to={mobile.to}
-                    onClick={mobile.onClick || (onRowClick ? () => onRowClick(row) : undefined)}
+                    onClick={mobile.onClick || (mobile.to ? undefined : (onRowClick ? () => onRowClick(row) : undefined))}
                     title={mobile.title}
                     subtitle={mobile.subtitle}
                     right={
@@ -102,6 +110,7 @@ export const DataTable = ({
                             <div className="relative flex items-center shrink-0">
                               <button
                                 onClick={(e) => {
+                                  e.preventDefault();
                                   e.stopPropagation();
                                   setOpenDropdownId(isDropdownOpen ? null : rowId);
                                 }}
@@ -141,7 +150,7 @@ export const DataTable = ({
                   key={index}
                   className={`px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-secondary ${
                     col.isActions ? "text-right" : "text-left"
-                  } ${col.headerClassName || ""}`}
+                  } ${getResponsiveClasses(col.className)} ${col.headerClassName || ""}`}
                 >
                   {col.header}
                 </th>
@@ -189,10 +198,13 @@ export const DataTable = ({
 
       {/* ── Pagination ── */}
       {pagination && (
-        <div className="mt-4 flex items-center justify-between text-sm text-secondary px-1">
+        <div className="mt-4 flex items-center justify-end gap-4 text-sm text-secondary px-1">
           <span className="text-xs text-secondary">
             Page <span className="font-bold text-primary">{pagination.page}</span> of{" "}
             <span className="font-bold text-primary">{pagination.totalPages || 1}</span>
+            {pagination.total !== undefined && (
+              <span className="ml-1 text-muted">({pagination.total} total items)</span>
+            )}
           </span>
           <div className="flex items-center gap-1.5">
             <button

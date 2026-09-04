@@ -1,7 +1,9 @@
 import mongoose from "mongoose";
 import Employee from "./employee.model.js";
 import WeeklyPayroll from "../weeklyPayrolls/weeklyPayroll.model.js";
+import { getCurrentPayrollCalculationService } from "../weeklyPayrolls/weeklyPayroll.service.js";
 import EmployeePayment from "../employeePayments/employeePayment.model.js";
+import EmployeeRate from "../employeeRates/employeeRate.model.js";
 import employeeQueryConfig from "./employee.query.js";
 import ConflictError from "../../core/errors/ConflictError.js";
 import NotFoundError from "../../core/errors/NotFoundError.js";
@@ -59,41 +61,64 @@ const ensureEmploymentDatesAreValid = (startDate, endDate) => {
 
 const createEmployeeService = async (data) => {
   const normalizedData = normalizeEmployeePayload(data);
+  const initialDailyRate = data.initialDailyRate;
 
-  if (normalizedData.phone) {
-    const existingPhoneEmployee = await Employee.findOne({
-      phone: normalizedData.phone,
-    });
+  const session = await mongoose.startSession();
+  let createdEmployee;
 
-    if (existingPhoneEmployee) {
-      if (existingPhoneEmployee.deletedAt !== null) {
-        // Restore deleted employee
-        existingPhoneEmployee.name = normalizedData.name;
-        if (normalizedData.employmentStartDate) {
-          existingPhoneEmployee.employmentStartDate = normalizedData.employmentStartDate;
+  try {
+    await session.withTransaction(async () => {
+      if (normalizedData.phone) {
+        const existingPhoneEmployee = await Employee.findOne({
+          phone: normalizedData.phone,
+        }).session(session);
+
+        if (existingPhoneEmployee) {
+          if (existingPhoneEmployee.deletedAt !== null) {
+            // Restore deleted employee
+            existingPhoneEmployee.name = normalizedData.name;
+            if (normalizedData.employmentStartDate) {
+              existingPhoneEmployee.employmentStartDate = normalizedData.employmentStartDate;
+            }
+            if (normalizedData.employmentEndDate !== undefined) {
+              existingPhoneEmployee.employmentEndDate = normalizedData.employmentEndDate;
+            }
+            existingPhoneEmployee.status = normalizedData.status || "active";
+            existingPhoneEmployee.deletedAt = null;
+            existingPhoneEmployee.deletedBy = null;
+            
+            await existingPhoneEmployee.save({ session });
+            createdEmployee = existingPhoneEmployee;
+          } else {
+            const msg = "An employee with this phone already exists.";
+            throw new ConflictError(msg, [{ field: "phone", message: msg }]);
+          }
         }
-        if (normalizedData.employmentEndDate !== undefined) {
-          existingPhoneEmployee.employmentEndDate = normalizedData.employmentEndDate;
-        }
-        existingPhoneEmployee.status = normalizedData.status || "active";
-        existingPhoneEmployee.deletedAt = null;
-        existingPhoneEmployee.deletedBy = null;
-        
-        await existingPhoneEmployee.save();
-        return existingPhoneEmployee;
       }
 
-      const msg = "An employee with this phone already exists.";
-      throw new ConflictError(msg, [{ field: "phone", message: msg }]);
-    }
+      if (!createdEmployee) {
+        ensureEmploymentDatesAreValid(
+          normalizedData.employmentStartDate,
+          normalizedData.employmentEndDate,
+        );
+
+        const newEmployees = await Employee.create([normalizedData], { session });
+        createdEmployee = newEmployees[0];
+      }
+
+      if (initialDailyRate) {
+        await EmployeeRate.create([{
+          employee: createdEmployee._id,
+          dailyRate: initialDailyRate,
+          effectiveDate: createdEmployee.employmentStartDate,
+        }], { session });
+      }
+    });
+  } finally {
+    session.endSession();
   }
 
-  ensureEmploymentDatesAreValid(
-    normalizedData.employmentStartDate,
-    normalizedData.employmentEndDate,
-  );
-
-  return Employee.create(normalizedData);
+  return createdEmployee;
 };
 
 const getEmployeesService = async (filters = {}) => {
@@ -145,18 +170,20 @@ const getEmployeeStatsService = async (employeeId) => {
 
   const objectId = new mongoose.Types.ObjectId(employeeId);
 
-  const [payrollResult, paymentResult] = await Promise.all([
+  const [payrollResult, paymentResult, pendingCalculation] = await Promise.all([
     WeeklyPayroll.aggregate([
-      { $match: { employee: objectId, status: "CLOSED" } },
+      { $match: { employee: objectId } },
       { $group: { _id: null, totalEarned: { $sum: "$totalEarnings" } } },
     ]),
     EmployeePayment.aggregate([
       { $match: { employee: objectId, status: "active" } },
       { $group: { _id: null, totalPaid: { $sum: "$amount" } } },
     ]),
+    getCurrentPayrollCalculationService(employeeId)
   ]);
 
-  const totalEarned = payrollResult[0]?.totalEarned ?? 0;
+  const pendingEarnings = pendingCalculation?.totalEarnings || 0;
+  const totalEarned = (payrollResult[0]?.totalEarned ?? 0) + pendingEarnings;
   const totalPaid = paymentResult[0]?.totalPaid ?? 0;
   const currentBalance = totalEarned - totalPaid;
 

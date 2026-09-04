@@ -3,7 +3,7 @@ const contractorPaymentQueryConfig = {
   searchableFields: ["paymentReference", "note", "voidReason"],
   sortableFields: ["paymentDate", "amount", "createdAt"],
   filterableFields: ["contract", "status"],
-  defaultSort: "-paymentDate",
+  defaultSort: "-createdAt",
   populate: [
     { path: "contract", populate: { path: "contractor", select: "name" } },
     { path: "createdBy", select: "name" },

@@ -1,12 +1,14 @@
 import React, { useState, useMemo } from "react";
-import { Plus, Edit, Trash2, X } from "lucide-react";
+import { Plus, Edit, Trash2, X, ListTree } from "lucide-react";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { usePermission } from "../../../hooks/usePermission";
 import { useDebounce } from "../../../hooks/useDebounce";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { getTasks, createTask, updateTask, deleteTask } from "../api";
-import { getTaskTypes } from "../../task-types/api";
+import { getTaskTypes, createTaskType, updateTaskType, deleteTaskType } from "../../task-types/api";
 import { TaskForm } from "../components/TaskForm";
+import { TaskTypeForm } from "../../task-types/components/TaskTypeForm";
+import { Tabs } from "../../../components/ui/Tabs";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
 import { Can } from "../../../components/Can";
@@ -38,9 +40,16 @@ export const TasksList = () => {
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({ search: "", isActive: "", taskType: "" }); 
   const debouncedSearch = useDebounce(filters.search, 300);
+  
+  // Task State
   const [isOpen, setIsOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [deletingTask, setDeletingTask] = useState(null);
+
+  // Task Type State
+  const [isTaskTypeModalOpen, setIsTaskTypeModalOpen] = useState(false);
+  const [editingTaskType, setEditingTaskType] = useState(null);
+  const [deletingTaskType, setDeletingTaskType] = useState(null);
 
   const { data: taskTypesData } = useQuery({ 
     queryKey: ["task-types", "list"], 
@@ -98,6 +107,40 @@ export const TasksList = () => {
     },
   });
 
+  const createTaskTypeMutation = useMutation({
+    mutationFn: createTaskType,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["task-types"] });
+      toast.success("Task Type created successfully");
+      setIsTaskTypeModalOpen(false);
+    },
+  });
+
+  const updateTaskTypeMutation = useMutation({
+    mutationFn: updateTaskType,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["task-types"] });
+      toast.success("Task Type updated successfully");
+      setIsTaskTypeModalOpen(false);
+    },
+  });
+
+  const deleteTaskTypeMutation = useMutation({
+    mutationFn: deleteTaskType,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["task-types"] });
+      toast.success("Task Type deleted successfully");
+      
+      // If we deleted the currently selected filter, reset it
+      if (filters.taskType === deletingTaskType?._id) {
+        setFilters(p => ({ ...p, taskType: "" }));
+        setPage(1);
+      }
+      setDeletingTaskType(null);
+    },
+    onError: () => setDeletingTaskType(null),
+  });
+
   const columns = [
     { header: "Name", accessor: "name", className: "font-medium" },
     { header: "Task Type", accessor: (row) => row.taskType?.name || "-", className: "text-secondary" },
@@ -143,6 +186,11 @@ export const TasksList = () => {
 
   if (isError) return <ErrorState description={getApiErrorMessage(error, "Failed to load tasks.")} />;
 
+  const taskTabs = [
+    { id: "", label: "All Tasks" },
+    ...taskTypes.map(tt => ({ id: tt._id, label: tt.name }))
+  ];
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -150,12 +198,27 @@ export const TasksList = () => {
         description="Manage task definitions and unit prices."
         actions={
           <Can permission="tasks.create">
-            <Button variant="primary" leftIcon={Plus} onClick={() => { setEditingTask(null); setIsOpen(true); }}>
+            <Button onClick={() => { setEditingTask(null); setIsOpen(true); }} leftIcon={Plus}>
               New Task
             </Button>
           </Can>
         }
       />
+
+      <div className="flex items-center gap-2">
+        <div className="flex-1 min-w-0 overflow-x-auto hide-scrollbar pb-1">
+          <Tabs 
+            tabs={taskTabs} 
+            activeTab={filters.taskType} 
+            onChange={(id) => { setFilters(p => ({ ...p, taskType: id })); setPage(1); }} 
+          />
+        </div>
+        <Can permission="taskTypes.create">
+          <Button variant="ghost" size="sm" leftIcon={Plus} onClick={() => { setEditingTaskType(null); setIsTaskTypeModalOpen(true); }} className="shrink-0 text-secondary hover:text-primary mb-1" title="Add Type">
+            <span className="hidden sm:inline-block">Add Type</span>
+          </Button>
+        </Can>
+      </div>
 
       <FilterBar 
         filters={filters}
@@ -164,14 +227,6 @@ export const TasksList = () => {
         onSearchChange={(val) => { setFilters(p => ({ ...p, search: val })); setPage(1); }}
         onClear={Object.values(filters).some(v => v !== "") ? () => { setFilters({ search: "", isActive: "", taskType: "" }); setPage(1); } : undefined}
       >
-        <Select
-          value={filters.taskType}
-          onChange={(e) => { setFilters(p => ({ ...p, taskType: e.target.value })); setPage(1); }}
-          options={[
-            { value: "", label: "All Task Types" },
-            ...taskTypes.map(tt => ({ value: tt._id, label: tt.name }))
-          ]}
-        />
         <Select
           value={filters.isActive}
           onChange={(e) => { setFilters(p => ({ ...p, isActive: e.target.value })); setPage(1); }}
@@ -184,66 +239,68 @@ export const TasksList = () => {
       </FilterBar>
 
       <DataTable 
-        columns={columns}
-        data={tasks}
-        keyExtractor={(row) => row._id}
-        mobileRow={(row) => ({
-          title: row.name,
-          subtitle: row.taskType?.name || "-",
-          right: (
-            <div className="flex items-center gap-2 shrink-0">
-              <span className="text-xs font-bold tracking-tight text-primary">
-                <MoneyDisplay amount={row.defaultUnitPrice} />
-              </span>
-              <StatusBadge status={row.isActive ? "active" : "inactive"} className="shrink-0" />
-            </div>
-          ),
-          actions: (
-            <>
-              <Can permission="tasks.update">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  leftIcon={Edit}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setEditingTask(row);
-                    setIsOpen(true);
-                  }}
-                >
-                  Edit
-                </Button>
-              </Can>
-              <Can permission="tasks.delete">
-                <Button
-                  variant="danger-ghost"
-                  size="sm"
-                  leftIcon={Trash2}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDeletingTask(row);
-                  }}
-                >
-                  Delete
-                </Button>
-              </Can>
-            </>
-          )
-        })}
-        pagination={{ ...pagination, page }}
-        onPageChange={setPage}
-        isLoading={isLoading}
-        isFetching={isFetching}
-        emptyState={
-          <EmptyState
-            title="No tasks found"
-            description="Create a task definition to start assigning work to contractors."
-            actionLabel={can("tasks.create") ? "New Task" : null}
-            onAction={can("tasks.create") ? () => { setEditingTask(null); setIsOpen(true); } : undefined}
+            columns={columns}
+            data={tasks}
+            keyExtractor={(row) => row._id}
+            mobileRow={(row) => ({
+              title: row.name,
+              subtitle: row.taskType?.name || "-",
+              right: (
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-xs font-bold tracking-tight text-primary">
+                    <MoneyDisplay amount={row.defaultUnitPrice} />
+                  </span>
+                  <StatusBadge status={row.isActive ? "active" : "inactive"} className="shrink-0" />
+                </div>
+              ),
+              actions: (
+                <>
+                  <Can permission="tasks.update">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      leftIcon={Edit}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingTask(row);
+                        setIsOpen(true);
+                      }}
+                    >
+                      Edit
+                    </Button>
+                  </Can>
+                  <Can permission="tasks.delete">
+                    <Button
+                      variant="danger-ghost"
+                      size="sm"
+                      leftIcon={Trash2}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeletingTask(row);
+                      }}
+                    >
+                      Delete
+                    </Button>
+                  </Can>
+                </>
+              )
+            })}
+            pagination={{ ...pagination, page }}
+            onPageChange={setPage}
+            isLoading={isLoading}
+            isFetching={isFetching}
+            emptyState={
+              <EmptyState
+                title="No tasks found"
+                description={filters.taskType ? "No tasks found for this task type." : "Create a task definition to start assigning work to contractors."}
+                actionLabel={can("tasks.create") ? "New Task" : null}
+                onAction={can("tasks.create") ? () => { setEditingTask(null); setIsOpen(true); } : undefined}
+              />
+            }
           />
-        }
-      />
 
+
+      {/* Task Modal */}
       <Modal
         isOpen={isOpen}
         title={editingTask ? "Edit Task" : "New Task"}
@@ -270,6 +327,35 @@ export const TasksList = () => {
         onCancel={() => setDeletingTask(null)}
         variant="danger"
         isSubmitting={deleteMutation.isPending}
+      />
+
+      {/* Task Type Modal */}
+      <Modal
+        isOpen={isTaskTypeModalOpen}
+        title={editingTaskType ? "Edit Task Type" : "New Task Type"}
+        onClose={() => setIsTaskTypeModalOpen(false)}
+      >
+        <TaskTypeForm
+          initialData={editingTaskType}
+          onClose={() => setIsTaskTypeModalOpen(false)}
+          onSubmit={(data) =>
+            editingTaskType
+              ? updateTaskTypeMutation.mutateAsync({ id: editingTaskType._id, data })
+              : createTaskTypeMutation.mutateAsync(data)
+          }
+        />
+      </Modal>
+
+      <ConfirmDialog
+        isOpen={!!deletingTaskType}
+        title="Delete Task Type"
+        description={`Are you sure you want to delete "${deletingTaskType?.name}"? This action cannot be undone. You can only delete task types that are not associated with any tasks.`}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        onConfirm={() => deleteTaskTypeMutation.mutateAsync(deletingTaskType._id)}
+        onCancel={() => setDeletingTaskType(null)}
+        variant="danger"
+        isSubmitting={deleteTaskTypeMutation.isPending}
       />
     </div>
   );
