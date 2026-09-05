@@ -1,11 +1,10 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight, Package } from "lucide-react";
+import { formatDate } from "../../../utils/formatters";
 import { Can } from "../../../components/Can";
+import { ListGroup, ListItem, ListGroupSkeleton } from "../../../components/ui/ListGroup";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
-import { ListGroup, ListItem, ListGroupSkeleton } from "../../../components/ui/ListGroup";
-import { formatDate } from "../../../utils/formatters";
 
 export const DashboardRecentOrders = ({ orders, loadingOrders }) => {
   return (

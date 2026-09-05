@@ -1,17 +1,14 @@
-import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { usePermission } from "../../../hooks/usePermission";
 import { getOrders } from "../../orders/api";
 import { getCustomerPayments } from "../../customer-payments/api";
 import { getExpenses } from "../../expenses/api";
 import { unwrapListResponse } from "../../../utils/apiResponse";
-
 import { DashboardHero } from "../components/DashboardHero";
 import { DashboardStatsGrid } from "../components/DashboardStatsGrid";
-import { DashboardRecentOrders } from "../components/DashboardRecentOrders";
 import { DashboardQuickShortcuts } from "../components/DashboardQuickShortcuts";
+import { DashboardRecentOrders } from "../components/DashboardRecentOrders";
 import { DashboardRecentReceipts } from "../components/DashboardRecentReceipts";
-
 export const Dashboard = () => {
   const { can } = usePermission();
 

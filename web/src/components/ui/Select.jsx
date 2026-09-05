@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react";
+import { forwardRef } from "react";
 import { ChevronDown } from "lucide-react";
 
 export const Select = forwardRef(
@@ -24,7 +24,7 @@ export const Select = forwardRef(
     };
 
     const baseClasses =
-      "block bg-main border text-primary appearance-none cursor-pointer transition-all duration-200 hover:border-accent/50 hover:bg-surface focus:outline-none focus:ring-4 focus:ring-accent/10 disabled:opacity-50 disabled:cursor-not-allowed";
+      "block bg-main border text-primary appearance-none cursor-pointer transition-shadow duration-150 hover:border-accent/50 hover:bg-surface focus:outline-none focus:ring-4 focus:ring-accent/10 disabled:opacity-50 disabled:cursor-not-allowed";
 
     const borderClasses = error
       ? "border-danger focus:border-danger focus:ring-danger/20"

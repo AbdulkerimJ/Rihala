@@ -1,14 +1,14 @@
-import React, { useState } from "react";
-import { Plus, Receipt, X } from "lucide-react";
+import { useState } from "react";
+import { Plus, Receipt } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { formatDate } from "../../../utils/formatters";
 import { DetailSection } from "../../../components/ui/DetailSection";
-import { ListGroup, ListItem } from "../../../components/ui/ListGroup";
-import { Button } from "../../../components/ui/Button";
-import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { Can } from "../../../components/Can";
+import { Button } from "../../../components/ui/Button";
+import { ListGroup, ListItem } from "../../../components/ui/ListGroup";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { PaymentDetailsModal } from "../../../components/ui/PaymentDetailsModal";
-import { formatDate } from "../../../utils/formatters";
 
 export const OrderPaymentsSection = ({
   order,
@@ -26,7 +26,7 @@ export const OrderPaymentsSection = ({
     <DetailSection title="Customer Payments History" className="relative">
       <div className="space-y-4">
         {/* Financial overview mini banner */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 rounded-xl bg-surface border border-border/60 shadow-sm transition-all duration-300 hover:shadow-md group relative overflow-hidden">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 rounded-xl bg-surface border border-border/60 shadow-sm transition-shadow duration-300 hover:shadow-md group relative overflow-hidden">
           {/* Ambient Glow */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-finance-in/5 blur-2xl rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
           <div>

@@ -1,4 +1,3 @@
-import React from 'react';
 import { usePermission } from '../hooks/usePermission';
 
 export const Can = ({ permission, permissions, mode = 'any', children }) => {

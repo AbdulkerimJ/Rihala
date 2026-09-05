@@ -1,7 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  createEmployeePaymentSchema,
   updateEmployeePaymentSchema,
   voidEmployeePaymentSchema,
   employeePaymentQuerySchema,
@@ -11,8 +10,6 @@ import {
   createEmployeePaymentService,
   updateEmployeePaymentService,
   voidEmployeePaymentService,
-  getEmployeePaymentsService,
-  getEmployeePaymentByIdService,
 } from "../src/modules/employeePayments/employeePayment.service.js";
 import Employee from "../src/modules/employees/employee.model.js";
 import EmployeePayment from "../src/modules/employeePayments/employeePayment.model.js";

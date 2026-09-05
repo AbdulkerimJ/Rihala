@@ -1,11 +1,10 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-
+import { Navigate } from 'react-router-dom';
+import { FullScreenLoader } from '../components/ui/FullScreenLoader';
 export const RootRedirect = () => {
   const { hasPermission, isLoading, isAuthenticated } = useAuth();
 
-  if (isLoading) return null;
+  if (isLoading) return <FullScreenLoader />;
   
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 

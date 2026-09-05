@@ -1,37 +1,27 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Plus, Edit, Trash2 } from "lucide-react";
-import { ContractorForm } from "../components/ContractorForm";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { usePermission } from "../../../hooks/usePermission";
 import { useDebounce } from "../../../hooks/useDebounce";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { getContractors, createContractor, updateContractor, deleteContractor } from "../api";
-import { PageHeader } from "../../../components/ui/PageHeader";
-import { Button } from "../../../components/ui/Button";
-import { Can } from "../../../components/Can";
-import { EmptyState } from "../../../components/ui/EmptyState";
-import { ErrorState } from "../../../components/ui/ErrorState";
-import { Modal } from "../../../components/ui/Modal";
-import { DataTable } from "../../../components/ui/DataTable";
-import { FilterBar } from "../../../components/ui/FilterBar";
-import { FormField } from "../../../components/ui/FormField";
-import { Input } from "../../../components/ui/Input";
-import { Textarea } from "../../../components/ui/Textarea";
-import { Select } from "../../../components/ui/Select";
-import { StatusBadge } from "../../../components/ui/StatusBadge";
-import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
-import { FormRootError } from "../../../components/ui/FormRootError";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import toast from "react-hot-toast";
-import { applyServerErrors, cleanFilterParams, getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
+import { cleanFilterParams, getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
 import { formatDateTime } from "../../../utils/formatters";
-import { ACTIVE_INACTIVE_OPTIONS, STATUS_FILTER_OPTIONS } from "../../../constants/options";
-
-
-
+import { STATUS_FILTER_OPTIONS } from "../../../constants/options";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
+import { Can } from "../../../components/Can";
+import { Button } from "../../../components/ui/Button";
+import { ErrorState } from "../../../components/ui/ErrorState";
+import { PageHeader } from "../../../components/ui/PageHeader";
+import { FilterBar } from "../../../components/ui/FilterBar";
+import { Select } from "../../../components/ui/Select";
+import { DataTable } from "../../../components/ui/DataTable";
+import { EmptyState } from "../../../components/ui/EmptyState";
+import { Modal } from "../../../components/ui/Modal";
+import { ContractorForm } from "../components/ContractorForm";
+import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 export const ContractorsList = () => {
   const { can } = usePermission();
   const queryClient = useQueryClient();

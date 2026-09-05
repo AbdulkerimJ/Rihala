@@ -1,19 +1,18 @@
-import React from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getWeeklyPayrollById } from "../api";
-import { DetailSkeleton } from "../../../components/ui/skeletons";
-import { ErrorState } from "../../../components/ui/ErrorState";
-import { SummaryCard } from "../../../components/ui/SummaryCard";
-import { DetailSection } from "../../../components/ui/DetailSection";
-import { SystemInfoSection } from "../../../components/ui/SystemInfoSection";
-import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
-import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { getApiErrorMessage, unwrapEntityResponse } from "../../../utils/apiResponse";
 import { formatDate, formatCurrency } from "../../../utils/formatters";
-import { Calendar, Wallet, Clock, User, DollarSign, CalendarDays } from "lucide-react";
+import { Wallet, Clock, User, DollarSign, CalendarDays, Calendar } from "lucide-react";
+import { DetailSkeleton } from "../../../components/ui/skeletons";
+import { ErrorState } from "../../../components/ui/ErrorState";
 import { BackButton } from "../../../components/ui/BackButton";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
+import { SummaryCard } from "../../../components/ui/SummaryCard";
+import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
+import { DetailSection } from "../../../components/ui/DetailSection";
 import { ListGroup, ListItem } from "../../../components/ui/ListGroup";
+import { SystemInfoSection } from "../../../components/ui/SystemInfoSection";
 export const WeeklyPayrollDetail = () => {
   const { id } = useParams();
   

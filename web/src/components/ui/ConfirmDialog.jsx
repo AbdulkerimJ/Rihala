@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { X, AlertTriangle, Info } from "lucide-react";
 import { Modal } from "./Modal";
-import { Button } from "./Button";
-import { Textarea } from "./Textarea";
 import { FormField } from "./FormField";
-import { AlertTriangle, Info, X } from "lucide-react";
+import { Textarea } from "./Textarea";
+import { Button } from "./Button";
 
 export const ConfirmDialog = ({
   isOpen,

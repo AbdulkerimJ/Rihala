@@ -1,27 +1,27 @@
-import React, { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useState } from "react";
+import { useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getEmployeeById, getEmployeeStats } from "../api";
-import { DetailSkeleton } from "../../../components/ui/skeletons";
-import { ErrorState } from "../../../components/ui/ErrorState";
-import { StatusBadge } from "../../../components/ui/StatusBadge";
-import { SummaryCard } from "../../../components/ui/SummaryCard";
-import { DetailSection, DetailItem } from "../../../components/ui/DetailSection";
-import { SystemInfoSection } from "../../../components/ui/SystemInfoSection";
-import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
-import { Button } from "../../../components/ui/Button";
 import { getApiErrorMessage, unwrapEntityResponse, unwrapListResponse } from "../../../utils/apiResponse";
 import { formatDate, formatDateTime } from "../../../utils/formatters";
 import { usePermission } from "../../../hooks/usePermission";
-import { ListGroup, ListItem } from "../../../components/ui/ListGroup";
 import { getWeeklyPayrolls } from "../../weekly-payrolls/api";
 import { getEmployeePayments } from "../../employee-payments/api";
-import { TrendingUp, TrendingDown, Wallet, Phone, Calendar, Clock, Banknote, FileText } from "lucide-react";
-import { BackButton } from "../../../components/ui/BackButton";
-import { Tabs } from "../../../components/ui/Tabs";
-import { EmployeePaymentModal } from "../../employee-payments/components/EmployeePaymentModal";
+import { TrendingUp, TrendingDown, Wallet, FileText, Phone, Clock, Banknote } from "lucide-react";
 import { createEmployeePayment } from "../../employee-payments/api";
+import { DetailSkeleton } from "../../../components/ui/skeletons";
+import { ErrorState } from "../../../components/ui/ErrorState";
+import { BackButton } from "../../../components/ui/BackButton";
 import { Can } from "../../../components/Can";
+import { Button } from "../../../components/ui/Button";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
+import { Tabs } from "../../../components/ui/Tabs";
+import { DetailSection, DetailItem } from "../../../components/ui/DetailSection";
+import { SystemInfoSection } from "../../../components/ui/SystemInfoSection";
+import { SummaryCard } from "../../../components/ui/SummaryCard";
+import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
+import { ListGroup, ListItem } from "../../../components/ui/ListGroup";
+import { EmployeePaymentModal } from "../../employee-payments/components/EmployeePaymentModal";
 import toast from "react-hot-toast";
 
 export const EmployeeDetail = () => {
@@ -182,8 +182,7 @@ export const EmployeeDetail = () => {
             />
             <SummaryCard 
               title="Current Balance" 
-              value={statsQuery.isLoading ? "-" : <MoneyDisplay amount={Math.abs(stats?.currentBalance ?? 0)} prefix={stats?.currentBalance < 0 ? "-" : ""} />} 
-              subtitle={!stats || stats.currentBalance >= 0 ? "Owed to employee" : "Employee advance balance"}
+              value={statsQuery.isLoading ? "-" : <MoneyDisplay amount={stats?.currentBalance ?? 0} />} 
               icon={Wallet}
               iconVariant={!stats || stats.currentBalance >= 0 ? "accent" : "danger"}
               variant={!stats || stats.currentBalance >= 0 ? "accent" : "danger"}

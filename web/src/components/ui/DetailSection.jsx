@@ -1,4 +1,3 @@
-import React from "react";
 
 export const DetailSection = ({ title, children, className = "" }) => {
   return (

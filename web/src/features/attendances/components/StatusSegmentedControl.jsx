@@ -1,4 +1,3 @@
-import React from "react";
 import { ATTENDANCE_STATUSES } from "../constants";
 
 export const StatusSegmentedControl = ({

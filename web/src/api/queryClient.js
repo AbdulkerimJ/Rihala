@@ -6,13 +6,15 @@ export const queryClient = new QueryClient({
   mutationCache: new MutationCache({
     onError: (error, _variables, _context, mutation) => {
       if (!mutation.meta?.suppressToast) {
-        toast.error(getApiErrorMessage(error, "An error occurred"));
+        const errorMessage = getApiErrorMessage(error, "An error occurred");
+        toast.error(errorMessage, { id: errorMessage });
       }
     },
   }),
   queryCache: new QueryCache({
     onError: (error) => {
-      toast.error(getApiErrorMessage(error, "Failed to load data"));
+      const errorMessage = getApiErrorMessage(error, "Failed to load data");
+      toast.error(errorMessage, { id: errorMessage });
     },
   }),
   defaultOptions: {

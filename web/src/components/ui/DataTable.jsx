@@ -1,11 +1,10 @@
 import React, { useState } from "react";
-import { TableSkeleton } from "./skeletons";
-import { LoadingBar } from "./LoadingBar";
 import { ChevronLeft, ChevronRight, MoreVertical } from "lucide-react";
-import { ListGroup, ListItem, ListGroupSkeleton } from "./ListGroup";
-import { Modal } from "./Modal";
-import { MobileActionPopup } from "./MobileActionPopup";
 import { usePermission } from "../../hooks/usePermission";
+import { TableSkeleton } from "./skeletons";
+import { ListGroup, ListItem, ListGroupSkeleton } from "./ListGroup";
+import { LoadingBar } from "./LoadingBar";
+import { MobileActionPopup } from "./MobileActionPopup";
 
 const getVisibleActionsCount = (actionsNode, can) => {
   if (!actionsNode) return 0;
@@ -114,7 +113,7 @@ export const DataTable = ({
                                   e.stopPropagation();
                                   setOpenDropdownId(isDropdownOpen ? null : rowId);
                                 }}
-                                className="p-1.5 -mr-1.5 text-secondary hover:text-primary transition-colors rounded-md active:bg-main"
+                                className="p-1.5 -mr-1.5 text-secondary hover:text-primary transition-shadow rounded-md active:bg-main"
                               >
                                 <MoreVertical className="w-4 h-4" />
                               </button>
@@ -165,7 +164,7 @@ export const DataTable = ({
               <tr
                 key={keyExtractor(row)}
                 onClick={() => onRowClick && onRowClick(row)}
-                className={`group transition-all duration-200 ${
+                className={`group transition-shadow duration-200 ${
                   onRowClick ? "cursor-pointer hover:bg-accent/5 hover:shadow-[inset_4px_0_0_0_var(--color-accent)]" : ""
                 }`}
               >
@@ -187,7 +186,7 @@ export const DataTable = ({
                 })}
                 {onRowClick && (
                   <td className="px-5 py-0.5 text-right w-10">
-                    <ChevronRight className="h-4 w-4 text-secondary/30 group-hover:text-accent group-hover:translate-x-1 transition-all inline-block" />
+                    <ChevronRight className="h-4 w-4 text-secondary/30 group-hover:text-accent group-hover:translate-x-1 transition-shadow inline-block" />
                   </td>
                 )}
               </tr>
@@ -210,7 +209,7 @@ export const DataTable = ({
             <button
               onClick={() => onPageChange(Math.max(1, pagination.page - 1))}
               disabled={pagination.page <= 1}
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface text-secondary hover:text-primary hover:bg-main disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface text-secondary hover:text-primary hover:bg-main disabled:opacity-40 disabled:cursor-not-allowed transition-shadow"
               aria-label="Previous page"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -226,7 +225,7 @@ export const DataTable = ({
               disabled={
                 pagination.totalPages ? pagination.page >= pagination.totalPages : false
               }
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface text-secondary hover:text-primary hover:bg-main disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface text-secondary hover:text-primary hover:bg-main disabled:opacity-40 disabled:cursor-not-allowed transition-shadow"
               aria-label="Next page"
             >
               <ChevronRight className="h-4 w-4" />

@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Check, User, Phone, CheckCircle2 } from "lucide-react";
+import { Phone, Check } from "lucide-react";
 import toast from "react-hot-toast";
+import { Button } from "../../../components/ui/Button";
+import { StatusSegmentedControl } from "./StatusSegmentedControl";
 import { createAttendance, updateAttendance } from "../api";
 import { getInitials } from "../constants";
-import { StatusSegmentedControl } from "./StatusSegmentedControl";
-import { Button } from "../../../components/ui/Button";
 import { getApiErrorMessage } from "../../../utils/apiResponse";
 
 export const RollCallCard = ({
@@ -91,7 +91,7 @@ export const RollCallCard = ({
   return (
     <div
       className={`
-        p-4 sm:p-4.5 rounded-2xl border bg-surface shadow-xs transition-all duration-200 flex flex-col justify-between
+        p-4 sm:p-4.5 rounded-2xl border bg-surface shadow-xs transition-shadow duration-200 flex flex-col justify-between
         ${
           existingRecord && !hasChanged
             ? "border-success/30 hover:border-success/50"

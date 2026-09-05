@@ -1,8 +1,8 @@
 import { usePermission } from "../../../hooks/usePermission";
 import { useDebounce } from "../../../hooks/useDebounce";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
-import React, { useMemo, useState } from "react";
-import { Save, X, Receipt, Edit, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Save, X, Receipt, Edit } from "lucide-react";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import {
   createExpense,
@@ -11,23 +11,23 @@ import {
   updateExpense,
 } from "../api";
 import { EXPENSE_CATEGORIES } from "../constants";
-import { PageHeader } from "../../../components/ui/PageHeader";
+import { useForm, Controller } from "react-hook-form";
+import { FormRootError } from "../../../components/ui/FormRootError";
+import { FormField } from "../../../components/ui/FormField";
+import { Select } from "../../../components/ui/Select";
+import { CurrencyInput } from "../../../components/ui/CurrencyInput";
+import { Input } from "../../../components/ui/Input";
 import { Button } from "../../../components/ui/Button";
-import { Can } from "../../../components/Can";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
-import { EmptyState } from "../../../components/ui/EmptyState";
+import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
+import { Can } from "../../../components/Can";
 import { ErrorState } from "../../../components/ui/ErrorState";
+import { PageHeader } from "../../../components/ui/PageHeader";
+import { FilterBar } from "../../../components/ui/FilterBar";
+import { DataTable } from "../../../components/ui/DataTable";
+import { EmptyState } from "../../../components/ui/EmptyState";
 import { Modal } from "../../../components/ui/Modal";
 import { VoidReasonDialog } from "../../../components/ui/VoidReasonDialog";
-import { DataTable } from "../../../components/ui/DataTable";
-import { FilterBar } from "../../../components/ui/FilterBar";
-import { FormField } from "../../../components/ui/FormField";
-import { Input } from "../../../components/ui/Input";
-import { Select } from "../../../components/ui/Select";
-import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
-import { FormRootError } from "../../../components/ui/FormRootError";
-import { CurrencyInput } from "../../../components/ui/CurrencyInput";
-import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";

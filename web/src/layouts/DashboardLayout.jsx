@@ -1,16 +1,14 @@
-import React, { useMemo, useState, useEffect } from "react";
-import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { usePermission } from "../hooks/usePermission";
-import { Button } from "../components/ui/Button";
 import { Header } from "../components/Header";
 import { ErrorBoundary } from "../components/ErrorBoundary";
-import { LayoutDashboard, Users, ShieldCheck, Key, Receipt, Contact, ClipboardList, Package, ShoppingCart, CreditCard, Briefcase, Clock, CalendarDays, Wallet, Settings, UserSquare2, BarChart2, FileText, Hammer, ListTree, Banknote, HandCoins, Building2, BadgeDollarSign, HardHat, Store, PanelLeftClose,  } from "lucide-react";
-
 import { NavGroup } from "./NavGroup";
 import { SidebarBrand } from "./SidebarBrand";
 import { BottomNav } from "./BottomNav";
 import { MobileDrawer } from "./MobileDrawer";
+import { LayoutDashboard, Users, ShieldCheck, Receipt, ClipboardList, ShoppingCart, Briefcase, Clock, CalendarDays, Wallet, Settings, UserSquare2, BarChart2, FileText, Hammer, HardHat, Store } from "lucide-react";
 
 export const DashboardLayout = () => {
   const { currentUser, logout } = useAuth();
@@ -126,7 +124,7 @@ export const DashboardLayout = () => {
         <SidebarBrand isCollapsed={isCollapsed} toggleCollapse={toggleCollapse} />
 
         {/* Navigation Area */}
-        <nav className={`flex-1 overflow-y-auto overflow-x-hidden py-4 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent transition-all duration-300 ${
+        <nav className={`flex-1 overflow-y-auto overflow-x-hidden py-4 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent transition-shadow duration-300 ${
           isCollapsed ? "px-1" : "px-3"
         }`}>
           {navGroups.map((group, idx) => (

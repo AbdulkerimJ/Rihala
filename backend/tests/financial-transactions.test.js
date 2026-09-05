@@ -5,8 +5,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import { createPurchaseService, updatePurchaseService } from "../src/modules/purchases/purchase.service.js";
-import { createSupplierPaymentService, updateSupplierPaymentService, voidSupplierPaymentService } from "../src/modules/supplierPayments/supplierPayment.service.js";
-import * as allocationService from "../src/modules/supplierPayments/allocation.service.js";
+import { createSupplierPaymentService, voidSupplierPaymentService } from "../src/modules/supplierPayments/supplierPayment.service.js";
 import User from "../src/modules/users/user.model.js";
 
 import Supplier from "../src/modules/suppliers/supplier.model.js";

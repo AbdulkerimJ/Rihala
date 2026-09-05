@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
 import { X, LogOut } from "lucide-react";
@@ -84,7 +84,7 @@ export const MobileDrawer = ({ isOpen, onClose, navGroups }) => {
           </h2>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg text-secondary hover:text-primary hover:bg-surface transition-colors"
+            className="p-2 rounded-lg text-secondary hover:text-primary hover:bg-surface transition-shadow"
             aria-label="Close menu"
           >
             <X className="h-5 w-5" />
@@ -136,7 +136,7 @@ export const MobileDrawer = ({ isOpen, onClose, navGroups }) => {
                         key={item.path}
                         to={item.path}
                         onClick={onClose}
-                        className={`flex flex-col items-center justify-center gap-1.5 rounded-xl p-3 text-center transition-colors duration-150 min-h-[68px] border ${
+                        className={`flex flex-col items-center justify-center gap-1.5 rounded-xl p-3 text-center transition-shadow duration-150 min-h-[68px] border ${
                           isActive
                             ? "bg-accent/10 text-accent border-accent/20 shadow-sm"
                             : "bg-surface text-secondary hover:bg-main hover:text-primary border-border/50"
@@ -165,7 +165,7 @@ export const MobileDrawer = ({ isOpen, onClose, navGroups }) => {
           <div className="pt-2 border-t border-border/40">
             <button
               onClick={handleLogout}
-              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-danger hover:bg-danger/10 transition-colors duration-150"
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-danger hover:bg-danger/10 transition-shadow duration-150"
             >
               <LogOut className="h-5 w-5" />
               <span className="text-sm font-semibold">Sign Out</span>

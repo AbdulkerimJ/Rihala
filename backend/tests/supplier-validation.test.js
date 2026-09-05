@@ -2,14 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
 import ValidationError from "../src/core/errors/ValidationError.js";
-import NotFoundError from "../src/core/errors/NotFoundError.js";
 import Supplier from "../src/modules/suppliers/supplier.model.js";
 import Material from "../src/modules/materials/material.model.js";
 import Purchase from "../src/modules/purchases/purchase.model.js";
 import SupplierPayment from "../src/modules/supplierPayments/supplierPayment.model.js";
 import { createPurchaseService, getPurchaseByIdService } from "../src/modules/purchases/purchase.service.js";
 import { createSupplierPaymentService, getSupplierPaymentByIdService } from "../src/modules/supplierPayments/supplierPayment.service.js";
-import * as allocationService from "../src/modules/supplierPayments/allocation.service.js";
 
 // Utility to mock Mongoose findById
 const mockFindById = (Model, data) => {

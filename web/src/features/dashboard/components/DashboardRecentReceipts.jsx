@@ -1,10 +1,9 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
-import { Can } from "../../../components/Can";
-import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
-import { ListGroup, ListItem, ListGroupSkeleton } from "../../../components/ui/ListGroup";
 import { formatDate } from "../../../utils/formatters";
+import { Can } from "../../../components/Can";
+import { ListGroup, ListItem, ListGroupSkeleton } from "../../../components/ui/ListGroup";
+import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 
 export const DashboardRecentReceipts = ({
   recentPayments,

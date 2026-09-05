@@ -1,6 +1,4 @@
-import React from "react";
 import { Skeleton } from "./Skeleton";
-
 export const TableSkeleton = ({ columns = 4, rows = 5 }) => {
   const rowArray = Array.from({ length: rows }, (_, i) => i);
   const colArray = Array.from({ length: columns }, (_, i) => i);

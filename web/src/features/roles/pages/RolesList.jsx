@@ -1,24 +1,24 @@
-import React, { useState, useEffect, useMemo } from "react"; 
+import { useState, useEffect, useMemo } from "react"; 
 import { useDebounce } from "../../../hooks/useDebounce";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { getRoles, createRole, updateRole, deleteRole } from "../api";
 import { getPermissions } from "../../permissions/api";
-import { Can } from "../../../components/Can";
 import { usePermission } from "../../../hooks/usePermission";
-import { Plus, Edit2, Trash2, Key, Search, ShieldCheck } from "lucide-react";
+import { Plus, Edit2, Trash2, Key, ShieldCheck } from "lucide-react";
 import toast from "react-hot-toast";
-import { RoleForm } from "../components/RoleModal";
-import { AssignPermissionsForm } from "../components/AssignPermissionsModal";
-import { EmptyState } from "../../../components/ui/EmptyState";
-import { PageHeader } from "../../../components/ui/PageHeader";
-import { Button } from "../../../components/ui/Button";
-import { Modal } from "../../../components/ui/Modal";
-import { ErrorState } from "../../../components/ui/ErrorState";
-import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { getApiErrorMessage } from "../../../utils/apiResponse";
+import { ErrorState } from "../../../components/ui/ErrorState";
+import { PageHeader } from "../../../components/ui/PageHeader";
+import { Can } from "../../../components/Can";
+import { Button } from "../../../components/ui/Button";
 import { Tabs } from "../../../components/ui/Tabs";
 import { FilterBar } from "../../../components/ui/FilterBar";
 import { DataTable } from "../../../components/ui/DataTable";
+import { EmptyState } from "../../../components/ui/EmptyState";
+import { Modal } from "../../../components/ui/Modal";
+import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
+import { RoleForm } from "../components/RoleModal";
+import { AssignPermissionsForm } from "../components/AssignPermissionsModal";
 
 export const RolesList = () => {
   const { can } = usePermission();

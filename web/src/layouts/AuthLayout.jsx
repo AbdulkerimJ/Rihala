@@ -1,9 +1,8 @@
-import React from 'react';
-import { Outlet, Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { Navigate, Outlet } from 'react-router-dom';
+import { FullScreenLoader } from '../components/ui/FullScreenLoader';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { ErrorBoundary } from '../components/ErrorBoundary';
-
 /* ── Brand wordmark ──────────────────────────────────────────────────────── */
 const Wordmark = () => (
   <div className="flex flex-col items-center text-center" style={{ gap: '10px' }}>
@@ -45,14 +44,7 @@ export const AuthLayout = () => {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-main">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-          <span className="text-xs font-medium text-secondary">Loading Rihala...</span>
-        </div>
-      </div>
-    );
+    return <FullScreenLoader />;
   }
 
   if (isAuthenticated) {

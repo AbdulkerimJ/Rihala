@@ -5,21 +5,21 @@ import { getSuppliers, createSupplier } from "../../suppliers/api";
 import { SupplierForm } from "../../suppliers/components/SupplierForm";
 import { getMaterials, createMaterial } from "../../materials/api";
 import { MaterialForm } from "../../materials/components/MaterialForm";
-import { Button } from "../../../components/ui/Button";
-import { FormField } from "../../../components/ui/FormField";
-import { Input } from "../../../components/ui/Input";
-import { Select } from "../../../components/ui/Select";
-import { Textarea } from "../../../components/ui/Textarea";
-import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
-import { FormRootError } from "../../../components/ui/FormRootError";
-import { CurrencyInput } from "../../../components/ui/CurrencyInput";
-import { CreatableSelect } from "../../../components/ui/CreatableSelect";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { applyServerErrors, unwrapListResponse } from "../../../utils/apiResponse";
 import { getLocalISODate } from "../../../utils/formatters";
-import { Plus, Trash2, Save, X } from "lucide-react";
+import { Save, X, Plus, Trash2 } from "lucide-react";
+import { Controller } from "react-hook-form";
+import { FormRootError } from "../../../components/ui/FormRootError";
+import { CreatableSelect } from "../../../components/ui/CreatableSelect";
+import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
+import { FormField } from "../../../components/ui/FormField";
+import { Input } from "../../../components/ui/Input";
+import { Button } from "../../../components/ui/Button";
+import { CurrencyInput } from "../../../components/ui/CurrencyInput";
+import { Textarea } from "../../../components/ui/Textarea";
 
 const purchaseItemSchema = z.object({
   material: z.string().min(1, "Material is required"),
@@ -255,15 +255,17 @@ export const PurchaseForm = ({ initialData, onSubmit, onClose, isFullyPaid }) =>
       </FormField>
 
       {!initialData && (
-        <div className="pt-4 mt-2 border-t border-border/50">
-          <label className="flex items-center gap-2 cursor-pointer mb-3 w-max">
-            <input 
-              type="checkbox" 
-              {...register("recordPayment")} 
-              className="rounded border-border text-primary focus:ring-primary/20 cursor-pointer"
-            />
-            <span className="text-sm font-medium text-primary cursor-pointer select-none">Record Payment Now</span>
-          </label>
+        <div className="pt-4 mt-4 border-t border-border/50">
+          <div className="flex justify-end mb-3">
+            <label className="flex items-center gap-2 cursor-pointer w-max">
+              <input 
+                type="checkbox" 
+                {...register("recordPayment")} 
+                className="rounded border-border text-primary focus:ring-primary/20 cursor-pointer"
+              />
+              <span className="text-sm font-medium text-primary cursor-pointer select-none">Record Payment Now</span>
+            </label>
+          </div>
 
           {watchRecordPayment && (
             <div className="bg-main/30 p-4 rounded-lg border border-border/50 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -293,7 +295,7 @@ export const PurchaseForm = ({ initialData, onSubmit, onClose, isFullyPaid }) =>
         </div>
       )}
 
-      <div className="flex justify-end gap-2.5 pt-3 mt-1 border-t border-border/50">
+      <div className="flex justify-end gap-2.5 pt-4 mt-2">
         <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting} leftIcon={X}>Cancel</Button>
         <Button type="submit" isLoading={isSubmitting} leftIcon={Save}>Save Purchase</Button>
       </div>

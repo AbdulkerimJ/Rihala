@@ -1,4 +1,3 @@
-import React from "react";
 
 const ICON_VARIANT_STYLES = {
   brand: "text-brand bg-brand/10 border-brand/15",
@@ -43,7 +42,7 @@ export const SummaryCard = ({
       className={`
         group relative flex h-full min-w-0 w-full flex-col justify-between
         overflow-hidden rounded-xl border border-border bg-surface p-3 sm:p-4 lg:p-5
-        shadow-xs hover:border-border/80 transition-colors duration-150
+        shadow-xs hover:border-border/80 transition-shadow duration-150
         ${className}
       `}
     >

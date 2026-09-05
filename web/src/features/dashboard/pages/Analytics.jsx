@@ -1,6 +1,4 @@
-import React from "react";
 import { PageHeader } from "../../../components/ui/PageHeader";
-
 export const Analytics = () => {
   return (
     <div className="space-y-6">

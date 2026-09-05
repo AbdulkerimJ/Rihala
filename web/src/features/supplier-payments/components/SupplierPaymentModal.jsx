@@ -1,7 +1,7 @@
 import React from "react";
-import { Save, X, Plus } from "lucide-react";
+import { Save, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { usePermission } from "../../../hooks/usePermission";
@@ -10,17 +10,18 @@ import { SupplierForm } from "../../suppliers/components/SupplierForm";
 import { getPurchases } from "../../purchases/api";
 import { unwrapListResponse, applyServerErrors } from "../../../utils/apiResponse";
 import { getLocalISODate } from "../../../utils/formatters";
-
+import { Controller } from "react-hook-form";
 import { Modal } from "../../../components/ui/Modal";
-import { FormField } from "../../../components/ui/FormField";
-import { Input } from "../../../components/ui/Input";
-import { Select } from "../../../components/ui/Select";
+import { FormRootError } from "../../../components/ui/FormRootError";
 import { CreatableSelect } from "../../../components/ui/CreatableSelect";
+import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
+import { FormField } from "../../../components/ui/FormField";
+import { Select } from "../../../components/ui/Select";
+import { CurrencyInput } from "../../../components/ui/CurrencyInput";
+import { Input } from "../../../components/ui/Input";
 import { Textarea } from "../../../components/ui/Textarea";
 import { Button } from "../../../components/ui/Button";
-import { CurrencyInput } from "../../../components/ui/CurrencyInput";
-import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
-import { FormRootError } from "../../../components/ui/FormRootError";
+
 
 const paymentSchema = z.object({
   supplier: z.string().min(1, "Supplier is required"),

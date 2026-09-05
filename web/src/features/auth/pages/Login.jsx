@@ -1,17 +1,17 @@
-import React, { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import toast from "react-hot-toast";
-import { Eye, EyeOff, LogIn } from "lucide-react";
-import { useAuth } from "../../../hooks/useAuth";
-import { applyServerErrors } from "../../../utils/apiResponse";
 import { FormField } from "../../../components/ui/FormField";
 import { Input } from "../../../components/ui/Input";
 import { PasswordInput } from "../../../components/ui/PasswordInput";
-import { Button } from "../../../components/ui/Button";
 import { FormRootError } from "../../../components/ui/FormRootError";
+import { Button } from "../../../components/ui/Button";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import toast from "react-hot-toast";
+import { LogIn } from "lucide-react";
+import { useAuth } from "../../../hooks/useAuth";
+import { applyServerErrors } from "../../../utils/apiResponse";
 
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email format"),

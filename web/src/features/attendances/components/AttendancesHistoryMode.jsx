@@ -1,18 +1,18 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { X, Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, X } from "lucide-react";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
+import { Can } from "../../../components/Can";
+import { Button } from "../../../components/ui/Button";
+import { ErrorState } from "../../../components/ui/ErrorState";
+import { FilterBar } from "../../../components/ui/FilterBar";
+import { DataTable } from "../../../components/ui/DataTable";
+import { EmptyState } from "../../../components/ui/EmptyState";
 
 import { usePermission } from "../../../hooks/usePermission";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { getAttendances } from "../api";
 
-import { ErrorState } from "../../../components/ui/ErrorState";
-import { EmptyState } from "../../../components/ui/EmptyState";
-import { FilterBar } from "../../../components/ui/FilterBar";
-import { DataTable } from "../../../components/ui/DataTable";
-import { StatusBadge } from "../../../components/ui/StatusBadge";
-import { Button } from "../../../components/ui/Button";
-import { Can } from "../../../components/Can";
 
 import { cleanFilterParams, getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
 import { formatDate } from "../../../utils/formatters";

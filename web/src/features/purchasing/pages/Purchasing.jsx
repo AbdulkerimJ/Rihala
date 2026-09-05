@@ -1,12 +1,12 @@
-import React, { useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { usePermission } from "../../../hooks/usePermission";
-import { Tabs } from "../../../components/ui/Tabs";
 import { ShoppingCart, Truck, Package } from "lucide-react";
-
+import { Tabs } from "../../../components/ui/Tabs";
 import { PurchasesList } from "../../purchases/pages/PurchasesList";
 import { SuppliersList } from "../../suppliers/pages/SuppliersList";
 import { MaterialsList } from "../../materials/pages/MaterialsList";
+
 
 export const Purchasing = () => {
   const { can } = usePermission();

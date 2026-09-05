@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react";
+import { forwardRef } from "react";
 
 export const Checkbox = forwardRef(
   (
@@ -24,7 +24,7 @@ export const Checkbox = forwardRef(
           checked={checked}
           onChange={onChange}
           disabled={disabled}
-          className="mt-0.5 h-4 w-4 rounded border-border text-accent focus:ring-accent accent-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          className="mt-0.5 h-4 w-4 rounded border-border text-accent focus:ring-accent accent-accent transition-shadow disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           {...props}
         />
         {(label || description) && (

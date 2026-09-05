@@ -1,8 +1,7 @@
-import React from "react";
-import { DetailSection } from "../../../components/ui/DetailSection";
-import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { formatDateTime } from "../../../utils/formatters";
 import { ORDER_STATUS_CONFIG } from "../constants";
+import { DetailSection } from "../../../components/ui/DetailSection";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
 
 export const OrderStatusTimeline = ({ statusHistory = [], createdBy }) => {
   if (!statusHistory || statusHistory.length === 0) return null;

@@ -1,6 +1,4 @@
-import React from "react";
 import { ConfirmDialog } from "./ConfirmDialog";
-
 /**
  * Reusable modal dialog for entering a void or cancellation reason.
  */

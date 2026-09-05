@@ -1,27 +1,25 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { Calculator, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { usePermission } from "../../../hooks/usePermission";
 import { useDebounce } from "../../../hooks/useDebounce";
-import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { getWeeklyPayrolls } from "../api";
 import { getEmployees } from "../../employees/api";
-import { PageHeader } from "../../../components/ui/PageHeader";
-import { Button } from "../../../components/ui/Button";
-import { Can } from "../../../components/Can";
 
-import { EmptyState } from "../../../components/ui/EmptyState";
-import { ErrorState } from "../../../components/ui/ErrorState";
-import { Modal } from "../../../components/ui/Modal";
-import { DataTable } from "../../../components/ui/DataTable";
-import { FilterBar } from "../../../components/ui/FilterBar";
-import { FormField } from "../../../components/ui/FormField";
-import { Input } from "../../../components/ui/Input";
-import { Select } from "../../../components/ui/Select";
-import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
-import toast from "react-hot-toast";
 import { getApiErrorMessage, unwrapListResponse, cleanFilterParams } from "../../../utils/apiResponse";
 import { formatDate } from "../../../utils/formatters";
+import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
+import { ErrorState } from "../../../components/ui/ErrorState";
+import { PageHeader } from "../../../components/ui/PageHeader";
+import { Can } from "../../../components/Can";
+import { Button } from "../../../components/ui/Button";
+import { FilterBar } from "../../../components/ui/FilterBar";
+import { Select } from "../../../components/ui/Select";
+import { Input } from "../../../components/ui/Input";
+import { DataTable } from "../../../components/ui/DataTable";
+import { EmptyState } from "../../../components/ui/EmptyState";
+import { Modal } from "../../../components/ui/Modal";
 import { PayrollClosureForm } from "../components/PayrollClosureForm";
 
 export const WeeklyPayrollsList = () => {

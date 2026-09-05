@@ -1,5 +1,4 @@
-import React from "react";
-import { Check, XCircle, AlertTriangle, X } from "lucide-react";
+import { Check, XCircle, AlertTriangle } from "lucide-react";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { Button } from "../../../components/ui/Button";
 import { Can } from "../../../components/Can";

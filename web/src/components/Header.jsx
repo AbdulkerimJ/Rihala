@@ -1,10 +1,9 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
+import { LogOut } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
+import { SearchInput } from "./ui/SearchInput";
 import { ThemeToggle } from "./ui/ThemeToggle";
 import { Button } from "./ui/Button";
-import { SearchInput } from "./ui/SearchInput";
-import { LogOut } from "lucide-react";
 
 export const Header = ({ currentUser, sectionTitle }) => {
   // Helper to extract user initials for avatar
@@ -47,7 +46,7 @@ export const Header = ({ currentUser, sectionTitle }) => {
       {/* Right section: Theme toggle & User Profile Card */}
       <div className="flex items-center gap-2 sm:gap-3">
         {/* Theme Toggle */}
-        <div className="p-0.5 rounded-lg hover:bg-main border border-transparent hover:border-border/60 transition-all">
+        <div className="p-0.5 rounded-lg hover:bg-main border border-transparent hover:border-border/60 transition-shadow">
           <ThemeToggle />
         </div>
 
@@ -55,7 +54,7 @@ export const Header = ({ currentUser, sectionTitle }) => {
         <div className="h-5 w-[1px] bg-border/70 mx-0.5 sm:mx-1"></div>
 
         {/* User Profile Area */}
-        <div className="group flex items-center gap-2.5 rounded-xl p-1 sm:px-2 sm:py-1 hover:bg-main/70 transition-all cursor-pointer border border-transparent hover:border-border/50">
+        <div className="group flex items-center gap-2.5 rounded-xl p-1 sm:px-2 sm:py-1 hover:bg-main/70 transition-shadow cursor-pointer border border-transparent hover:border-border/50">
           <div className="relative">
             <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-gradient-to-tr from-accent to-blue-600 text-white font-semibold text-xs shadow-sm border border-surface ring-1 ring-accent/30 transition-transform group-hover:scale-105">
               {getInitials(userName)}
@@ -64,7 +63,7 @@ export const Header = ({ currentUser, sectionTitle }) => {
           </div>
 
           <div className="hidden sm:flex flex-col text-left">
-            <span className="text-xs font-bold text-primary tracking-tight leading-tight group-hover:text-accent transition-colors truncate max-w-[120px]">
+            <span className="text-xs font-bold text-primary tracking-tight leading-tight group-hover:text-accent transition-shadow truncate max-w-[120px]">
               {userName}
             </span>
             <div className="flex items-center gap-1 mt-0.5">
@@ -80,7 +79,7 @@ export const Header = ({ currentUser, sectionTitle }) => {
           variant="danger-ghost"
           size="icon"
           onClick={handleLogout}
-          className="rounded-lg p-2 transition-all ml-1"
+          className="rounded-lg p-2 transition-shadow ml-1"
           title="Sign out"
         >
           <LogOut className="h-4 w-4" />

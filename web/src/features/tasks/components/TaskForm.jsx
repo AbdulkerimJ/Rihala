@@ -1,21 +1,20 @@
-import React from "react";
-import { Save, X, Plus } from "lucide-react";
+import { Save, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { usePermission } from "../../../hooks/usePermission";
 import { getTaskTypes, createTaskType } from "../../task-types/api";
 import { TaskTypeForm } from "../../task-types/components/TaskTypeForm";
+import { applyServerErrors, unwrapListResponse } from "../../../utils/apiResponse";
+import { Controller } from "react-hook-form";
+import { FormRootError } from "../../../components/ui/FormRootError";
 import { FormField } from "../../../components/ui/FormField";
 import { Input } from "../../../components/ui/Input";
-import { Select } from "../../../components/ui/Select";
 import { CreatableSelect } from "../../../components/ui/CreatableSelect";
+import { CurrencyInput } from "../../../components/ui/CurrencyInput";
 import { Checkbox } from "../../../components/ui/Checkbox";
 import { Button } from "../../../components/ui/Button";
-import { CurrencyInput } from "../../../components/ui/CurrencyInput";
-import { FormRootError } from "../../../components/ui/FormRootError";
-import { applyServerErrors, unwrapListResponse } from "../../../utils/apiResponse";
 
 const taskSchema = z.object({
   name: z

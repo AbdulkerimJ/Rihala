@@ -1,36 +1,35 @@
-import React, { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useState } from "react";
+import { useParams } from "react-router-dom";
 import { usePermission } from "../../../hooks/usePermission";
-import { Can } from "../../../components/Can";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { HardHat, Hammer, ClipboardCheck, FileText, AlertCircle, Save, X } from "lucide-react";
-import { BackButton } from "../../../components/ui/BackButton";
+import { HardHat, Hammer, ClipboardCheck, FileText, Save, X, AlertCircle } from "lucide-react";
 import { getContractById, cancelContract } from "../api";
 import { recordCompletion, voidCompletion } from "../../contract-completions/api";
 import { createContractorPayment, voidContractorPayment } from "../../contractor-payments/api";
-import { DetailSkeleton } from "../../../components/ui/skeletons";
-import { ErrorState } from "../../../components/ui/ErrorState";
-import { StatusBadge } from "../../../components/ui/StatusBadge";
-import { Badge } from "../../../components/ui/Badge";
-import { Button } from "../../../components/ui/Button";
-import { SummaryCard } from "../../../components/ui/SummaryCard";
-import { DetailSection, DetailItem } from "../../../components/ui/DetailSection";
-import { SystemInfoSection } from "../../../components/ui/SystemInfoSection";
-import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
-import { ListGroup, ListItem } from "../../../components/ui/ListGroup";
-import { Modal } from "../../../components/ui/Modal";
-import { VoidReasonDialog } from "../../../components/ui/VoidReasonDialog";
+import { useForm, Controller } from "react-hook-form";
 import { FormRootError } from "../../../components/ui/FormRootError";
 import { FormField } from "../../../components/ui/FormField";
 import { Input } from "../../../components/ui/Input";
-import { Select } from "../../../components/ui/Select";
 import { Textarea } from "../../../components/ui/Textarea";
+import { Button } from "../../../components/ui/Button";
 import { CurrencyInput } from "../../../components/ui/CurrencyInput";
-import { useForm, Controller } from "react-hook-form";
+import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
+import { DetailSkeleton } from "../../../components/ui/skeletons";
+import { ErrorState } from "../../../components/ui/ErrorState";
+import { BackButton } from "../../../components/ui/BackButton";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
+import { Badge } from "../../../components/ui/Badge";
+import { SummaryCard } from "../../../components/ui/SummaryCard";
+import { DetailSection, DetailItem } from "../../../components/ui/DetailSection";
+import { Can } from "../../../components/Can";
+import { ListGroup, ListItem } from "../../../components/ui/ListGroup";
+import { SystemInfoSection } from "../../../components/ui/SystemInfoSection";
+import { Modal } from "../../../components/ui/Modal";
+import { VoidReasonDialog } from "../../../components/ui/VoidReasonDialog";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
-import { formatDate, formatDateTime, getLocalISODate } from "../../../utils/formatters";
+import { formatDate, getLocalISODate } from "../../../utils/formatters";
 import { applyServerErrors, getApiErrorMessage, unwrapEntityResponse } from "../../../utils/apiResponse";
 
 // --- Forms ---
@@ -41,11 +40,11 @@ const completionSchema = z.object({
 });
 
 const CompletionForm = ({ contract, onSubmit, onClose }) => {
+  const maxQty = Math.max(0, (contract.quantity || 0) - (contract.stats?.completedQuantity || 0));
   const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(completionSchema),
-    defaultValues: { quantity: 1, recordedAt: getLocalISODate(), note: "" }
+    defaultValues: { quantity: maxQty > 0 ? maxQty : 1, recordedAt: getLocalISODate(), note: "" }
   });
-  const maxQty = contract.quantity - contract.stats.completedQuantity;
 
   const handleFormSubmit = async (data) => {
     try {
@@ -369,7 +368,11 @@ export const ContractDetail = () => {
             </div>
           </DetailSection>
 
-          <SystemInfoSection entity={contract} createdBy={contract.createdBy} />
+          <SystemInfoSection
+            id={contract._id}
+            createdAt={contract.createdAt}
+            updatedAt={contract.updatedAt}
+          />
         </div>
       </div>
 

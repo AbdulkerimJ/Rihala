@@ -1,17 +1,16 @@
-import React from "react";
-import { Save, X, Plus } from "lucide-react";
+import { Save, X } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { FormRootError } from "../../../components/ui/FormRootError";
 import { FormField } from "../../../components/ui/FormField";
 import { Input } from "../../../components/ui/Input";
 import { Select } from "../../../components/ui/Select";
+import { CurrencyInput } from "../../../components/ui/CurrencyInput";
 import { Button } from "../../../components/ui/Button";
-import { FormRootError } from "../../../components/ui/FormRootError";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { ethiopianPhone } from "../../../utils/validation";
 import { ACTIVE_INACTIVE_OPTIONS } from "../../../constants/options";
 import { applyServerErrors } from "../../../utils/apiResponse";
-import { CurrencyInput } from "../../../components/ui/CurrencyInput";
 import { getLocalISODate } from "../../../utils/formatters";
 
 const employeeSchema = z

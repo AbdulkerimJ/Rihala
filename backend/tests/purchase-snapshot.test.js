@@ -6,7 +6,6 @@ import Material from "../src/modules/materials/material.model.js";
 import Purchase from "../src/modules/purchases/purchase.model.js";
 import Supplier from "../src/modules/suppliers/supplier.model.js";
 import { createPurchaseService } from "../src/modules/purchases/purchase.service.js";
-import * as allocationService from "../src/modules/supplierPayments/allocation.service.js";
 
 // Utility to mock Mongoose models
 const mockFindById = (Model, data) => {

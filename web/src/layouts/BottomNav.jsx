@@ -1,6 +1,5 @@
-import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, CalendarDays, ShoppingCart, ClipboardList, MoreHorizontal,  } from "lucide-react";
+import { LayoutDashboard, CalendarDays, ShoppingCart, ClipboardList, MoreHorizontal } from "lucide-react";
 import { usePermission } from "../hooks/usePermission";
 
 // 4 pinned individual-page tabs. Keep to ≤4 so the "More" slot always fits.
@@ -57,7 +56,7 @@ export const BottomNav = ({ onMoreClick }) => {
             <NavLink
               key={tab.path}
               to={tab.path}
-              className={`relative flex flex-1 flex-col items-center justify-center gap-0.5 transition-colors duration-200 ${
+              className={`relative flex flex-1 flex-col items-center justify-center gap-0.5 transition-shadow duration-200 ${
                 active
                   ? "text-accent"
                   : "text-secondary hover:text-primary active:text-primary"
@@ -65,7 +64,7 @@ export const BottomNav = ({ onMoreClick }) => {
             >
               {/* Active indicator — top edge bar */}
               <span
-                className={`absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-b-full bg-accent transition-all duration-300 ${
+                className={`absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-b-full bg-accent transition-shadow duration-300 ${
                   active ? "opacity-100 scale-x-100" : "opacity-0 scale-x-0"
                 }`}
               />
@@ -89,7 +88,7 @@ export const BottomNav = ({ onMoreClick }) => {
         {/* More tab */}
         <button
           onClick={onMoreClick}
-          className="relative flex flex-1 flex-col items-center justify-center gap-0.5 text-secondary hover:text-primary active:text-primary transition-colors duration-200"
+          className="relative flex flex-1 flex-col items-center justify-center gap-0.5 text-secondary hover:text-primary active:text-primary transition-shadow duration-200"
         >
           <MoreHorizontal className="h-5 w-5" strokeWidth={2} />
           <span className="text-[10px] font-semibold tracking-tight leading-none">

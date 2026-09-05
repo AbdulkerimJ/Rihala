@@ -1,15 +1,15 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { Send, CheckCircle2, ArrowLeft, Mail } from "lucide-react";
 import toast from "react-hot-toast";
-import { Mail, ArrowLeft, Send, CheckCircle2 } from "lucide-react";
-import { forgotPassword } from "../api";
-import { getApiErrorMessage } from "../../../utils/apiResponse";
 import { FormField } from "../../../components/ui/FormField";
 import { Input } from "../../../components/ui/Input";
 import { Button } from "../../../components/ui/Button";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { forgotPassword } from "../api";
+import { getApiErrorMessage } from "../../../utils/apiResponse";
 
 const schema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email format"),

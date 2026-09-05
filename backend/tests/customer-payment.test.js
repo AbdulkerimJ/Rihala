@@ -7,7 +7,6 @@ dotenv.config();
 import {
   createCustomerPaymentService,
   getCustomerPaymentsService,
-  updateCustomerPaymentService,
   voidCustomerPaymentService,
 } from "../src/modules/customerPayments/customerPayment.service.js";
 

@@ -1,7 +1,5 @@
-import React from "react";
 import { Skeleton } from "./Skeleton";
 import { Card, CardContent } from "../Card";
-
 export const DetailSkeleton = () => {
   return (
     <div className="space-y-6 animate-pulse">

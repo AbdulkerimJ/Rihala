@@ -1,6 +1,4 @@
-import React from "react";
 import { Button } from "./Button";
-
 export const EmptyState = ({ title, description, actionLabel, actionIcon: ActionIcon, onAction }) => {
   return (
     <div className="rounded-lg border border-dashed border-border bg-surface px-6 py-12 text-center">

@@ -4,7 +4,6 @@ import ConflictError from "../../core/errors/ConflictError.js";
 import NotFoundError from "../../core/errors/NotFoundError.js";
 import { getPaginatedQueryResult } from "../../core/utils/query.js";
 import { normalizePhone } from "../../core/utils/phone.js";
-import mongoose from "mongoose";
 
 const normalizeSupplierPayload = (data = {}) => {
   const normalizedData = { ...data };

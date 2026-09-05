@@ -13,11 +13,8 @@ import {
 } from "../src/modules/orders/order.service.js";
 import {
   createOrderSchema,
-  updateOrderSchema,
 } from "../src/modules/orders/order.validation.js";
 import ValidationError from "../src/core/errors/ValidationError.js";
-import NotFoundError from "../src/core/errors/NotFoundError.js";
-import ConflictError from "../src/core/errors/ConflictError.js";
 
 const mockFindById = (Model, obj) => {
   const original = Model.findById;

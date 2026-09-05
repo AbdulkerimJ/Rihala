@@ -1,15 +1,13 @@
-import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { usePermission } from "../../../hooks/usePermission";
 import { getPermissions } from "../../permissions/api";
+import { Shield, Users, Key, Package, ShoppingCart, ShoppingBag, 
+  Receipt, Truck, Wallet, Landmark, Clock, CalendarDays, Briefcase, 
+  LayoutDashboard, Settings, FileText, UserCog, HandCoins, Banknote, Check
+} from "lucide-react";
 import { Skeleton } from "../../../components/ui/skeletons";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { Button } from "../../../components/ui/Button";
-import {
-  Check, Shield, Users, Key, Package, ShoppingCart, ShoppingBag, 
-  Receipt, Truck, Wallet, Landmark, Clock, CalendarDays, Briefcase, 
-  LayoutDashboard, Settings, FileText, UserCog, HandCoins, Banknote
-} from "lucide-react";
 
 export const getModuleIcon = (moduleName) => {
   const icons = {

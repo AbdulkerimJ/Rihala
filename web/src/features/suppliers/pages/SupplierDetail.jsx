@@ -1,30 +1,30 @@
-import React, { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useState } from "react";
+import { useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getSupplierById, updateSupplier } from "../api";
-import { DetailSkeleton } from "../../../components/ui/skeletons";
-import { ErrorState } from "../../../components/ui/ErrorState";
-import { StatusBadge } from "../../../components/ui/StatusBadge";
-import { SummaryCard } from "../../../components/ui/SummaryCard";
-import { SystemInfoSection } from "../../../components/ui/SystemInfoSection";
-import { Button } from "../../../components/ui/Button";
-import { Modal } from "../../../components/ui/Modal";
-import { Can } from "../../../components/Can";
-import { SupplierForm } from "../components/SupplierForm";
-import { SupplierPaymentModal } from "../../supplier-payments/components/SupplierPaymentModal";
-import { Tabs } from "../../../components/ui/Tabs";
 import { getPurchases } from "../../purchases/api";
 import { getSupplierPayments } from "../../supplier-payments/api";
 import { getApiErrorMessage, unwrapEntityResponse, unwrapListResponse } from "../../../utils/apiResponse";
 import { formatDateTime } from "../../../utils/formatters";
-import { DetailSection } from "../../../components/ui/DetailSection";
-import { ListGroup, ListItem } from "../../../components/ui/ListGroup";
-import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
-import { Phone, Wallet, TrendingUp, TrendingDown, ShoppingBag, FileText, CreditCard, Edit, Plus } from "lucide-react";
-import { BackButton } from "../../../components/ui/BackButton";
+import { Phone, Wallet, FileText, CreditCard, Edit, ShoppingBag } from "lucide-react";
 import { usePermission } from "../../../hooks/usePermission";
 import { createSupplierPayment } from "../../supplier-payments/api";
 import toast from "react-hot-toast";
+import { DetailSkeleton } from "../../../components/ui/skeletons";
+import { ErrorState } from "../../../components/ui/ErrorState";
+import { BackButton } from "../../../components/ui/BackButton";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
+import { Can } from "../../../components/Can";
+import { Button } from "../../../components/ui/Button";
+import { Tabs } from "../../../components/ui/Tabs";
+import { SummaryCard } from "../../../components/ui/SummaryCard";
+import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
+import { DetailSection } from "../../../components/ui/DetailSection";
+import { SystemInfoSection } from "../../../components/ui/SystemInfoSection";
+import { ListGroup, ListItem } from "../../../components/ui/ListGroup";
+import { Modal } from "../../../components/ui/Modal";
+import { SupplierForm } from "../components/SupplierForm";
+import { SupplierPaymentModal } from "../../supplier-payments/components/SupplierPaymentModal";
 
 export const SupplierDetail = () => {
   const { id } = useParams();
@@ -125,8 +125,7 @@ export const SupplierDetail = () => {
             />
             <SummaryCard 
               title="Current Balance" 
-              value={<MoneyDisplay amount={Math.abs(supplier.balance ?? 0)} />} 
-              subtitle={supplier.balance > 0 ? "You owe supplier" : supplier.balance < 0 ? "Supplier owes you" : "Settled"}
+              value={<MoneyDisplay amount={supplier.balance ?? 0} />} 
               icon={Wallet}
               iconVariant={supplier.balance > 0 ? "danger" : supplier.balance < 0 ? "success" : "default"}
               variant={supplier.balance > 0 ? "danger" : supplier.balance < 0 ? "success" : "default"}

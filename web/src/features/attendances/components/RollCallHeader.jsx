@@ -1,16 +1,12 @@
-import React from "react";
-import { ChevronLeft, ChevronRight, CheckCheck, Calendar, RotateCcw } from "lucide-react";
+import { RotateCcw, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "../../../components/ui/Button";
 import { Input } from "../../../components/ui/Input";
-import { Can } from "../../../components/Can";
 import { getLocalISODate } from "../../../utils/formatters";
 
 export const RollCallHeader = ({
   rollCallDate,
   onDateChange,
   isWorkdayValid,
-  onMarkAllPresent,
-  isMarkingAll,
   hasEmployees,
 }) => {
   const todayStr = getLocalISODate();
@@ -97,20 +93,7 @@ export const RollCallHeader = ({
           </button>
         </div>
 
-        {/* Mark All Present Bulk Action */}
-        <Can permission="attendances.create">
-          <Button
-            size="sm"
-            variant="primary"
-            onClick={onMarkAllPresent}
-            isLoading={isMarkingAll}
-            disabled={!isWorkdayValid || !hasEmployees || isMarkingAll}
-            leftIcon={CheckCheck}
-            className="text-xs h-9 shadow-xs"
-          >
-            Mark All Present
-          </Button>
-        </Can>
+
       </div>
     </div>
   );

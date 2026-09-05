@@ -1,15 +1,13 @@
-import React, { useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { usePermission } from "../../../hooks/usePermission";
-import { Tabs } from "../../../components/ui/Tabs";
 import { Receipt, HandCoins, Banknote, BadgeDollarSign, CreditCard } from "lucide-react";
-
+import { Tabs } from "../../../components/ui/Tabs";
 import { ExpensesList } from "../../expenses/pages/ExpensesList";
 import { SupplierPaymentsList } from "../../supplier-payments/pages/SupplierPaymentsList";
 import { EmployeePaymentsList } from "../../employee-payments/pages/EmployeePaymentsList";
 import { ContractorPaymentsList } from "../../contractor-payments/pages/ContractorPaymentsList";
 import { CustomerPaymentsList } from "../../customer-payments/pages/CustomerPaymentsList";
-
 export const Finance = () => {
   const { can } = usePermission();
   const [searchParams, setSearchParams] = useSearchParams();

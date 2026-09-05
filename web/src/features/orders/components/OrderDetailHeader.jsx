@@ -1,10 +1,9 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Edit3, Plus, Check, X } from "lucide-react";
-import { StatusBadge } from "../../../components/ui/StatusBadge";
-import { Button } from "../../../components/ui/Button";
-import { Can } from "../../../components/Can";
+import { Edit3, Plus, ArrowLeft, Check } from "lucide-react";
 import { formatDate } from "../../../utils/formatters";
+import { Button } from "../../../components/ui/Button";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
+import { Can } from "../../../components/Can";
 
 export const OrderDetailHeader = ({
   order,

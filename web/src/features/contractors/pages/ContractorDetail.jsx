@@ -1,27 +1,27 @@
-import React, { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useState } from "react";
+import { useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getContractorById, getContractorStats, updateContractor } from "../api";
-import { DetailSkeleton } from "../../../components/ui/skeletons";
-import { ErrorState } from "../../../components/ui/ErrorState";
-import { StatusBadge } from "../../../components/ui/StatusBadge";
-import { SummaryCard } from "../../../components/ui/SummaryCard";
-import { DetailSection } from "../../../components/ui/DetailSection";
-import { SystemInfoSection } from "../../../components/ui/SystemInfoSection";
-import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
-import { Button } from "../../../components/ui/Button";
-import { Modal } from "../../../components/ui/Modal";
-import { Can } from "../../../components/Can";
-import { ContractorForm } from "../components/ContractorForm";
 import { getApiErrorMessage, unwrapEntityResponse, unwrapListResponse } from "../../../utils/apiResponse";
 import { usePermission } from "../../../hooks/usePermission";
-import { ListGroup, ListItem } from "../../../components/ui/ListGroup";
 import { formatDate, formatDateTime } from "../../../utils/formatters";
-import { Phone, TrendingUp, TrendingDown, Wallet, HardHat, FileText, ClipboardList } from "lucide-react";
-import { BackButton } from "../../../components/ui/BackButton";
-import { Tabs } from "../../../components/ui/Tabs";
+import { TrendingUp, TrendingDown, Wallet, FileText, ClipboardList, HardHat } from "lucide-react";
 import { getContracts } from "../../contracts/api";
 import { getContractorPayments } from "../../contractor-payments/api";
+import { DetailSkeleton } from "../../../components/ui/skeletons";
+import { ErrorState } from "../../../components/ui/ErrorState";
+import { BackButton } from "../../../components/ui/BackButton";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
+import { Can } from "../../../components/Can";
+import { Button } from "../../../components/ui/Button";
+import { Tabs } from "../../../components/ui/Tabs";
+import { SummaryCard } from "../../../components/ui/SummaryCard";
+import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
+import { DetailSection } from "../../../components/ui/DetailSection";
+import { SystemInfoSection } from "../../../components/ui/SystemInfoSection";
+import { ListGroup, ListItem } from "../../../components/ui/ListGroup";
+import { Modal } from "../../../components/ui/Modal";
+import { ContractorForm } from "../components/ContractorForm";
 import toast from "react-hot-toast";
 
 export const ContractorDetail = () => {
@@ -177,7 +177,7 @@ export const ContractorDetail = () => {
               <div className="h-6 w-24 bg-main animate-pulse rounded" />
             ) : (
               <MoneyDisplay
-                amount={Math.max(stats?.currentBalance ?? 0, 0)}
+                amount={stats?.currentBalance ?? 0}
                 className={`text-xl font-bold ${!stats || stats.currentBalance <= 0 ? "text-success" : "text-danger"}`}
               />
             )
@@ -185,7 +185,6 @@ export const ContractorDetail = () => {
           icon={Wallet}
           variant={!stats || stats.currentBalance <= 0 ? "success" : "danger"}
           iconVariant={!stats || stats.currentBalance <= 0 ? "success" : "danger"}
-          subtitle={!stats || stats.currentBalance <= 0 ? "Fully paid off" : "Amount left to pay"}
         />
       </div>
 

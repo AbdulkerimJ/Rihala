@@ -1,26 +1,22 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Clock, History, Plus } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { usePermission } from "../../../hooks/usePermission";
-import { useDebounce } from "../../../hooks/useDebounce";
 import {
   createAttendance,
   updateAttendance,
   deleteAttendance,
 } from "../api";
-
 import { PageHeader } from "../../../components/ui/PageHeader";
-import { Button } from "../../../components/ui/Button";
 import { Can } from "../../../components/Can";
+import { Button } from "../../../components/ui/Button";
+import { Tabs } from "../../../components/ui/Tabs";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
-
 import { AttendanceFormModal } from "../components/AttendanceFormModal";
 import { AttendancesRollCallMode } from "../components/AttendancesRollCallMode";
 import { AttendancesHistoryMode } from "../components/AttendancesHistoryMode";
-import { Tabs } from "../../../components/ui/Tabs";
-
 import { getApiErrorMessage } from "../../../utils/apiResponse";
 
 export const AttendancesList = () => {

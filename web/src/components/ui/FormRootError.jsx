@@ -1,6 +1,4 @@
-import React from "react";
 import { AlertCircle } from "lucide-react";
-
 /**
  * Reusable form root error display banner.
  * Accepts string or Error/FieldState object: error="msg" or error={errors.root}

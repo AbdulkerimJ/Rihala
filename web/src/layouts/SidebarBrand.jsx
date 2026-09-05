@@ -1,14 +1,13 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
+import { PanelLeftClose } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
-import { PanelLeftClose } from "lucide-react";
 
 export const SidebarBrand = ({ isCollapsed, toggleCollapse }) => {
   const { theme } = useTheme();
   const logoSrc = theme === 'dark' ? '/logo.png' : '/logo.png';
 
   return (
-    <div className="bg-main relative flex flex-col transition-all duration-300">
+    <div className="bg-main relative flex flex-col">
       {/* Top bar containing only the toggle button */}
       <div className={`flex items-center h-12 pt-2 ${isCollapsed ? "justify-center" : "justify-end pr-3"}`}>
         <button

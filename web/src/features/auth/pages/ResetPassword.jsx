@@ -1,17 +1,16 @@
-import React, { useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { Lock, ArrowLeft, ShieldCheck } from "lucide-react";
+import { FormField } from "../../../components/ui/FormField";
+import { PasswordInput } from "../../../components/ui/PasswordInput";
+import { FormRootError } from "../../../components/ui/FormRootError";
+import { Button } from "../../../components/ui/Button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
-import { Lock, Eye, EyeOff, ArrowLeft, ShieldCheck, Plus } from "lucide-react";
 import { resetPassword } from "../api";
 import { useAuth } from "../../../hooks/useAuth";
 import { applyServerErrors } from "../../../utils/apiResponse";
-import { FormField } from "../../../components/ui/FormField";
-import { PasswordInput } from "../../../components/ui/PasswordInput";
-import { Button } from "../../../components/ui/Button";
-import { FormRootError } from "../../../components/ui/FormRootError";
 
 const schema = z
   .object({

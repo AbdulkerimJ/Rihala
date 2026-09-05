@@ -9,9 +9,8 @@ import Supplier from "../src/modules/suppliers/supplier.model.js";
 import Material from "../src/modules/materials/material.model.js";
 import Purchase from "../src/modules/purchases/purchase.model.js";
 import SupplierPayment from "../src/modules/supplierPayments/supplierPayment.model.js";
-import User from "../src/modules/users/user.model.js";
 import { createPurchaseService, updatePurchaseService } from "../src/modules/purchases/purchase.service.js";
-import { createSupplierPaymentService, voidSupplierPaymentService, updateSupplierPaymentService } from "../src/modules/supplierPayments/supplierPayment.service.js";
+import { createSupplierPaymentService, voidSupplierPaymentService } from "../src/modules/supplierPayments/supplierPayment.service.js";
 
 test("Supplier Cross-Module Integrity Tests", async (t) => {
   let supplierAId;

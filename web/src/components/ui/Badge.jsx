@@ -1,4 +1,3 @@
-import React from "react";
 
 const variantStyles = {
   default: "bg-main text-primary border-border",

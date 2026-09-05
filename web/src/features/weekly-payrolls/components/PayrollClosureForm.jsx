@@ -3,18 +3,19 @@ import { usePermission } from "../../../hooks/usePermission";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { closeWeeklyPayroll, getCurrentPayrollCalculation } from "../api";
 import { getEmployees, getEmployeeStats } from "../../employees/api";
-import { Button } from "../../../components/ui/Button";
-import { FormField } from "../../../components/ui/FormField";
-import { Input } from "../../../components/ui/Input";
-import { Select } from "../../../components/ui/Select";
-import { CurrencyInput } from "../../../components/ui/CurrencyInput";
-import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import toast from "react-hot-toast";
 import { getApiErrorMessage, unwrapListResponse, unwrapEntityResponse } from "../../../utils/apiResponse";
 import { formatDate, getLocalISODate } from "../../../utils/formatters";
-import { CheckCircle, ChevronDown, ChevronUp, Clock, CalendarDays, X, Receipt } from "lucide-react";
+import { CheckCircle, X, Receipt, ChevronUp, ChevronDown, CalendarDays, Clock } from "lucide-react";
+import { FormField } from "../../../components/ui/FormField";
+import { Select } from "../../../components/ui/Select";
 import { Skeleton } from "../../../components/ui/skeletons";
+import { GoToLink } from "../../../components/ui/GoToLink";
+import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
+import { CurrencyInput } from "../../../components/ui/CurrencyInput";
+import { Input } from "../../../components/ui/Input";
+import { Button } from "../../../components/ui/Button";
 
 export const PayrollClosureForm = ({ onClose }) => {
   const { can } = usePermission();
@@ -133,12 +134,15 @@ export const PayrollClosureForm = ({ onClose }) => {
 
           {calculation.missingAttendanceDates?.length > 0 ? (
             <div className="p-3 bg-warning/10 text-warning rounded-lg text-sm border border-warning/20">
-              <span className="font-medium">Missing Attendance:</span> Attendance must be recorded for all workdays before closing payroll.
-              <ul className="list-disc list-inside mt-1">
+              <span className="font-medium">Missing Attendance ({calculation.missingAttendanceDates.length}):</span> Attendance must be recorded for all workdays before closing payroll.
+              <ul className="list-disc list-inside mt-1 mb-3">
                 {calculation.missingAttendanceDates.map((d, i) => (
                   <li key={i}>{formatDate(d)}</li>
                 ))}
               </ul>
+              <GoToLink to="/attendances">
+                Go to Attendance
+              </GoToLink>
             </div>
           ) : !calculation.hasProcessedDays ? (
             <div className="p-3 bg-primary/10 text-primary rounded-lg text-sm border border-primary/20">
@@ -172,26 +176,24 @@ export const PayrollClosureForm = ({ onClose }) => {
               </span>
             </div>
             <div className="flex justify-between pb-2">
-              <span className="text-secondary">Advance:</span>
+              <span className="text-secondary">Prior Balance:</span>
               {isStatsLoading ? (
                 <span className="h-4 w-20 bg-main animate-pulse rounded" />
               ) : (
                 <span className={`font-medium ${priorBalance >= 0 ? "text-success" : "text-danger"}`}>
-                  {priorBalance < 0 ? "-" : ""}
-                  <MoneyDisplay amount={Math.abs(priorBalance)} />
+                  <MoneyDisplay amount={priorBalance} />
                 </span>
               )}
             </div>
             <div className="flex justify-between pt-3 border-t border-border/50 mt-1">
-              <span className="font-bold text-primary">Total Payable:</span>
+              <span className="font-bold text-primary">Net Balance:</span>
               {isStatsLoading ? (
                 <span className="h-4 w-20 bg-main animate-pulse rounded" />
               ) : (
                 <span className={`font-bold text-lg ${
                   !employeeStats || employeeStats.currentBalance >= 0 ? "text-success" : "text-danger"
                 }`}>
-                  {employeeStats?.currentBalance < 0 ? "-" : ""}
-                  <MoneyDisplay amount={Math.abs(employeeStats?.currentBalance ?? 0)} />
+                  <MoneyDisplay amount={employeeStats?.currentBalance ?? 0} />
                 </span>
               )}
             </div>
@@ -203,8 +205,7 @@ export const PayrollClosureForm = ({ onClose }) => {
                   <span className="h-4 w-20 bg-main animate-pulse rounded" />
                 ) : (
                   <span className={`font-bold ${newBalance >= 0 ? "text-success" : "text-danger"}`}>
-                    {newBalance < 0 ? "-" : ""}
-                    <MoneyDisplay amount={Math.abs(newBalance)} />
+                    <MoneyDisplay amount={newBalance} />
                   </span>
                 )}
               </div>

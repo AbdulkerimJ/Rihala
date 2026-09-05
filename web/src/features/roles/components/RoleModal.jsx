@@ -1,14 +1,14 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Save, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Button } from "../../../components/ui/Button";
+import { applyServerErrors } from "../../../utils/apiResponse";
+import { FormRootError } from "../../../components/ui/FormRootError";
 import { FormField } from "../../../components/ui/FormField";
 import { Input } from "../../../components/ui/Input";
-import { FormRootError } from "../../../components/ui/FormRootError";
-import { applyServerErrors } from "../../../utils/apiResponse";
 import { PermissionsSelector } from "./PermissionsSelector";
+import { Button } from "../../../components/ui/Button";
 
 const roleSchema = z.object({
   name: z.string().trim().min(2, "Role name must be at least 2 characters"),

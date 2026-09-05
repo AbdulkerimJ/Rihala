@@ -2,40 +2,28 @@ import { usePermission } from "../../../hooks/usePermission";
 import { useDebounce } from "../../../hooks/useDebounce";
 import { Plus, Edit } from "lucide-react";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { createCustomer, getCustomers, updateCustomer } from "../api";
-import { CustomerForm } from "../components/CustomerForm";
-import { PageHeader } from "../../../components/ui/PageHeader";
-import { Button } from "../../../components/ui/Button";
-import { Can } from "../../../components/Can";
-import { EmptyState } from "../../../components/ui/EmptyState";
-import { ErrorState } from "../../../components/ui/ErrorState";
-import { Modal } from "../../../components/ui/Modal";
-import { StatusBadge } from "../../../components/ui/StatusBadge";
-import { DataTable } from "../../../components/ui/DataTable";
-import { FilterBar } from "../../../components/ui/FilterBar";
-import { FormField } from "../../../components/ui/FormField";
-import { Input } from "../../../components/ui/Input";
-import { Textarea } from "../../../components/ui/Textarea";
-import { Select } from "../../../components/ui/Select";
-import { FormRootError } from "../../../components/ui/FormRootError";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import toast from "react-hot-toast";
 import {
-  applyServerErrors,
   cleanFilterParams,
   getApiErrorMessage,
   unwrapListResponse,
 } from "../../../utils/apiResponse";
 import { formatDateTime } from "../../../utils/formatters";
-import { ethiopianPhone, optionalEmail } from "../../../utils/validation";
-import { ACTIVE_INACTIVE_OPTIONS, STATUS_FILTER_OPTIONS } from "../../../constants/options";
-
-
-
+import { STATUS_FILTER_OPTIONS } from "../../../constants/options";
+import { PageHeader } from "../../../components/ui/PageHeader";
+import { Can } from "../../../components/Can";
+import { Button } from "../../../components/ui/Button";
+import { FilterBar } from "../../../components/ui/FilterBar";
+import { Select } from "../../../components/ui/Select";
+import { DataTable } from "../../../components/ui/DataTable";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
+import { EmptyState } from "../../../components/ui/EmptyState";
+import { Modal } from "../../../components/ui/Modal";
+import { CustomerForm } from "../components/CustomerForm";
+import { ErrorState } from "../../../components/ui/ErrorState";
 export const CustomersList = () => {
   const { can } = usePermission();
   const queryClient = useQueryClient();

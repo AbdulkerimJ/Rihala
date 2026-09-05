@@ -1,5 +1,4 @@
-import React from "react";
-import { ShoppingCart, CreditCard, Building2, Users, Plus } from "lucide-react";
+import { ShoppingCart, CreditCard, Building2, Users } from "lucide-react";
 import { usePermission } from "../../../hooks/usePermission";
 import { QuickActionCard } from "../../../components/ui/QuickActionCard";
 

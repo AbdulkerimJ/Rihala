@@ -2,7 +2,6 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   calculateOvertimeAmount,
-  createOvertimeService,
 } from "../src/modules/overtimes/overtime.service.js";
 import {
   createOvertimeSchema,

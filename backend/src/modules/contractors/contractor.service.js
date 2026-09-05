@@ -7,7 +7,6 @@ import { getPaginatedQueryResult } from "../../core/utils/query.js";
 import { normalizePhone } from "../../core/utils/phone.js";
 import { getContractStatsService } from "../contracts/contract.service.js";
 import mongoose from "mongoose";
-import ContractorPayment from "../contractorPayments/contractorPayment.model.js";
 
 const createContractorService = async (data) => {
   const normalizedPhone = normalizePhone(data.phone);

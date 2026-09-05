@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { Search, SlidersHorizontal, X } from "lucide-react";
-import { Button } from "./Button";
+import { useState } from "react";
+import { Search, X, SlidersHorizontal } from "lucide-react";
 import { Input } from "./Input";
+import { Button } from "./Button";
 
 export const FilterBar = ({
   searchPlaceholder = "Search...",

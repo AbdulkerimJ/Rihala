@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { X } from "lucide-react";
-import { Button } from "../../../components/ui/Button";
 import { getApiErrorMessage } from "../../../utils/apiResponse";
 import { PermissionsSelector } from "./PermissionsSelector";
+import { Button } from "../../../components/ui/Button";
 
 export const AssignPermissionsForm = ({ onClose, onSubmit, role, isSubmitting }) => {
   const [selectedPermissions, setSelectedPermissions] = useState(() => {

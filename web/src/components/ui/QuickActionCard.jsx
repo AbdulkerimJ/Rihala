@@ -1,6 +1,4 @@
-import React from "react";
 import { Link } from "react-router-dom";
-
 const ICON_VARIANTS = {
   brand: "text-brand bg-brand/10 border-brand/15",
   success: "text-success bg-success/10 border-success/15",
@@ -25,7 +23,7 @@ export const QuickActionCard = ({
       className={`
         group flex items-center sm:flex-col justify-start sm:justify-center gap-2.5 sm:gap-2
         p-3 sm:p-3.5 rounded-xl border border-border bg-surface shadow-xs
-        hover:border-border/80 hover:bg-main/30 transition-all duration-150 active:scale-[0.98]
+        hover:border-border/80 hover:bg-main/30 transition-shadow duration-150 active:scale-[0.98]
         ${className}
       `}
     >

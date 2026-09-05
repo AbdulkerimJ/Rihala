@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import Employee from "../employees/employee.model.js";
 import Contract from "../contracts/contract.model.js";
 import Order from "../orders/order.model.js";

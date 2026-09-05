@@ -1,40 +1,30 @@
 import React, { useMemo, useState } from "react";
-import { Plus, CreditCard } from "lucide-react";
+import { CreditCard } from "lucide-react";
 import { usePermission } from "../../../hooks/usePermission";
 import { useDebounce } from "../../../hooks/useDebounce";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { useNavigate, Link, useSearchParams } from "react-router-dom";
-import { createCustomerPayment, getCustomerPayments, voidCustomerPayment } from "../api";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { createCustomerPayment, getCustomerPayments } from "../api";
 import { getCustomers } from "../../customers/api";
-import { getOrders } from "../../orders/api";
-import { PageHeader } from "../../../components/ui/PageHeader";
-import { Button } from "../../../components/ui/Button";
-import { Can } from "../../../components/Can";
 
-import { EmptyState } from "../../../components/ui/EmptyState";
-import { ErrorState } from "../../../components/ui/ErrorState";
-import { Modal } from "../../../components/ui/Modal";
-import { DataTable } from "../../../components/ui/DataTable";
-import { FilterBar } from "../../../components/ui/FilterBar";
-import { FormField } from "../../../components/ui/FormField";
-import { Input } from "../../../components/ui/Input";
-import { Select } from "../../../components/ui/Select";
-import { Textarea } from "../../../components/ui/Textarea";
-import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
-import { VoidReasonDialog } from "../../../components/ui/VoidReasonDialog";
-import { FormRootError } from "../../../components/ui/FormRootError";
-import { PaymentDetailsModal } from "../../../components/ui/PaymentDetailsModal";
-import { StatusBadge } from "../../../components/ui/StatusBadge";
-import { CurrencyInput } from "../../../components/ui/CurrencyInput";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import toast from "react-hot-toast";
-import { applyServerErrors, cleanFilterParams, unwrapListResponse, getApiErrorMessage } from "../../../utils/apiResponse";
+import { cleanFilterParams, unwrapListResponse, getApiErrorMessage } from "../../../utils/apiResponse";
 import { formatDate } from "../../../utils/formatters";
-
+import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
+import { ErrorState } from "../../../components/ui/ErrorState";
+import { PageHeader } from "../../../components/ui/PageHeader";
+import { Can } from "../../../components/Can";
+import { Button } from "../../../components/ui/Button";
+import { FilterBar } from "../../../components/ui/FilterBar";
+import { Select } from "../../../components/ui/Select";
+import { Input } from "../../../components/ui/Input";
+import { DataTable } from "../../../components/ui/DataTable";
+import { EmptyState } from "../../../components/ui/EmptyState";
 import { CustomerPaymentModal } from "../components/CustomerPaymentModal";
+import { PaymentDetailsModal } from "../../../components/ui/PaymentDetailsModal";
+
 export const CustomerPaymentsList = () => {
   const { can } = usePermission();
   const queryClient = useQueryClient();

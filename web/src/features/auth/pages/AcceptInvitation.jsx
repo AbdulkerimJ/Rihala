@@ -1,17 +1,17 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { validateInvitation, acceptInvitation } from "../api";
 import { useAuth } from "../../../hooks/useAuth";
-import { ShieldCheck, Eye, EyeOff, CheckCircle2, AlertCircle, Loader2, ArrowLeft, KeyRound,  } from "lucide-react";
-import { applyServerErrors, getApiErrorMessage } from "../../../utils/apiResponse";
+import { ShieldCheck, KeyRound, CheckCircle2, Loader2, AlertCircle, ArrowLeft } from "lucide-react";
+import { Button } from "../../../components/ui/Button";
 import { FormField } from "../../../components/ui/FormField";
 import { Input } from "../../../components/ui/Input";
 import { PasswordInput } from "../../../components/ui/PasswordInput";
-import { Button } from "../../../components/ui/Button";
 import { FormRootError } from "../../../components/ui/FormRootError";
+import { applyServerErrors, getApiErrorMessage } from "../../../utils/apiResponse";
 
 const schema = z
   .object({

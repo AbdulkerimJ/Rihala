@@ -1,19 +1,17 @@
-import React, { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Calendar, Loader2 } from "lucide-react";
-import toast from "react-hot-toast";
-
-import { usePermission } from "../../../hooks/usePermission";
-import { getAttendances, createAttendance, updateAttendance } from "../api";
-import { getEmployees } from "../../employees/api";
-
 import { Button } from "../../../components/ui/Button";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { RollCallHeader } from "./RollCallHeader";
 import { RollCallSummaryStats } from "./RollCallSummaryStats";
 import { RollCallCard } from "./RollCallCard";
+import { usePermission } from "../../../hooks/usePermission";
+import { getAttendances } from "../api";
+import { getEmployees } from "../../employees/api";
 
-import { getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
+
+import { unwrapListResponse } from "../../../utils/apiResponse";
 import { isWorkday } from "../../../utils/validation";
 import { getLocalISODate } from "../../../utils/formatters";
 
@@ -24,7 +22,6 @@ export const AttendancesRollCallMode = () => {
   const todayStr = getLocalISODate();
   const [rollCallDate, setRollCallDate] = useState(todayStr);
   const isValidRollCallDate = isWorkday(rollCallDate);
-  const [isMarkingAll, setIsMarkingAll] = useState(false);
 
   // Fetch active employees
   const { data: employeesData } = useQuery({
@@ -43,52 +40,7 @@ export const AttendancesRollCallMode = () => {
   });
   const rollCallAttendances = unwrapListResponse(rollCallAttendancesData).items || [];
 
-  // Bulk "Mark All Present" Action
-  const handleMarkAllPresent = async () => {
-    if (!isValidRollCallDate) {
-      toast.error("Cannot record attendance for Sundays.");
-      return;
-    }
 
-    setIsMarkingAll(true);
-    try {
-      const promises = employees.map((emp) => {
-        const existing = rollCallAttendances.find(
-          (a) => a.employee?._id === emp._id || a.employee === emp._id
-        );
-
-        if (existing) {
-          if (
-            existing.morningStatus === "PRESENT" &&
-            existing.afternoonStatus === "PRESENT"
-          ) {
-            return Promise.resolve();
-          }
-          return updateAttendance({
-            id: existing._id,
-            data: { morningStatus: "PRESENT", afternoonStatus: "PRESENT" },
-          });
-        }
-
-        return createAttendance({
-          employee: emp._id,
-          workDate: new Date(rollCallDate).toISOString(),
-          morningStatus: "PRESENT",
-          afternoonStatus: "PRESENT",
-        });
-      });
-
-      await Promise.all(promises);
-      queryClient.invalidateQueries({ queryKey: ["attendances"] });
-      queryClient.invalidateQueries({ queryKey: ["payroll-calculation"] });
-      queryClient.invalidateQueries({ queryKey: ["employees"] });
-      toast.success("All active employees marked as Present!");
-    } catch (err) {
-      toast.error(getApiErrorMessage(err, "Failed to mark all present"));
-    } finally {
-      setIsMarkingAll(false);
-    }
-  };
 
   return (
     <div className="space-y-5">
@@ -97,8 +49,6 @@ export const AttendancesRollCallMode = () => {
         rollCallDate={rollCallDate}
         onDateChange={setRollCallDate}
         isWorkdayValid={isValidRollCallDate}
-        onMarkAllPresent={handleMarkAllPresent}
-        isMarkingAll={isMarkingAll}
         hasEmployees={employees.length > 0}
       />
 

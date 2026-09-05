@@ -5,6 +5,7 @@ import { DashboardLayout } from "../layouts/DashboardLayout";
 import { ProtectedRoute } from "../routes/ProtectedRoute";
 import { RequirePermission } from "../routes/RequirePermission";
 import { RootRedirect } from "../routes/RootRedirect";
+import { RouteErrorScreen } from "../components/ErrorBoundary";
 
 import { Login } from "../features/auth/pages/Login";
 import { ForgotPassword } from "../features/auth/pages/ForgotPassword";
@@ -15,21 +16,13 @@ import { Welcome } from "../features/dashboard/pages/Welcome";
 import { UsersList } from "../features/users/pages/UsersList";
 import { UserDetail } from "../features/users/pages/UserDetail";
 import { RolesList } from "../features/roles/pages/RolesList";
-import { ExpensesList } from "../features/expenses/pages/ExpensesList";
 import { CustomersList } from "../features/customers/pages/CustomersList";
 import { OrdersList } from "../features/orders/pages/OrdersList";
 import { OrderDetail } from "../features/orders/pages/OrderDetail";
-import { SuppliersList } from "../features/suppliers/pages/SuppliersList";
 import { SupplierDetail } from "../features/suppliers/pages/SupplierDetail";
-import { MaterialsList } from "../features/materials/pages/MaterialsList";
-import { PurchasesList } from "../features/purchases/pages/PurchasesList";
 import { PurchaseDetail } from "../features/purchases/pages/PurchaseDetail";
-import { CustomerPaymentsList } from "../features/customer-payments/pages/CustomerPaymentsList";
-
-import { SupplierPaymentsList } from "../features/supplier-payments/pages/SupplierPaymentsList";
 import { EmployeesList } from "../features/employees/pages/EmployeesList";
 import { EmployeeDetail } from "../features/employees/pages/EmployeeDetail";
-import { EmployeePaymentsList } from "../features/employee-payments/pages/EmployeePaymentsList";
 import { AttendancesList } from "../features/attendances/pages/AttendancesList";
 import { OvertimesList } from "../features/overtimes/pages/OvertimesList";
 import { WeeklyPayrollsList } from "../features/weekly-payrolls/pages/WeeklyPayrollsList";
@@ -44,17 +37,18 @@ import { ContractorDetail } from "../features/contractors/pages/ContractorDetail
 import { ContractsList } from "../features/contracts/pages/ContractsList";
 import { ContractDetail } from "../features/contracts/pages/ContractDetail";
 
-import { ContractorPaymentsList } from "../features/contractor-payments/pages/ContractorPaymentsList";
 import { Analytics } from "../features/dashboard/pages/Analytics";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <RootRedirect />,
+    errorElement: <RouteErrorScreen />
   },
   {
     path: "/",
     element: <AuthLayout />,
+    errorElement: <RouteErrorScreen />,
     children: [
       {
         path: "login",
@@ -81,6 +75,7 @@ export const router = createBrowserRouter([
         <DashboardLayout />
       </ProtectedRoute>
     ),
+    errorElement: <RouteErrorScreen />,
     children: [
       {
         path: "dashboard",

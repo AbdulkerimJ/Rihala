@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
@@ -7,20 +7,20 @@ import { useDebounce } from "../../../hooks/useDebounce";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { getContractorPayments, voidContractorPayment } from "../api";
 import { getContracts } from "../../contracts/api";
-import { PageHeader } from "../../../components/ui/PageHeader";
-import { Button } from "../../../components/ui/Button";
-import { Can } from "../../../components/Can";
-import { EmptyState } from "../../../components/ui/EmptyState";
-import { ErrorState } from "../../../components/ui/ErrorState";
-import { DataTable } from "../../../components/ui/DataTable";
-import { FilterBar } from "../../../components/ui/FilterBar";
-import { Select } from "../../../components/ui/Select";
-import { StatusBadge } from "../../../components/ui/StatusBadge";
-import { VoidReasonDialog } from "../../../components/ui/VoidReasonDialog";
-import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import toast from "react-hot-toast";
 import { cleanFilterParams, getApiErrorMessage, unwrapListResponse } from "../../../utils/apiResponse";
 import { formatDate } from "../../../utils/formatters";
+import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
+import { Can } from "../../../components/Can";
+import { Button } from "../../../components/ui/Button";
+import { ErrorState } from "../../../components/ui/ErrorState";
+import { PageHeader } from "../../../components/ui/PageHeader";
+import { FilterBar } from "../../../components/ui/FilterBar";
+import { Select } from "../../../components/ui/Select";
+import { DataTable } from "../../../components/ui/DataTable";
+import { EmptyState } from "../../../components/ui/EmptyState";
+import { VoidReasonDialog } from "../../../components/ui/VoidReasonDialog";
 import { PaymentDetailsModal } from "../../../components/ui/PaymentDetailsModal";
 
 export const ContractorPaymentsList = () => {

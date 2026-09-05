@@ -1,7 +1,5 @@
-import React from "react";
 import { Skeleton } from "./Skeleton";
 import { Card, CardHeader, CardContent } from "../Card";
-
 export const CardSkeleton = () => {
   return (
     <Card className="overflow-hidden">

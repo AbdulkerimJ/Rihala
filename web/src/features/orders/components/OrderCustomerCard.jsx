@@ -1,12 +1,11 @@
-import React from "react";
+import { formatDate } from "../../../utils/formatters";
 import { Link } from "react-router-dom";
 import { Phone, User } from "lucide-react";
 import { DetailSection, DetailItem } from "../../../components/ui/DetailSection";
-import { formatDate } from "../../../utils/formatters";
 
 export const OrderCustomerCard = ({ order, canReadCustomers = false }) => {
   return (
-    <DetailSection title="Customer Information" className="group transition-all duration-300 hover:shadow-md relative overflow-hidden">
+    <DetailSection title="Customer Information" className="group transition-shadow duration-300 hover:shadow-md relative overflow-hidden">
       {/* Decorative Glow */}
       <div className="absolute -top-10 -right-10 w-32 h-32 bg-accent/5 blur-3xl rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
       <div className="space-y-3 relative z-10">
@@ -50,7 +49,7 @@ export const OrderCustomerCard = ({ order, canReadCustomers = false }) => {
           <div className="pt-2">
             <Link
               to="/customers"
-              className="text-xs text-accent hover:text-accent-hover font-semibold flex items-center gap-1.5 transition-colors"
+              className="text-xs text-accent hover:text-accent-hover font-semibold flex items-center gap-1.5 transition-shadow"
             >
               <User className="w-3.5 h-3.5 text-accent" /> View All Customers
             </Link>

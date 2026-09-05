@@ -1,40 +1,30 @@
-import React, { useMemo, useState } from "react";
-import { Plus, Edit, Trash2, X, UserPlus } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Plus, Edit, Trash2, UserPlus } from "lucide-react";
 import { usePermission } from "../../../hooks/usePermission";
 import { useDebounce } from "../../../hooks/useDebounce";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createEmployee, getEmployees, updateEmployee, deleteEmployee } from "../api";
-import { EmployeeForm } from "../components/EmployeeForm";
-import { EmployeeRatesTab } from "../components/EmployeeRatesTab";
+
+import toast from "react-hot-toast";
+import { getApiErrorMessage, unwrapListResponse, cleanFilterParams } from "../../../utils/apiResponse";
+import { formatDate } from "../../../utils/formatters";
+import { STATUS_FILTER_OPTIONS } from "../../../constants/options";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
+import { Can } from "../../../components/Can";
+import { Button } from "../../../components/ui/Button";
+import { ErrorState } from "../../../components/ui/ErrorState";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Tabs } from "../../../components/ui/Tabs";
-import { Button } from "../../../components/ui/Button";
-import { Can } from "../../../components/Can";
-
-import { EmptyState } from "../../../components/ui/EmptyState";
-import { ErrorState } from "../../../components/ui/ErrorState";
-import { Modal } from "../../../components/ui/Modal";
-import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
-import { StatusBadge } from "../../../components/ui/StatusBadge";
-import { DataTable } from "../../../components/ui/DataTable";
 import { FilterBar } from "../../../components/ui/FilterBar";
-import { FormField } from "../../../components/ui/FormField";
-import { Input } from "../../../components/ui/Input";
 import { Select } from "../../../components/ui/Select";
-import { FormRootError } from "../../../components/ui/FormRootError";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import toast from "react-hot-toast";
-import { getApiErrorMessage, unwrapListResponse, applyServerErrors, cleanFilterParams } from "../../../utils/apiResponse";
-import { formatDate } from "../../../utils/formatters";
-import { ethiopianPhone } from "../../../utils/validation";
-import { ACTIVE_INACTIVE_OPTIONS, STATUS_FILTER_OPTIONS } from "../../../constants/options";
-
-
-
+import { DataTable } from "../../../components/ui/DataTable";
+import { EmptyState } from "../../../components/ui/EmptyState";
+import { EmployeeRatesTab } from "../components/EmployeeRatesTab";
+import { Modal } from "../../../components/ui/Modal";
+import { EmployeeForm } from "../components/EmployeeForm";
+import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 export const EmployeesList = () => {
   const { can } = usePermission();
   const queryClient = useQueryClient();

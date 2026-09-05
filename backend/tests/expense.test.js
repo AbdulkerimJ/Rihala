@@ -7,7 +7,6 @@ dotenv.config();
 import {
   createExpenseService,
   getExpensesService,
-  getExpenseByIdService,
   updateExpenseService,
   voidExpenseService,
 } from "../src/modules/expenses/expense.service.js";

@@ -1,9 +1,8 @@
-import React from "react";
 import { TrendingUp, TrendingDown, ShoppingCart, Wallet } from "lucide-react";
 import { Can } from "../../../components/Can";
 import { SummaryCard } from "../../../components/ui/SummaryCard";
-import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { InlineSkeleton } from "../../../components/ui/skeletons";
+import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 
 export const DashboardStatsGrid = ({
   totalRevenue,

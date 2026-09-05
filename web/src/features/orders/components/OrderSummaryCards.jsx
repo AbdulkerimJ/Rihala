@@ -1,10 +1,9 @@
-import React from "react";
+import { User, Wallet, CreditCard, ExternalLink, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { User, Wallet, CreditCard, ChevronRight, ExternalLink, X } from "lucide-react";
-import { SummaryCard } from "../../../components/ui/SummaryCard";
-import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { formatCurrency, formatDate } from "../../../utils/formatters";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_CONFIG } from "../constants";
+import { SummaryCard } from "../../../components/ui/SummaryCard";
+import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { ProgressBar } from "../../../components/ui/ProgressBar";
 
 export const OrderSummaryCards = ({
@@ -29,7 +28,7 @@ export const OrderSummaryCards = ({
         variant="blue"
         icon={User}
         value={
-          <div className="flex items-center gap-1.5 group-hover:text-accent transition-colors">
+          <div className="flex items-center gap-1.5 group-hover:text-accent transition-shadow">
             <span className="truncate">
               {order.customer?.name || order.customerName || "Unknown"}
             </span>

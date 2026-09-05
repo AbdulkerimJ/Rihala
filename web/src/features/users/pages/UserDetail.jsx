@@ -1,25 +1,24 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getUserById, updateUser } from "../api";
-import { DetailSkeleton } from "../../../components/ui/skeletons";
-import { ErrorState } from "../../../components/ui/ErrorState";
-import { StatusBadge } from "../../../components/ui/StatusBadge";
-import { PageHeader } from "../../../components/ui/PageHeader";
-import { Button } from "../../../components/ui/Button";
-import { Can } from "../../../components/Can";
 import { ShieldCheck, Mail, Key, Calendar, Activity } from "lucide-react";
-import { Modal } from "../../../components/ui/Modal";
-import { SummaryCard } from "../../../components/ui/SummaryCard";
-import { AssignRolesForm } from "../components/AssignRolesModal";
 import toast from "react-hot-toast";
 import { formatDateTime } from "../../../utils/formatters";
 import {
   getApiErrorMessage,
   unwrapEntityResponse,
 } from "../../../utils/apiResponse";
-
 import { usePermission } from "../../../hooks/usePermission";
+import { DetailSkeleton } from "../../../components/ui/skeletons";
+import { ErrorState } from "../../../components/ui/ErrorState";
+import { PageHeader } from "../../../components/ui/PageHeader";
+import { Can } from "../../../components/Can";
+import { Button } from "../../../components/ui/Button";
+import { SummaryCard } from "../../../components/ui/SummaryCard";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
+import { Modal } from "../../../components/ui/Modal";
+import { AssignRolesForm } from "../components/AssignRolesModal";
 
 export const UserDetail = () => {
   const { id } = useParams();

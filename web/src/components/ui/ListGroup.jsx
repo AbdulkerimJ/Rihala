@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { Skeleton } from "./skeletons";
@@ -51,7 +50,7 @@ export const ListItem = ({
   };
 
   const interactiveStyles = isInteractive
-    ? "group hover:bg-accent/5 transition-all duration-200 active:bg-main/60 text-left cursor-pointer"
+    ? "group hover:bg-accent/5 transition-shadow duration-200 active:bg-main/60 text-left cursor-pointer"
     : "";
 
   return (
@@ -90,7 +89,7 @@ export const ListItem = ({
             <div className="flex items-center gap-2 shrink-0">
               {right}
               {showChevron && (
-                <ChevronRight className="h-4 w-4 text-secondary/30 group-hover:text-accent group-hover:translate-x-1 transition-all shrink-0" />
+                <ChevronRight className="h-4 w-4 text-secondary/30 group-hover:text-accent group-hover:translate-x-1 transition-shadow shrink-0" />
               )}
             </div>
           )}

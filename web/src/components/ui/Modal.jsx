@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { Button } from "./Button";
@@ -138,7 +138,7 @@ export const Modal = ({
             w-full ${maxWidth}
             rounded-xl border border-border bg-surface shadow-2xl
             overflow-hidden max-h-[90vh] flex flex-col
-            transition-all duration-200
+            transition-shadow duration-200
             ${visible ? "scale-100 opacity-100" : "scale-95 opacity-0"}
             ${className}
           `}

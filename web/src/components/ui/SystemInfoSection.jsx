@@ -1,6 +1,5 @@
-import React from "react";
-import { DetailSection, DetailItem } from "./DetailSection";
 import { formatDateTime } from "../../utils/formatters";
+import { DetailSection, DetailItem } from "./DetailSection";
 
 /**
  * Reusable system information card for detail pages.

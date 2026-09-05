@@ -1,9 +1,8 @@
-import React from "react";
-import { Modal } from "./Modal";
-import { StatusBadge } from "./StatusBadge";
-import { MoneyDisplay } from "./MoneyDisplay";
-import { AlertCircle, Calendar, User, UserX, FileText, Activity } from "lucide-react";
 import { formatDate } from "../../utils/formatters";
+import { Calendar, User, FileText, AlertCircle, UserX } from "lucide-react";
+import { Modal } from "./Modal";
+import { MoneyDisplay } from "./MoneyDisplay";
+import { StatusBadge } from "./StatusBadge";
 
 export const PaymentDetailsModal = ({ isOpen, onClose, payment, title = "Payment Details", type = "customer" }) => {
   if (!payment) return null;
