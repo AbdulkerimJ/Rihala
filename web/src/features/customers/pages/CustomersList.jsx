@@ -148,7 +148,7 @@ export const CustomersList = () => {
         mobileRow={(row) => ({
           title: row.name,
           subtitle: row.phone || "-",
-          right: <StatusBadge status={row.isActive ? "active" : "inactive"} />,
+          right: <StatusBadge status={row.status} />,
           actions: (
             <Can permission="customers.update">
               <Button
