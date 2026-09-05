@@ -8,7 +8,7 @@ import { formatDate, formatDateTime } from "../../../utils/formatters";
 import { TrendingUp, TrendingDown, Wallet, FileText, ClipboardList, HardHat } from "lucide-react";
 import { getContracts } from "../../contracts/api";
 import { getContractorPayments } from "../../contractor-payments/api";
-import { DetailSkeleton } from "../../../components/ui/skeletons";
+import { DetailSkeleton, InlineSkeleton } from "../../../components/ui/skeletons";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { BackButton } from "../../../components/ui/BackButton";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
@@ -133,7 +133,7 @@ export const ContractorDetail = () => {
           title="Total Contract Value"
           value={
             statsQuery.isLoading ? (
-              <div className="h-6 w-24 bg-main animate-pulse rounded" />
+              <InlineSkeleton className="h-6 w-24 mt-1" />
             ) : (
               <MoneyDisplay amount={stats?.totalContractValue ?? 0} className="text-xl font-bold text-primary" />
             )
@@ -147,7 +147,7 @@ export const ContractorDetail = () => {
           title="Completed Work"
           value={
             statsQuery.isLoading ? (
-              <div className="h-6 w-24 bg-main animate-pulse rounded" />
+              <InlineSkeleton className="h-6 w-24 mt-1" />
             ) : (
               <MoneyDisplay amount={stats?.totalCompletedWorkValue ?? 0} className="text-xl font-bold text-primary" />
             )
@@ -161,7 +161,7 @@ export const ContractorDetail = () => {
           title="Total Paid"
           value={
             statsQuery.isLoading ? (
-              <div className="h-6 w-24 bg-main animate-pulse rounded" />
+              <InlineSkeleton className="h-6 w-24 mt-1" />
             ) : (
               <MoneyDisplay amount={stats?.totalPaid ?? 0} className="text-xl font-bold text-primary" />
             )
@@ -174,7 +174,7 @@ export const ContractorDetail = () => {
           title="Owed Balance"
           value={
             statsQuery.isLoading ? (
-              <div className="h-6 w-24 bg-main animate-pulse rounded" />
+              <InlineSkeleton className="h-6 w-24 mt-1" />
             ) : (
               <MoneyDisplay
                 amount={stats?.currentBalance ?? 0}

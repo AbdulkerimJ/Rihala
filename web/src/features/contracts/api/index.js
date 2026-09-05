@@ -16,6 +16,6 @@ export const createContract = async (data) => {
 };
 
 export const cancelContract = async ({ id, cancelReason }) => {
-  const response = await api.patch(`/contracts/${id}/cancel`, { cancelReason });
+  const response = await api.patch(`/contracts/${id}/cancel`, { cancellationReason: cancelReason });
   return response.data;
 };

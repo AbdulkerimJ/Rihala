@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { X, ShieldCheck, Check } from "lucide-react";
 import { getRoles } from "../../roles/api";
 import { getApiErrorMessage } from "../../../utils/apiResponse";
-import { Skeleton } from "../../../components/ui/skeletons";
+import { AssignRolesSkeleton } from "./AssignRolesSkeleton";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { Button } from "../../../components/ui/Button";
 
@@ -60,11 +60,7 @@ export const AssignRolesForm = ({
       </p>
 
       {isLoading ? (
-        <div className="space-y-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-12 w-full rounded-md" />
-          ))}
-        </div>
+        <AssignRolesSkeleton />
       ) : isError ? (
         <ErrorState description="Failed to load roles." />
       ) : rolesList.length === 0 ? (

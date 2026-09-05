@@ -1,1 +1,1 @@
-export { TableSkeleton, Skeleton, DetailSkeleton, CardSkeleton, InlineSkeleton } from "./skeletons";
+export { TableSkeleton, Skeleton, DetailSkeleton, CardSkeleton, InlineSkeleton, ListGroupSkeleton } from "./skeletons";

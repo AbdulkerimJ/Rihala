@@ -5,7 +5,7 @@ import { Shield, Users, Key, Package, ShoppingCart, ShoppingBag,
   Receipt, Truck, Wallet, Landmark, Clock, CalendarDays, Briefcase, 
   LayoutDashboard, Settings, FileText, UserCog, HandCoins, Banknote, Check
 } from "lucide-react";
-import { Skeleton } from "../../../components/ui/skeletons";
+import { PermissionsSelectorSkeleton } from "./PermissionsSelectorSkeleton";
 import { ErrorState } from "../../../components/ui/ErrorState";
 import { Button } from "../../../components/ui/Button";
 
@@ -46,13 +46,7 @@ export const PermissionsSelector = ({ selectedPermissions, onChange }) => {
   });
 
   if (isLoading) {
-    return (
-      <div className="space-y-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-24 w-full" />
-        ))}
-      </div>
-    );
+    return <PermissionsSelectorSkeleton />;
   }
 
   if (isError) {

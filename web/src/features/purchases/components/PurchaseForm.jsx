@@ -20,6 +20,7 @@ import { Input } from "../../../components/ui/Input";
 import { Button } from "../../../components/ui/Button";
 import { CurrencyInput } from "../../../components/ui/CurrencyInput";
 import { Textarea } from "../../../components/ui/Textarea";
+import { Badge } from "../../../components/ui/Badge";
 
 const purchaseItemSchema = z.object({
   material: z.string().min(1, "Material is required"),
@@ -73,7 +74,7 @@ export const PurchaseForm = ({ initialData, onSubmit, onClose, isFullyPaid }) =>
       purchaseDate: getLocalISODate(),
       notes: "",
       items: [{ material: "", quantity: "", unitPrice: "" }],
-      recordPayment: false,
+      recordPayment: true,
       initialPayment: {
         amount: "",
         paymentDate: getLocalISODate(),
@@ -255,20 +256,34 @@ export const PurchaseForm = ({ initialData, onSubmit, onClose, isFullyPaid }) =>
       </FormField>
 
       {!initialData && (
-        <div className="pt-4 mt-4 border-t border-border/50">
-          <div className="flex justify-end mb-3">
-            <label className="flex items-center gap-2 cursor-pointer w-max">
-              <input 
-                type="checkbox" 
-                {...register("recordPayment")} 
-                className="rounded border-border text-primary focus:ring-primary/20 cursor-pointer"
-              />
-              <span className="text-sm font-medium text-primary cursor-pointer select-none">Record Payment Now</span>
-            </label>
-          </div>
+        <div className={`p-4 rounded-lg border transition-all duration-200 ${
+          watchRecordPayment 
+            ? "bg-main/50 border-accent/40 shadow-xs" 
+            : "bg-main/20 border-border/70"
+        }`}>
+          <label className="flex items-start sm:items-center gap-3 cursor-pointer select-none">
+            <input 
+              type="checkbox" 
+              {...register("recordPayment")} 
+              className="mt-0.5 sm:mt-0 h-4 w-4 rounded border-border text-accent focus:ring-accent accent-accent transition-shadow cursor-pointer"
+            />
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-primary">Record Immediate Payment</span>
+                <Badge variant={watchRecordPayment ? "success" : "outline"} className="text-[11px] py-0 font-medium">
+                  {watchRecordPayment ? "Paid Now" : "On Credit (Pay Later)"}
+                </Badge>
+              </div>
+              <p className="text-xs text-secondary mt-0.5">
+                {watchRecordPayment 
+                  ? "Immediate payment for this purchase will be recorded upon saving. Uncheck if purchasing on credit."
+                  : "No payment will be recorded now. Total will be added to the supplier's payable balance."}
+              </p>
+            </div>
+          </label>
 
           {watchRecordPayment && (
-            <div className="bg-main/30 p-4 rounded-lg border border-border/50 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="mt-3 pt-3 border-t border-border/40 space-y-3 animate-in fade-in slide-in-from-top-1 duration-200">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <FormField label="Payment Amount (ETB)" required error={errors.initialPayment?.amount?.message}>
                   <Controller
@@ -288,7 +303,7 @@ export const PurchaseForm = ({ initialData, onSubmit, onClose, isFullyPaid }) =>
                 </FormField>
               </div>
               <FormField label="Payment Note" error={errors.initialPayment?.note?.message}>
-                <Textarea {...register("initialPayment.note")} rows={1} error={errors.initialPayment?.note?.message} placeholder="Optional payment note" />
+                <Textarea {...register("initialPayment.note")} rows={1} error={errors.initialPayment?.note?.message} placeholder="Optional payment note (e.g., cash, check, transfer reference)" />
               </FormField>
             </div>
           )}

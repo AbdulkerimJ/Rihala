@@ -9,20 +9,22 @@ import { formatDate, getLocalISODate } from "../../../utils/formatters";
 import { CheckCircle, X, Receipt, ChevronUp, ChevronDown, CalendarDays, Clock } from "lucide-react";
 import { FormField } from "../../../components/ui/FormField";
 import { Select } from "../../../components/ui/Select";
-import { Skeleton } from "../../../components/ui/skeletons";
+import { PayrollCalculationSkeleton } from "./PayrollCalculationSkeleton";
+import { InlineSkeleton } from "../../../components/ui/skeletons";
 import { GoToLink } from "../../../components/ui/GoToLink";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { CurrencyInput } from "../../../components/ui/CurrencyInput";
 import { Input } from "../../../components/ui/Input";
 import { Button } from "../../../components/ui/Button";
+import { Badge } from "../../../components/ui/Badge";
 
 export const PayrollClosureForm = ({ onClose }) => {
   const { can } = usePermission();
   const queryClient = useQueryClient();
   const [selectedEmployee, setSelectedEmployee] = useState("");
   const [showBreakdown, setShowBreakdown] = useState(false);
-  const [recordPayment, setRecordPayment] = useState(false);
+  const [recordPayment, setRecordPayment] = useState(true);
   const [paymentAmount, setPaymentAmount] = useState("");
   const [paymentDate, setPaymentDate] = useState(getLocalISODate());
   const [paymentNote, setPaymentNote] = useState("");
@@ -112,15 +114,7 @@ export const PayrollClosureForm = ({ onClose }) => {
       )}
 
       {selectedEmployee && isCalculating && (
-        <div className="space-y-4 pt-4 border-t border-border/50">
-           <Skeleton className="h-5 w-40" />
-           <div className="bg-main/50 rounded-lg p-4 space-y-3 border border-border/50">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-4 w-1/2 mt-4" />
-           </div>
-        </div>
+        <PayrollCalculationSkeleton />
       )}
       {selectedEmployee && isError && (
         <div className="p-4 bg-danger/10 text-danger rounded-md text-sm border border-danger/20">
@@ -178,7 +172,7 @@ export const PayrollClosureForm = ({ onClose }) => {
             <div className="flex justify-between pb-2">
               <span className="text-secondary">Prior Balance:</span>
               {isStatsLoading ? (
-                <span className="h-4 w-20 bg-main animate-pulse rounded" />
+                <InlineSkeleton width="w-20" />
               ) : (
                 <span className={`font-medium ${priorBalance >= 0 ? "text-success" : "text-danger"}`}>
                   <MoneyDisplay amount={priorBalance} />
@@ -188,7 +182,7 @@ export const PayrollClosureForm = ({ onClose }) => {
             <div className="flex justify-between pt-3 border-t border-border/50 mt-1">
               <span className="font-bold text-primary">Net Balance:</span>
               {isStatsLoading ? (
-                <span className="h-4 w-20 bg-main animate-pulse rounded" />
+                <InlineSkeleton width="w-20" />
               ) : (
                 <span className={`font-bold text-lg ${
                   !employeeStats || employeeStats.currentBalance >= 0 ? "text-success" : "text-danger"
@@ -202,7 +196,7 @@ export const PayrollClosureForm = ({ onClose }) => {
               <div className="flex justify-between pt-2">
                 <span className="font-bold text-primary">Balance After Payment:</span>
                 {isStatsLoading ? (
-                  <span className="h-4 w-20 bg-main animate-pulse rounded" />
+                  <InlineSkeleton width="w-20" />
                 ) : (
                   <span className={`font-bold ${newBalance >= 0 ? "text-success" : "text-danger"}`}>
                     <MoneyDisplay amount={newBalance} />
@@ -308,22 +302,36 @@ export const PayrollClosureForm = ({ onClose }) => {
             </div>
           )}
 
-          {/* Record Payment Toggle */}
-          <div className="pt-4 border-t border-border/50">
-            <div className="flex justify-end mb-3">
-              <label className="flex items-center gap-2 cursor-pointer w-max">
-                <input 
-                  type="checkbox" 
-                  checked={recordPayment}
-                  onChange={(e) => setRecordPayment(e.target.checked)}
-                  className="rounded border-border text-primary focus:ring-primary/20 cursor-pointer"
-                />
-                <span className="text-sm font-medium text-primary select-none">Record Payment Now</span>
-              </label>
-            </div>
+          {/* Record Payment Section */}
+          <div className={`p-4 rounded-lg border transition-all duration-200 ${
+            recordPayment 
+              ? "bg-main/50 border-accent/40 shadow-xs" 
+              : "bg-main/20 border-border/70"
+          }`}>
+            <label className="flex items-start sm:items-center gap-3 cursor-pointer select-none">
+              <input 
+                type="checkbox" 
+                checked={recordPayment}
+                onChange={(e) => setRecordPayment(e.target.checked)}
+                className="mt-0.5 sm:mt-0 h-4 w-4 rounded border-border text-accent focus:ring-accent accent-accent transition-shadow cursor-pointer"
+              />
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-primary">Disburse Payment Now</span>
+                  <Badge variant={recordPayment ? "success" : "outline"} className="text-[11px] py-0 font-medium">
+                    {recordPayment ? "Payout Included" : "Close Without Payout"}
+                  </Badge>
+                </div>
+                <p className="text-xs text-secondary mt-0.5">
+                  {recordPayment 
+                    ? "Records employee payment and settles their balance upon closing. Uncheck to close payroll without disbursing cash now."
+                    : "Payroll will be closed and earnings recorded, but no payment will be issued. The balance remains payable later."}
+                </p>
+              </div>
+            </label>
 
             {recordPayment && (
-              <div className="bg-main/30 p-4 rounded-lg border border-border/50 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="mt-3 pt-3 border-t border-border/40 space-y-3 animate-in fade-in slide-in-from-top-1 duration-200">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <FormField label="Payment Amount (ETB)" required>
                     <CurrencyInput
@@ -344,7 +352,7 @@ export const PayrollClosureForm = ({ onClose }) => {
                   <Input 
                     value={paymentNote}
                     onChange={(e) => setPaymentNote(e.target.value)} 
-                    placeholder="Optional payment note" 
+                    placeholder="Optional payment note (e.g., Cash, Bank transfer reference)" 
                   />
                 </FormField>
               </div>
