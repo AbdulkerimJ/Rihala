@@ -100,7 +100,7 @@ export const SupplierPaymentsList = () => {
         <div className="flex justify-end gap-2">
           <Can permission="supplierPayments.void">
             {row.status !== 'voided' && (
-              <Button variant="danger-ghost" size="sm" onClick={(e) => { e.stopPropagation(); setVoidingPayment(row); }}>
+              <Button variant="danger-ghost" size="sm" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setVoidingPayment(row); }}>
                 Void
               </Button>
             )}
@@ -182,7 +182,7 @@ export const SupplierPaymentsList = () => {
           ),
           actions: row.status !== 'voided' ? (
             <Can permission="supplierPayments.void">
-              <Button variant="danger-ghost" size="sm" onClick={(e) => { e.stopPropagation(); setVoidingPayment(row); }}>
+              <Button variant="danger-ghost" size="sm" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setVoidingPayment(row); }}>
                 Void
               </Button>
             </Can>

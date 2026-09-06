@@ -28,6 +28,12 @@ const employeeSchema = new mongoose.Schema(
       default: null,
     },
 
+    dailyRate: {
+      type: Number,
+      required: [true, "Daily rate is required"],
+      min: [0, "Daily rate must be non-negative"],
+    },
+
     status: {
       type: String,
       enum: {

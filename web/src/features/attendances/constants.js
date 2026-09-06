@@ -22,7 +22,7 @@ export const ATTENDANCE_STATUSES = [
   },
   {
     value: "PERMISSION",
-    label: "Excused",
+    label: "Permission",
     color: "bg-warning text-white",
     badgeVariant: "warning",
     border: "border-warning",

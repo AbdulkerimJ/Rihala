@@ -273,7 +273,7 @@ export const UsersList = () => {
                     </td>
                     <td
                       className="px-4 py-2 text-right text-xs"
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
                     >
                       <div className="flex justify-end gap-1.5">
                         {!user.deletedAt && (

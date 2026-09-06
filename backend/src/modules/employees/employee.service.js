@@ -3,7 +3,6 @@ import Employee from "./employee.model.js";
 import WeeklyPayroll from "../weeklyPayrolls/weeklyPayroll.model.js";
 import { getCurrentPayrollCalculationService } from "../weeklyPayrolls/weeklyPayroll.service.js";
 import EmployeePayment from "../employeePayments/employeePayment.model.js";
-import EmployeeRate from "../employeeRates/employeeRate.model.js";
 import employeeQueryConfig from "./employee.query.js";
 import ConflictError from "../../core/errors/ConflictError.js";
 import NotFoundError from "../../core/errors/NotFoundError.js";
@@ -61,7 +60,6 @@ const ensureEmploymentDatesAreValid = (startDate, endDate) => {
 
 const createEmployeeService = async (data) => {
   const normalizedData = normalizeEmployeePayload(data);
-  const initialDailyRate = data.initialDailyRate;
 
   const session = await mongoose.startSession();
   let createdEmployee;
@@ -104,14 +102,6 @@ const createEmployeeService = async (data) => {
 
         const newEmployees = await Employee.create([normalizedData], { session });
         createdEmployee = newEmployees[0];
-      }
-
-      if (initialDailyRate) {
-        await EmployeeRate.create([{
-          employee: createdEmployee._id,
-          dailyRate: initialDailyRate,
-          effectiveDate: createdEmployee.employmentStartDate,
-        }], { session });
       }
     });
   } finally {

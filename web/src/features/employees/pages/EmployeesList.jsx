@@ -21,7 +21,6 @@ import { FilterBar } from "../../../components/ui/FilterBar";
 import { Select } from "../../../components/ui/Select";
 import { DataTable } from "../../../components/ui/DataTable";
 import { EmptyState } from "../../../components/ui/EmptyState";
-import { EmployeeRatesTab } from "../components/EmployeeRatesTab";
 import { Modal } from "../../../components/ui/Modal";
 import { EmployeeForm } from "../components/EmployeeForm";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
@@ -29,7 +28,6 @@ export const EmployeesList = () => {
   const { can } = usePermission();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("directory");
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({ search: "", status: "" }); 
   const debouncedSearch = useDebounce(filters.search, 300);
@@ -111,7 +109,7 @@ export const EmployeesList = () => {
               size="icon"
               leftIcon={Edit}
               onClick={(e) => {
-                e.stopPropagation();
+                e.preventDefault(); e.stopPropagation();
                 setEditingEmployee(row);
                 setIsOpen(true);
               }}
@@ -123,7 +121,7 @@ export const EmployeesList = () => {
               size="icon"
               leftIcon={Trash2}
               onClick={(e) => {
-                e.stopPropagation();
+                e.preventDefault(); e.stopPropagation();
                 setDeletingEmployee(row);
               }}
             />
@@ -136,10 +134,7 @@ export const EmployeesList = () => {
   if (isError)
     return <ErrorState description={getApiErrorMessage(error, "Failed to load employees.")} />;
 
-  const tabs = [
-    { id: "directory", label: "Directory" },
-    { id: "rates", label: "Rates History" }
-  ];
+
 
   return (
     <div className="space-y-6">
@@ -147,24 +142,16 @@ export const EmployeesList = () => {
         title="Employees"
         description="Manage workshop staff, contact info, and employment periods."
         actions={
-          activeTab === "directory" && (
-            <Can permission="employees.create">
-              <Button leftIcon={Plus} onClick={() => { setEditingEmployee(null); setIsOpen(true); }}>
-                Add Employee
-              </Button>
-            </Can>
-          )
+          <Can permission="employees.create">
+            <Button leftIcon={Plus} onClick={() => { setEditingEmployee(null); setIsOpen(true); }}>
+              Add Employee
+            </Button>
+          </Can>
         }
       />
 
-      <div className="flex-1 min-w-0 overflow-x-auto hide-scrollbar pb-1">
-        <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
-      </div>
-
-      {activeTab === "directory" && (
-        <>
-          <FilterBar 
-            filters={filters}
+      <FilterBar 
+        filters={filters}
         searchPlaceholder="Search employees..."
         searchValue={filters.search}
         onSearchChange={(val) => { setFilters((p) => ({ ...p, search: val })); setPage(1); }}
@@ -195,6 +182,7 @@ export const EmployeesList = () => {
                   size="sm"
                   leftIcon={Edit}
                   onClick={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
                     setEditingEmployee(row);
                     setIsOpen(true);
@@ -209,6 +197,7 @@ export const EmployeesList = () => {
                   size="sm"
                   leftIcon={Trash2}
                   onClick={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
                     setDeletingEmployee(row);
                   }}
@@ -233,10 +222,6 @@ export const EmployeesList = () => {
           />
         }
       />
-        </>
-      )}
-
-      {activeTab === "rates" && <EmployeeRatesTab />}
 
       <Modal isOpen={isOpen} title={editingEmployee ? "Edit Employee" : "New Employee"} onClose={() => setIsOpen(false)}>
         <EmployeeForm

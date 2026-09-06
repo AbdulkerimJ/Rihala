@@ -41,13 +41,13 @@ const createEmployeeSchema = z
         .optional(),
     ),
 
-    initialDailyRate: z.coerce.number().positive().optional(),
+    dailyRate: z.coerce.number({ invalid_type_error: "Daily rate is required." }).positive("Daily rate must be positive."),
 
     status: employeeStatusSchema.optional().default("active"),
   })
   .strict({
     error:
-      "Only name, phone, employmentStartDate, employmentEndDate, and status can be submitted.",
+      "Only name, phone, employmentStartDate, employmentEndDate, dailyRate, and status can be submitted.",
   })
   .refine(
     (data) => {
@@ -92,11 +92,13 @@ const updateEmployeeSchema = z
         .optional(),
     ),
 
+    dailyRate: z.coerce.number().positive().optional(),
+
     status: employeeStatusSchema.optional(),
   })
   .strict({
     error:
-      "Only name, phone, employmentStartDate, employmentEndDate, and status can be updated.",
+      "Only name, phone, employmentStartDate, employmentEndDate, dailyRate, and status can be updated.",
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "At least one field is required for update.",

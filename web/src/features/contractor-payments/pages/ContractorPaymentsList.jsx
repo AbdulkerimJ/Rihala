@@ -88,7 +88,7 @@ export const ContractorPaymentsList = () => {
                 variant="danger-ghost"
                 size="sm"
                 onClick={(e) => {
-                  e.stopPropagation();
+                  e.preventDefault(); e.stopPropagation();
                   setVoidingPayment(row);
                 }}
               >
@@ -153,7 +153,7 @@ export const ContractorPaymentsList = () => {
           ),
           actions: row.status !== 'voided' ? (
             <Can permission="contractorPayments.void">
-              <Button variant="danger-ghost" size="sm" onClick={(e) => { e.stopPropagation(); setVoidingPayment(row); }}>
+              <Button variant="danger-ghost" size="sm" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setVoidingPayment(row); }}>
                 Void
               </Button>
             </Can>

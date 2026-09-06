@@ -50,12 +50,6 @@ const ALL_PERMISSIONS = [
   { name: "employees.update", description: "Update employees" },
   { name: "employees.delete", description: "Delete employees" },
 
-  // Employee rate module permissions
-  { name: "employeeRates.read", description: "View employee rates" },
-  { name: "employeeRates.create", description: "Create employee rates" },
-  { name: "employeeRates.update", description: "Update employee rates" },
-  { name: "employeeRates.delete", description: "Delete employee rates" },
-
   // Attendance module permissions
   { name: "attendances.read", description: "View attendances" },
   { name: "attendances.create", description: "Create attendances" },

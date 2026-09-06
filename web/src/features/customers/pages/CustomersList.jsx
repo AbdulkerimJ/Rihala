@@ -84,7 +84,7 @@ export const CustomersList = () => {
             size="icon"
             leftIcon={Edit}
             onClick={(e) => {
-              e.stopPropagation();
+              e.preventDefault(); e.stopPropagation();
               setEditingCustomer(row);
               setIsOpen(true);
             }}
@@ -156,7 +156,7 @@ export const CustomersList = () => {
                 size="sm"
                 leftIcon={Edit}
                 onClick={(e) => {
-                  e.stopPropagation();
+                  e.preventDefault(); e.stopPropagation();
                   setEditingCustomer(row);
                   setIsOpen(true);
                 }}

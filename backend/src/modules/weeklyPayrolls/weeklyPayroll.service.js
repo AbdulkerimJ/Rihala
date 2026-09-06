@@ -3,7 +3,6 @@ import WeeklyPayroll from "./weeklyPayroll.model.js";
 import { ensureEmployeeExists } from "../employees/employee.service.js";
 import Attendance from "../attendances/attendance.model.js";
 import Overtime from "../overtimes/overtime.model.js";
-import EmployeeRate from "../employeeRates/employeeRate.model.js";
 import { calculateDailyAttendancePortion } from "../attendances/attendance.service.js";
 import weeklyPayrollQueryConfig from "./weeklyPayroll.query.js";
 import ConflictError from "../../core/errors/ConflictError.js";
@@ -119,9 +118,10 @@ const calculatePayrollData = async (
     return !attendanceMap.has(key);
   });
 
-  const rateHistory = await EmployeeRate.find({ employee: employeeId }).sort({
-    effectiveDate: -1,
-  }).session(session);
+  const dailyRate = employee.dailyRate;
+  if (dailyRate == null) {
+    throw new ValidationError("Employee has no daily rate set.");
+  }
 
   let normalEarnings = 0;
   const dailyBreakdown = [];
@@ -134,22 +134,12 @@ const calculatePayrollData = async (
       continue;
     }
 
-    const applicableRate = rateHistory.find(
-      (rate) => rate.effectiveDate <= currentDate,
-    );
-
-    if (!applicableRate) {
-      throw new NotFoundError(
-        `No applicable employee rate found for ${currentDate.toISOString().slice(0, 10)}.`,
-      );
-    }
-
     const dailyPortion = calculateDailyAttendancePortion(
       record.morningStatus,
       record.afternoonStatus,
     );
 
-    const dayEarnings = dailyPortion * applicableRate.dailyRate;
+    const dayEarnings = dailyPortion * dailyRate;
     normalEarnings += dayEarnings;
 
     dailyBreakdown.push({
@@ -157,7 +147,7 @@ const calculatePayrollData = async (
       morningStatus: record.morningStatus,
       afternoonStatus: record.afternoonStatus,
       portion: dailyPortion,
-      dailyRate: applicableRate.dailyRate,
+      dailyRate: dailyRate,
       earnings: dayEarnings,
     });
   }
@@ -171,25 +161,15 @@ const calculatePayrollData = async (
   const overtimeBreakdown = [];
 
   for (const record of overtimeRecords) {
-    const applicableRate = rateHistory.find(
-      (rate) => rate.effectiveDate <= record.workDate,
-    );
-
-    if (!applicableRate) {
-      throw new NotFoundError(
-        `No applicable employee rate found for overtime on ${record.workDate.toISOString().slice(0, 10)}.`,
-      );
-    }
-
     const durationFactor = record.duration === "HALF_DAY" ? 0.5 : 1;
-    const earnings = applicableRate.dailyRate * 2 * durationFactor;
+    const earnings = dailyRate * 2 * durationFactor;
 
     overtimeEarnings += earnings;
     overtimeBreakdown.push({
       workDate: record.workDate,
       duration: record.duration,
       multiplier: durationFactor * 2,
-      dailyRate: applicableRate.dailyRate,
+      dailyRate: dailyRate,
       earnings,
     });
   }

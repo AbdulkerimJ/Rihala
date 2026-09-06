@@ -152,7 +152,7 @@ export const TasksList = () => {
               size="icon"
               leftIcon={Edit}
               onClick={(e) => {
-                e.stopPropagation();
+                e.preventDefault(); e.stopPropagation();
                 setEditingTask(row);
                 setIsOpen(true);
               }}
@@ -165,7 +165,7 @@ export const TasksList = () => {
               size="icon"
               leftIcon={Trash2}
               onClick={(e) => {
-                e.stopPropagation();
+                e.preventDefault(); e.stopPropagation();
                 setDeletingTask(row);
               }}
               title="Delete"
@@ -253,7 +253,7 @@ export const TasksList = () => {
                       size="sm"
                       leftIcon={Edit}
                       onClick={(e) => {
-                        e.stopPropagation();
+                        e.preventDefault(); e.stopPropagation();
                         setEditingTask(row);
                         setIsOpen(true);
                       }}
@@ -267,7 +267,7 @@ export const TasksList = () => {
                       size="sm"
                       leftIcon={Trash2}
                       onClick={(e) => {
-                        e.stopPropagation();
+                        e.preventDefault(); e.stopPropagation();
                         setDeletingTask(row);
                       }}
                     >

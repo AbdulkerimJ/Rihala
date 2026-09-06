@@ -97,7 +97,7 @@ export const ContractorsList = () => {
               size="icon"
               leftIcon={Edit}
               onClick={(e) => {
-                e.stopPropagation();
+                e.preventDefault(); e.stopPropagation();
                 setEditingContractor(row);
                 setIsOpen(true);
               }}
@@ -110,7 +110,7 @@ export const ContractorsList = () => {
               size="icon"
               leftIcon={Trash2}
               onClick={(e) => {
-                e.stopPropagation();
+                e.preventDefault(); e.stopPropagation();
                 setDeletingContractor(row);
               }}
               title="Delete"
@@ -160,7 +160,7 @@ export const ContractorsList = () => {
           to: `/contractors/${row._id}`,
           title: row.name,
           subtitle: row.phone || "-",
-          right: <StatusBadge status={row.isActive ? "active" : "inactive"} />,
+          right: <StatusBadge status={row.status} />,
           actions: (
             <>
               <Can permission="contractors.update">
@@ -169,6 +169,7 @@ export const ContractorsList = () => {
                   size="sm"
                   leftIcon={Edit}
                   onClick={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
                     setEditingContractor(row);
                     setIsOpen(true);
@@ -183,6 +184,7 @@ export const ContractorsList = () => {
                   size="sm"
                   leftIcon={Trash2}
                   onClick={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
                     setDeletingContractor(row);
                   }}

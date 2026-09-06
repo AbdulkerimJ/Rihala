@@ -255,7 +255,7 @@ export const ExpensesList = () => {
               size="icon"
               leftIcon={Edit}
               onClick={(e) => {
-                e.stopPropagation();
+                e.preventDefault(); e.stopPropagation();
                 setEditingExpense(row);
                 setIsOpen(true);
               }}
@@ -268,7 +268,7 @@ export const ExpensesList = () => {
                 variant="danger-ghost"
                 size="sm"
                 onClick={(e) => {
-                  e.stopPropagation();
+                  e.preventDefault(); e.stopPropagation();
                   setVoidingExpense(row);
                 }}
               >
@@ -391,7 +391,7 @@ export const ExpensesList = () => {
                   size="sm"
                   leftIcon={Edit}
                   onClick={(e) => {
-                    e.stopPropagation();
+                    e.preventDefault(); e.stopPropagation();
                     setEditingExpense(row);
                     setIsOpen(true);
                   }}
@@ -405,7 +405,7 @@ export const ExpensesList = () => {
                     variant="danger-ghost"
                     size="sm"
                     onClick={(e) => {
-                      e.stopPropagation();
+                      e.preventDefault(); e.stopPropagation();
                       setVoidingExpense(row);
                     }}
                   >

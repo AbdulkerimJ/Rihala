@@ -158,7 +158,7 @@ export const RolesList = () => {
               variant="ghost"
               size="icon"
               leftIcon={Key}
-              onClick={(e) => { e.stopPropagation(); setPermissionsRole(row); setIsPermissionsModalOpen(true); }}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPermissionsRole(row); setIsPermissionsModalOpen(true); }}
               title="Manage Permissions"
             />
           </Can>
@@ -167,7 +167,7 @@ export const RolesList = () => {
               variant="ghost"
               size="icon"
               leftIcon={Edit2}
-              onClick={(e) => { e.stopPropagation(); setEditingRole(row); setIsModalOpen(true); }}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditingRole(row); setIsModalOpen(true); }}
               title="Edit Role"
             />
           </Can>
@@ -176,7 +176,7 @@ export const RolesList = () => {
               variant="danger-ghost"
               size="icon"
               leftIcon={Trash2}
-              onClick={(e) => { e.stopPropagation(); setRoleToDelete(row._id); }}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRoleToDelete(row._id); }}
               title="Delete Role"
             />
           </Can>
@@ -253,17 +253,17 @@ export const RolesList = () => {
               actions: (
                 <>
                   <Can permission="roles.assign-permission">
-                    <Button variant="ghost" size="sm" leftIcon={Key} onClick={(e) => { e.stopPropagation(); setPermissionsRole(row); setIsPermissionsModalOpen(true); }}>
+                    <Button variant="ghost" size="sm" leftIcon={Key} onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPermissionsRole(row); setIsPermissionsModalOpen(true); }}>
                       Permissions
                     </Button>
                   </Can>
                   <Can permission="roles.update">
-                    <Button variant="ghost" size="sm" leftIcon={Edit2} onClick={(e) => { e.stopPropagation(); setEditingRole(row); setIsModalOpen(true); }}>
+                    <Button variant="ghost" size="sm" leftIcon={Edit2} onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditingRole(row); setIsModalOpen(true); }}>
                       Edit
                     </Button>
                   </Can>
                   <Can permission="roles.delete">
-                    <Button variant="danger-ghost" size="sm" leftIcon={Trash2} onClick={(e) => { e.stopPropagation(); setRoleToDelete(row._id); }}>
+                    <Button variant="danger-ghost" size="sm" leftIcon={Trash2} onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRoleToDelete(row._id); }}>
                       Delete
                     </Button>
                   </Can>

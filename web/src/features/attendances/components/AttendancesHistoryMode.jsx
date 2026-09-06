@@ -88,7 +88,7 @@ export const AttendancesHistoryMode = ({ onEdit, onDelete }) => {
               variant="ghost"
               size="icon"
               onClick={(e) => {
-                e.stopPropagation();
+                e.preventDefault(); e.stopPropagation();
                 onEdit(row);
               }}
             >
@@ -101,7 +101,7 @@ export const AttendancesHistoryMode = ({ onEdit, onDelete }) => {
               variant="danger-ghost"
               size="icon"
               onClick={(e) => {
-                e.stopPropagation();
+                e.preventDefault(); e.stopPropagation();
                 onDelete(row);
               }}
             >
@@ -171,7 +171,7 @@ export const AttendancesHistoryMode = ({ onEdit, onDelete }) => {
                   size="sm"
                   leftIcon={Edit}
                   onClick={(e) => {
-                    e.stopPropagation();
+                    e.preventDefault(); e.stopPropagation();
                     onEdit(row);
                   }}
                 >
@@ -184,7 +184,7 @@ export const AttendancesHistoryMode = ({ onEdit, onDelete }) => {
                   size="sm"
                   leftIcon={Trash2}
                   onClick={(e) => {
-                    e.stopPropagation();
+                    e.preventDefault(); e.stopPropagation();
                     onDelete(row);
                   }}
                 >

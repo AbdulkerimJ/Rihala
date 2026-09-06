@@ -110,7 +110,7 @@ export const SuppliersList = () => {
               size="icon"
               leftIcon={Edit}
               onClick={(e) => {
-                e.stopPropagation();
+                e.preventDefault(); e.stopPropagation();
                 setEditingSupplier(row);
                 setIsOpen(true);
               }}
@@ -122,7 +122,7 @@ export const SuppliersList = () => {
               size="icon"
               leftIcon={Trash2}
               onClick={(e) => {
-                e.stopPropagation();
+                e.preventDefault(); e.stopPropagation();
                 setDeletingSupplier(row);
               }}
             />
@@ -185,7 +185,7 @@ export const SuppliersList = () => {
                   size="sm"
                   leftIcon={Edit}
                   onClick={(e) => {
-                    e.stopPropagation();
+                    e.preventDefault(); e.stopPropagation();
                     setEditingSupplier(row);
                     setIsOpen(true);
                   }}
@@ -199,7 +199,7 @@ export const SuppliersList = () => {
                   size="sm"
                   leftIcon={Trash2}
                   onClick={(e) => {
-                    e.stopPropagation();
+                    e.preventDefault(); e.stopPropagation();
                     setDeletingSupplier(row);
                   }}
                 >

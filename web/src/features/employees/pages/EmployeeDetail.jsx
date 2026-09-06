@@ -145,6 +145,7 @@ export const EmployeeDetail = () => {
               <DetailItem label="Phone Number" value={employee.phone || "Not specified"} />
               <DetailItem label="Start Date" value={formatDate(employee.employmentStartDate)} />
               <DetailItem label="End Date" value={employee.employmentEndDate ? formatDate(employee.employmentEndDate) : "Ongoing (Active)"} />
+              <DetailItem label="Daily Rate" value={employee.dailyRate ? <MoneyDisplay amount={employee.dailyRate} /> : "Not set"} />
               <DetailItem label="Current Status" value={<StatusBadge status={employee.status} />} />
             </DetailSection>
           </div>

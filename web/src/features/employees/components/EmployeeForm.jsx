@@ -23,7 +23,7 @@ const employeeSchema = z
     employmentStartDate: z.string().min(1, "Employment start date is required"),
     employmentEndDate: z.string().optional().or(z.literal("")),
     status: z.enum(["active", "inactive"]).default("active"),
-    initialDailyRate: z.coerce.number().positive("Rate must be positive").optional().or(z.literal("")),
+    dailyRate: z.coerce.number({ invalid_type_error: "Daily rate is required" }).positive("Rate must be positive"),
   })
   .refine(
     (data) => {
@@ -56,6 +56,7 @@ export const EmployeeForm = ({ initialData, onSubmit, onClose }) => {
             ? getLocalISODate(initialData.employmentEndDate)
             : "",
           status: initialData.status || "active",
+          dailyRate: initialData.dailyRate || "",
         }
       : {
           name: "",
@@ -63,7 +64,7 @@ export const EmployeeForm = ({ initialData, onSubmit, onClose }) => {
           employmentStartDate: getLocalISODate(),
           employmentEndDate: "",
           status: "active",
-          initialDailyRate: "",
+          dailyRate: "",
         },
   });
 
@@ -72,7 +73,7 @@ export const EmployeeForm = ({ initialData, onSubmit, onClose }) => {
       const payload = {
         ...data,
         employmentEndDate: data.employmentEndDate ? data.employmentEndDate : undefined,
-        initialDailyRate: data.initialDailyRate ? data.initialDailyRate : undefined,
+        dailyRate: data.dailyRate ? data.dailyRate : undefined,
       };
       await onSubmit(payload);
     } catch (error) {
@@ -113,22 +114,19 @@ export const EmployeeForm = ({ initialData, onSubmit, onClose }) => {
           />
         </FormField>
 
-        {!initialData && (
-          <FormField label="Initial Daily Rate (Optional)" error={errors.initialDailyRate?.message}>
+          <FormField label="Daily Rate (ETB)" required error={errors.dailyRate?.message}>
             <Controller
-              name="initialDailyRate"
+              name="dailyRate"
               control={control}
-              render={({ field: { onChange, value } }) => (
+              render={({ field }) => (
                 <CurrencyInput
-                  value={value}
-                  onValueChange={onChange}
                   placeholder="e.g. 500"
-                  error={errors.initialDailyRate?.message}
+                  error={errors.dailyRate?.message}
+                  {...field}
                 />
               )}
             />
           </FormField>
-        )}
       </div>
 
       <div className="flex justify-end gap-2.5 pt-3 mt-1 border-t border-border/50">

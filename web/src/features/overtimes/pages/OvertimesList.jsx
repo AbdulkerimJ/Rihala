@@ -219,7 +219,7 @@ export const OvertimesList = () => {
       accessor: (row) => (
         <div className="flex justify-end gap-2">
           <Can permission="overtimes.update">
-            <Button variant="ghost" size="icon" leftIcon={Edit} onClick={(e) => { e.stopPropagation(); setEditingRecord(row); setIsOpen(true); }} title="Edit" />
+            <Button variant="ghost" size="icon" leftIcon={Edit} onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditingRecord(row); setIsOpen(true); }} title="Edit" />
           </Can>
           <Can permission="overtimes.delete">
             <Button
@@ -227,7 +227,7 @@ export const OvertimesList = () => {
               size="icon"
               leftIcon={Trash2}
               onClick={(e) => {
-                e.stopPropagation();
+                e.preventDefault(); e.stopPropagation();
                 setRecordToDelete(row);
               }}
               title="Delete"
@@ -301,7 +301,7 @@ export const OvertimesList = () => {
                   size="sm"
                   leftIcon={Edit}
                   onClick={(e) => {
-                    e.stopPropagation();
+                    e.preventDefault(); e.stopPropagation();
                     setEditingRecord(row);
                     setIsOpen(true);
                   }}
@@ -315,7 +315,7 @@ export const OvertimesList = () => {
                   size="sm"
                   leftIcon={Trash2}
                   onClick={(e) => {
-                    e.stopPropagation();
+                    e.preventDefault(); e.stopPropagation();
                     setDeletingRecord(row);
                   }}
                 >

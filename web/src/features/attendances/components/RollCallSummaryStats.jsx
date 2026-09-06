@@ -8,7 +8,7 @@ export const RollCallSummaryStats = ({
 
   let presentCount = 0;
   let absentCount = 0;
-  let excusedCount = 0;
+  let permissionCount = 0;
 
   todayAttendances.forEach((record) => {
     const morning = record.morningStatus;
@@ -17,7 +17,7 @@ export const RollCallSummaryStats = ({
     if (morning === "PRESENT" || afternoon === "PRESENT") {
       presentCount++;
     } else if (morning === "PERMISSION" || afternoon === "PERMISSION") {
-      excusedCount++;
+      permissionCount++;
     } else if (morning === "ABSENT" && afternoon === "ABSENT") {
       absentCount++;
     }
@@ -53,8 +53,8 @@ export const RollCallSummaryStats = ({
       bg: "bg-danger/5 border-danger/20",
     },
     {
-      label: "Excused",
-      value: excusedCount,
+      label: "Permission",
+      value: permissionCount,
       icon: AlertCircle,
       color: "text-warning",
       bg: "bg-warning/5 border-warning/20",

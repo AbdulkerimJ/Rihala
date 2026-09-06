@@ -75,7 +75,7 @@ export const MaterialsList = () => {
       accessor: (row) => (
         <div className="flex justify-end gap-2">
           <Can permission="materials.update">
-            <Button variant="ghost" size="icon" leftIcon={Edit} onClick={(e) => { e.stopPropagation(); setEditingMaterial(row); setIsOpen(true); }} title="Edit" />
+            <Button variant="ghost" size="icon" leftIcon={Edit} onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditingMaterial(row); setIsOpen(true); }} title="Edit" />
           </Can>
         </div>
       ) 
@@ -135,7 +135,7 @@ export const MaterialsList = () => {
                 size="sm"
                 leftIcon={Edit}
                 onClick={(e) => {
-                  e.stopPropagation();
+                  e.preventDefault(); e.stopPropagation();
                   setEditingMaterial(row);
                   setIsOpen(true);
                 }}
