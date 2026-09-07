@@ -1,5 +1,5 @@
 const contractorQueryConfig = {
-  searchableFields: ["name", "phone", "notes"],
+  searchableFields: ["name", "phone"],
   sortableFields: ["name", "createdAt"],
   filterableFields: ["status"],
   defaultSort: "name",

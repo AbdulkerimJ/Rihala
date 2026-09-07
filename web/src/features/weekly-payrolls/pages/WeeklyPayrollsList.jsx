@@ -21,6 +21,7 @@ import { DataTable } from "../../../components/ui/DataTable";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { Modal } from "../../../components/ui/Modal";
 import { PayrollClosureForm } from "../components/PayrollClosureForm";
+import { WeeklyPayrollSummaryModal } from "../components/WeeklyPayrollSummaryModal";
 
 export const WeeklyPayrollsList = () => {
   const { can } = usePermission();
@@ -31,6 +32,7 @@ export const WeeklyPayrollsList = () => {
   const [filters, setFilters] = useState({ search: "", employee: "", from: "", to: "" }); 
   const debouncedSearch = useDebounce(filters.search, 300);
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedPayrollId, setSelectedPayrollId] = useState(null);
 
   React.useEffect(() => {
     if (searchParams.get("action") === "new" && can("weeklyPayrolls.close")) {
@@ -123,7 +125,7 @@ export const WeeklyPayrollsList = () => {
         columns={columns}
         data={payrolls}
         keyExtractor={(row) => row._id}
-        onRowClick={(row) => navigate(`/weekly-payrolls/${row._id}`)}
+        onRowClick={(row) => setSelectedPayrollId(row._id)}
         mobileRow={(row) => ({
           title: row.employee?.name || "Unknown",
           subtitle: `${formatDate(row.startDate)} - ${formatDate(row.endDate)}`,
@@ -150,6 +152,12 @@ export const WeeklyPayrollsList = () => {
       <Modal isOpen={isOpen} title="Close Weekly Payroll" onClose={() => setIsOpen(false)}>
         <PayrollClosureForm onClose={() => setIsOpen(false)} />
       </Modal>
+
+      <WeeklyPayrollSummaryModal
+        payrollId={selectedPayrollId}
+        isOpen={!!selectedPayrollId}
+        onClose={() => setSelectedPayrollId(null)}
+      />
     </div>
   );
 };

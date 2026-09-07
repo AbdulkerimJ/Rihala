@@ -33,6 +33,7 @@ export const ListItem = ({
   title,
   subtitle,
   right,
+  actions,
   showChevron = false,
   size = "md", // "sm" | "md" | "lg"
   className = "",
@@ -85,9 +86,14 @@ export const ListItem = ({
             </div>
           </div>
 
-          {(right || showChevron) && (
+          {(right || actions || showChevron) && (
             <div className="flex items-center gap-2 shrink-0">
               {right}
+              {actions && (
+                <div className="flex items-center gap-1.5 ml-1 pl-1">
+                  {actions}
+                </div>
+              )}
               {showChevron && (
                 <ChevronRight className="h-4 w-4 text-secondary/30 group-hover:text-accent group-hover:translate-x-1 transition-shadow shrink-0" />
               )}

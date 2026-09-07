@@ -2,7 +2,6 @@ import { Save, X } from "lucide-react";
 import { FormRootError } from "../../../components/ui/FormRootError";
 import { FormField } from "../../../components/ui/FormField";
 import { Input } from "../../../components/ui/Input";
-import { Textarea } from "../../../components/ui/Textarea";
 import { Select } from "../../../components/ui/Select";
 import { Button } from "../../../components/ui/Button";
 import { useForm } from "react-hook-form";
@@ -22,12 +21,6 @@ const contractorSchema = z.object({
     .trim()
     .min(1, "Phone number is required.")
     .max(20, "Phone cannot exceed 20 characters"),
-  notes: z
-    .string()
-    .trim()
-    .max(1000, "Notes cannot exceed 1000 characters")
-    .optional()
-    .or(z.literal("")),
   status: z.enum(["active", "inactive"]).default("active"),
 });
 
@@ -37,7 +30,6 @@ export const ContractorForm = ({ initialData, onSubmit, onClose }) => {
     defaultValues: initialData || {
       name: "",
       phone: "",
-      notes: "",
       status: "active",
     },
   });
@@ -71,15 +63,6 @@ export const ContractorForm = ({ initialData, onSubmit, onClose }) => {
           />
         </FormField>
       </div>
-
-      <FormField label="Notes" error={errors.notes?.message}>
-        <Textarea
-          {...register("notes")}
-          rows={2}
-          error={errors.notes?.message}
-          placeholder="Optional notes"
-        />
-      </FormField>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <FormField label="Status" error={errors.status?.message}>

@@ -68,7 +68,61 @@ const createContractService = async (data, userId) => {
 };
 
 const getContractsService = async (filters = {}) => {
-  return getPaginatedQueryResult(Contract, filters, contractQueryConfig);
+  const result = await getPaginatedQueryResult(Contract, filters, contractQueryConfig);
+  const items = result?.data || [];
+  if (items.length === 0) return result;
+
+  const contractIds = items.map((c) => c._id);
+
+  const [completions, payments] = await Promise.all([
+    ContractCompletion.aggregate([
+      { $match: { contract: { $in: contractIds }, status: "ACTIVE" } },
+      { $group: { _id: "$contract", completedQuantity: { $sum: "$quantity" } } },
+    ]),
+    ContractorPayment.aggregate([
+      { $match: { contract: { $in: contractIds }, status: "active" } },
+      { $group: { _id: "$contract", totalPaid: { $sum: "$amount" } } },
+    ]),
+  ]);
+
+  const completionMap = new Map(
+    completions.map((c) => [c._id.toString(), c.completedQuantity])
+  );
+  const paymentMap = new Map(
+    payments.map((p) => [p._id.toString(), p.totalPaid])
+  );
+
+  const now = normalizeDateValue(new Date());
+
+  const enhancedData = items.map((contract) => {
+    const contractObj =
+      typeof contract.toObject === "function" ? contract.toObject() : { ...contract };
+    const completedQuantity = completionMap.get(contract._id.toString()) || 0;
+    const totalPaid = paymentMap.get(contract._id.toString()) || 0;
+    const completedWorkValue =
+      Math.round(completedQuantity * contract.unitPrice * 100) / 100;
+    const payableAmount =
+      Math.round((completedWorkValue - totalPaid) * 100) / 100;
+    const remainingQuantity = Math.max(0, contract.quantity - completedQuantity);
+    const isOverdue = !!(
+      contract.expectedCompletionDate &&
+      now > contract.expectedCompletionDate &&
+      contract.status === "ACTIVE" &&
+      completedQuantity < contract.quantity
+    );
+
+    contractObj.stats = {
+      completedQuantity,
+      completedWorkValue,
+      totalPaid,
+      payableAmount,
+      remainingQuantity,
+      isOverdue,
+    };
+    return contractObj;
+  });
+
+  return { ...result, data: enhancedData };
 };
 
 const getContractByIdService = async (id) => {

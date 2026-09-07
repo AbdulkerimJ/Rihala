@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Plus, Receipt } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { formatDate } from "../../../utils/formatters";
-import { DetailSection } from "../../../components/ui/DetailSection";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { Can } from "../../../components/Can";
 import { Button } from "../../../components/ui/Button";
@@ -23,7 +22,9 @@ export const OrderPaymentsSection = ({
   const isCancelled = order?.status === "cancelled";
 
   return (
-    <DetailSection title="Customer Payments History" className="relative">
+    <div className="relative">
+      <h3 className="text-sm font-bold text-secondary uppercase tracking-widest mb-4">Customer Payments History</h3>
+      
       <div className="space-y-4">
         {/* Financial overview mini banner */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 rounded-xl bg-surface border border-border/60 shadow-sm transition-shadow duration-300 hover:shadow-md group relative overflow-hidden">
@@ -104,7 +105,6 @@ export const OrderPaymentsSection = ({
         payment={selectedPayment}
         type="customer"
       />
-    </DetailSection>
+    </div>
   );
 };
-

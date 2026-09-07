@@ -1,8 +1,7 @@
 import { formatDateTime } from "../../utils/formatters";
-import { DetailSection, DetailItem } from "./DetailSection";
 
 /**
- * Reusable system information card for detail pages.
+ * Reusable system information footer for detail pages.
  */
 export const SystemInfoSection = ({
   id,
@@ -13,24 +12,34 @@ export const SystemInfoSection = ({
   className = "",
 }) => {
   return (
-    <DetailSection title="System Information" className={className}>
-      <div className="space-y-1">
+    <div className={`mt-8 pt-6 border-t border-border/40 ${className}`}>
+      <h4 className="text-xs font-bold text-secondary uppercase tracking-widest mb-4">System Information</h4>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {id && (
-          <DetailItem
-            label={idLabel}
-            value={<span className="font-mono text-xs">{id}</span>}
-          />
+          <div>
+            <span className="text-xs text-secondary block mb-0.5">{idLabel}</span>
+            <span className="font-mono text-xs text-muted break-all">{id}</span>
+          </div>
         )}
         {extraItems.map((item, index) => (
-          <DetailItem key={index} label={item.label} value={item.value} />
+          <div key={index}>
+            <span className="text-xs text-secondary block mb-0.5">{item.label}</span>
+            <span className="text-xs text-muted font-medium">{item.value}</span>
+          </div>
         ))}
         {createdAt && (
-          <DetailItem label="Created On" value={formatDateTime(createdAt)} />
+          <div>
+            <span className="text-xs text-secondary block mb-0.5">Created On</span>
+            <span className="text-xs text-muted">{formatDateTime(createdAt)}</span>
+          </div>
         )}
         {updatedAt && (
-          <DetailItem label="Last Updated" value={formatDateTime(updatedAt)} />
+          <div>
+            <span className="text-xs text-secondary block mb-0.5">Last Updated</span>
+            <span className="text-xs text-muted">{formatDateTime(updatedAt)}</span>
+          </div>
         )}
       </div>
-    </DetailSection>
+    </div>
   );
 };

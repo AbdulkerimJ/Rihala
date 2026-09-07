@@ -3,6 +3,7 @@ import { useDebounce } from "../../../hooks/useDebounce";
 import { Plus, Edit } from "lucide-react";
 import { usePrefetchNextPage } from "../../../hooks/usePrefetchNextPage";
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { createCustomer, getCustomers, updateCustomer } from "../api";
 import toast from "react-hot-toast";
@@ -25,6 +26,7 @@ import { Modal } from "../../../components/ui/Modal";
 import { CustomerForm } from "../components/CustomerForm";
 import { ErrorState } from "../../../components/ui/ErrorState";
 export const CustomersList = () => {
+  const navigate = useNavigate();
   const { can } = usePermission();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
@@ -145,7 +147,9 @@ export const CustomersList = () => {
         columns={columns}
         data={customers}
         keyExtractor={(row) => row._id}
+        onRowClick={(row) => navigate(`/customers/${row._id}`)}
         mobileRow={(row) => ({
+          to: `/customers/${row._id}`,
           title: row.name,
           subtitle: row.phone || "-",
           right: <StatusBadge status={row.status} />,

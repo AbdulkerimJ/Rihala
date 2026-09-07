@@ -7,29 +7,29 @@ import { formatDate, formatDateTime } from "../../../utils/formatters";
 import { usePermission } from "../../../hooks/usePermission";
 import { getWeeklyPayrolls } from "../../weekly-payrolls/api";
 import { getEmployeePayments } from "../../employee-payments/api";
-import { TrendingUp, TrendingDown, Wallet, FileText, Phone, Clock, Banknote } from "lucide-react";
+import { Wallet, FileText, Clock, Banknote, UserSquare2 } from "lucide-react";
 import { createEmployeePayment } from "../../employee-payments/api";
 import { DetailSkeleton } from "../../../components/ui/skeletons";
 import { ErrorState } from "../../../components/ui/ErrorState";
-import { BackButton } from "../../../components/ui/BackButton";
 import { Can } from "../../../components/Can";
 import { Button } from "../../../components/ui/Button";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { Tabs } from "../../../components/ui/Tabs";
-import { DetailSection, DetailItem } from "../../../components/ui/DetailSection";
 import { SystemInfoSection } from "../../../components/ui/SystemInfoSection";
-import { SummaryCard } from "../../../components/ui/SummaryCard";
 import { MoneyDisplay } from "../../../components/ui/MoneyDisplay";
 import { ListGroup, ListItem } from "../../../components/ui/ListGroup";
+import { EntityHeader } from "../../../components/ui/EntityHeader";
 import { EmployeePaymentModal } from "../../employee-payments/components/EmployeePaymentModal";
+import { WeeklyPayrollSummaryModal } from "../../weekly-payrolls/components/WeeklyPayrollSummaryModal";
 import toast from "react-hot-toast";
 
 export const EmployeeDetail = () => {
   const { id } = useParams();
   const { can } = usePermission();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'financials'
+  const [activeTab, setActiveTab] = useState("payrolls"); 
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [selectedPayrollId, setSelectedPayrollId] = useState(null);
   
   const employeeQuery = useQuery({
     queryKey: ["employees", id],
@@ -77,175 +77,159 @@ export const EmployeeDetail = () => {
     return <ErrorState description={getApiErrorMessage(employeeQuery.error, "Failed to load employee details.")} />;
   }
 
-  const getInitials = (name) => {
-    if (!name) return "?";
-    return name.trim().charAt(0).toUpperCase();
-  };
-
-
-
   return (
-    <div className="space-y-6 sm:space-y-8 animate-[fadeSlideUp_0.3s_ease_both]">
-      {/* ── Profile Header ── */}
-      <div className="relative rounded-2xl border border-border/60 bg-surface shadow-sm p-5 sm:p-6 mt-4">
-        {/* Back Button */}
-        <div className="mb-4">
-          <BackButton />
-        </div>
+    <div className="space-y-4 animate-[fadeSlideUp_0.3s_ease_both]">
+      {/* ── Executive Header ── */}
+      <EntityHeader
+        parentTo="/employees"
+        parentLabel="Employees"
+        title={employee.name}
+        theme="blue"
+        typeLabel="Employee"
+        typeIcon={UserSquare2}
+        status={employee.status}
+        phone={employee.phone}
+        metaItems={[
+          {
+            icon: Clock,
+            label: `Started ${formatDate(employee.employmentStartDate)}`,
+          },
+          employee.dailyRate && {
+            icon: Banknote,
+            label: (
+              <span>
+                <MoneyDisplay amount={employee.dailyRate} />/day
+              </span>
+            ),
+          },
+          {
+            icon: FileText,
+            label: `${payrolls.length} ${payrolls.length === 1 ? "Payroll" : "Payrolls"}`,
+            onClick: () => setActiveTab("payrolls"),
+            title: "View payroll history",
+          },
+        ].filter(Boolean)}
+        actions={
+          <Can permission="employeePayments.create">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setIsPaymentOpen(true)}
+              className="shadow-xs h-8 px-3 text-xs whitespace-nowrap"
+            >
+              Record Payment
+            </Button>
+          </Can>
+        }
+        metrics={[
+          {
+            label: "Lifetime Earned",
+            value: <MoneyDisplay amount={stats?.totalEarned ?? 0} />,
+            subtitle: "From closed payrolls",
+            isLoading: statsQuery.isLoading,
+          },
+          {
+            label: "Total Paid",
+            value: <MoneyDisplay amount={stats?.totalPaid ?? 0} />,
+            subtitle: "Cash disbursed to date",
+            isLoading: statsQuery.isLoading,
+          },
+          {
+            label: "Current Balance",
+            value: (
+              <MoneyDisplay
+                amount={stats?.currentBalance ?? 0}
+                className={
+                  !stats || stats.currentBalance <= 0
+                    ? "text-success"
+                    : "text-danger"
+                }
+              />
+            ),
+            isLoading: statsQuery.isLoading,
+            statusDot:
+              !stats || stats.currentBalance === 0
+                ? { color: "success", text: "Fully settled" }
+                : stats.currentBalance > 0
+                ? { color: "danger", text: "Unpaid balance", pulse: true }
+                : { color: "warning", text: "Advance balance" },
+          },
+        ]}
+      />
 
-        {/* Profile Info */}
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-5">
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-5 text-center sm:text-left">
-            {/* Avatar */}
-            <div className="flex h-20 w-20 sm:h-24 sm:w-24 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-accent to-accent/70 text-white font-black text-3xl shadow-lg ring-4 ring-surface">
-              {getInitials(employee.name)}
-            </div>
-            
-            <div className="space-y-1.5 mb-1">
-              <h1 className="text-2xl sm:text-3xl font-black text-primary font-display tracking-tight leading-none">{employee.name}</h1>
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 text-sm font-medium text-secondary">
-                <span className="flex items-center gap-1.5 bg-main/50 px-2 py-1 rounded-md border border-border/50">
-                  <Phone className="h-3.5 w-3.5" />
-                  {employee.phone || "No phone"}
-                </span>
-                <span className="flex items-center gap-1.5 bg-main/50 px-2 py-1 rounded-md border border-border/50">
-                   <Clock className="h-3.5 w-3.5" />
-                   Started {formatDate(employee.employmentStartDate)}
-                </span>
+      {/* ── Tabs ── */}
+      <Tabs 
+        tabs={[
+          { id: "payrolls", label: "Payroll History", icon: Banknote },
+          { id: "payments", label: "Payment History", icon: Wallet }
+        ]} 
+        activeTab={activeTab} 
+        onChange={setActiveTab} 
+      />
+
+      {/* ── Tab Content: Payrolls ── */}
+      {activeTab === "payrolls" && (
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-sm font-bold text-secondary uppercase tracking-widest mb-3">Recent Payrolls</h3>
+            {isPayrollsLoading ? (
+              <DetailSkeleton />
+            ) : payrolls?.length > 0 ? (
+              <ListGroup>
+                {payrolls.map(row => (
+                  <ListItem
+                    key={row._id}
+                    onClick={() => setSelectedPayrollId(row._id)}
+                    title={`${formatDate(row.startDate)} - ${formatDate(row.endDate)}`}
+                    right={
+                      <span className="text-sm font-bold text-finance-in">
+                        <MoneyDisplay amount={row.totalEarnings || 0} />
+                      </span>
+                    }
+                  />
+                ))}
+              </ListGroup>
+            ) : (
+              <div className="text-center py-6 text-sm text-secondary flex flex-col items-center border border-dashed border-border/50 rounded-lg bg-surface/30">
+                <Banknote className="h-8 w-8 text-muted mb-2" />
+                No payrolls generated for this employee.
               </div>
-            </div>
-          </div>
-
-          <div className="flex justify-center sm:justify-end shrink-0 gap-3">
-            <Can permission="employeePayments.create">
-              <Button variant="secondary" onClick={() => setIsPaymentOpen(true)}>Record Payment</Button>
-            </Can>
-            <StatusBadge status={employee.status} className="text-sm px-4 py-1.5 shadow-sm" showDot />
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <Tabs 
-          tabs={[
-            { id: "overview", label: "Overview", icon: FileText },
-            { id: "financials", label: "Financials", icon: Wallet }
-          ]} 
-          activeTab={activeTab} 
-          onChange={setActiveTab} 
-          className="mt-6"
-        />
-      </div>
-
-      {/* ── Tab Content: Overview ── */}
-      {activeTab === "overview" && (
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2 space-y-6">
-            <DetailSection title="Employment Details">
-              <DetailItem label="Full Name" value={employee.name} />
-              <DetailItem label="Phone Number" value={employee.phone || "Not specified"} />
-              <DetailItem label="Start Date" value={formatDate(employee.employmentStartDate)} />
-              <DetailItem label="End Date" value={employee.employmentEndDate ? formatDate(employee.employmentEndDate) : "Ongoing (Active)"} />
-              <DetailItem label="Daily Rate" value={employee.dailyRate ? <MoneyDisplay amount={employee.dailyRate} /> : "Not set"} />
-              <DetailItem label="Current Status" value={<StatusBadge status={employee.status} />} />
-            </DetailSection>
-          </div>
-
-          <div className="space-y-6">
-            <SystemInfoSection
-              id={employee._id}
-              idLabel="Employee ID"
-              createdAt={employee.createdAt}
-              updatedAt={employee.updatedAt}
-            />
+            )}
           </div>
         </div>
       )}
 
-      {/* ── Tab Content: Financials ── */}
-      {activeTab === "financials" && (
+      {/* ── Tab Content: Payments ── */}
+      {activeTab === "payments" && (
         <div className="space-y-6">
-          <div className="grid gap-4 sm:grid-cols-3">
-            <SummaryCard 
-              title="Lifetime Earned" 
-              value={statsQuery.isLoading ? "-" : <MoneyDisplay amount={stats?.totalEarned ?? 0} />} 
-              subtitle="From all closed payrolls"
-              icon={TrendingUp}
-              iconVariant="success"
-              variant="success"
-            />
-            <SummaryCard 
-              title="Total Paid" 
-              value={statsQuery.isLoading ? "-" : <MoneyDisplay amount={stats?.totalPaid ?? 0} />} 
-              subtitle="Cash disbursed to employee"
-              icon={TrendingDown}
-              iconVariant="brand"
-              variant="brand"
-            />
-            <SummaryCard 
-              title="Current Balance" 
-              value={statsQuery.isLoading ? "-" : <MoneyDisplay amount={stats?.currentBalance ?? 0} />} 
-              icon={Wallet}
-              iconVariant={!stats || stats.currentBalance >= 0 ? "accent" : "danger"}
-              variant={!stats || stats.currentBalance >= 0 ? "accent" : "danger"}
-              valueClassName={!stats || stats.currentBalance >= 0 ? "text-accent" : "text-danger"}
-            />
-          </div>
-          
-          <div className="grid gap-6 lg:grid-cols-2 mt-6">
-            <DetailSection title="Recent Payrolls">
-              {isPayrollsLoading ? (
-                <DetailSkeleton />
-              ) : payrolls?.length > 0 ? (
-                <ListGroup>
-                  {payrolls.map(row => (
-                    <ListItem
-                      key={row._id}
-                      to={`/weekly-payrolls/${row._id}`}
-                      title={`${formatDate(row.startDate)} - ${formatDate(row.endDate)}`}
-                      right={
-                        <span className="text-sm font-bold text-finance-in">
-                          <MoneyDisplay amount={row.totalEarnings || 0} />
+          <div>
+            <h3 className="text-sm font-bold text-secondary uppercase tracking-widest mb-3">Payment History</h3>
+            {isPaymentsLoading ? (
+              <DetailSkeleton />
+            ) : payments?.length > 0 ? (
+              <ListGroup>
+                {payments.map(row => (
+                  <ListItem
+                    key={row._id}
+                    title={<span className="font-mono text-[10px] font-bold text-primary tracking-widest">{row.paymentReference}</span>}
+                    subtitle={formatDateTime(row.paymentDate)}
+                    right={
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className={`text-xs sm:text-sm font-bold tracking-tight shrink-0 ${row.status === 'voided' ? 'line-through opacity-50 text-secondary' : 'text-primary'}`}>
+                          <MoneyDisplay amount={row.amount} />
                         </span>
-                      }
-                    />
-                  ))}
-                </ListGroup>
-              ) : (
-                <div className="text-center py-6 text-sm text-secondary flex flex-col items-center border border-dashed border-border/50 rounded-lg">
-                  <Banknote className="h-8 w-8 text-muted mb-2" />
-                  No payrolls generated for this employee.
-                </div>
-              )}
-            </DetailSection>
-
-            <DetailSection title="Payment History">
-              {isPaymentsLoading ? (
-                <DetailSkeleton />
-              ) : payments?.length > 0 ? (
-                <ListGroup>
-                  {payments.map(row => (
-                    <ListItem
-                      key={row._id}
-                      title={<span className="font-mono text-[10px] font-bold text-primary tracking-widest">{row.paymentReference}</span>}
-                      subtitle={formatDateTime(row.paymentDate)}
-                      right={
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className={`text-xs sm:text-sm font-bold tracking-tight shrink-0 ${row.status === 'voided' ? 'line-through opacity-50 text-secondary' : 'text-primary'}`}>
-                            <MoneyDisplay amount={row.amount} />
-                          </span>
-                          <StatusBadge status={row.status} className="shrink-0" />
-                        </div>
-                      }
-                    />
-                  ))}
-                </ListGroup>
-              ) : (
-                <div className="text-center py-6 text-sm text-secondary flex flex-col items-center border border-dashed border-border/50 rounded-lg">
-                  <FileText className="h-8 w-8 text-muted mb-2" />
-                  No payments have been recorded for this employee.
-                </div>
-              )}
-            </DetailSection>
+                        <StatusBadge status={row.status} className="shrink-0" />
+                      </div>
+                    }
+                  />
+                ))}
+              </ListGroup>
+            ) : (
+              <div className="text-center py-6 text-sm text-secondary flex flex-col items-center border border-dashed border-border/50 rounded-lg bg-surface/30">
+                <Wallet className="h-8 w-8 text-muted mb-2" />
+                No payments have been recorded for this employee.
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -255,6 +239,20 @@ export const EmployeeDetail = () => {
         onClose={() => setIsPaymentOpen(false)}
         onSubmit={paymentMutation.mutateAsync}
         preSelectedEmployee={employee}
+      />
+
+      <WeeklyPayrollSummaryModal
+        payrollId={selectedPayrollId}
+        isOpen={!!selectedPayrollId}
+        onClose={() => setSelectedPayrollId(null)}
+      />
+
+      {/* ── System Information at bottom ── */}
+      <SystemInfoSection
+        id={employee._id}
+        idLabel="Employee ID"
+        createdAt={employee.createdAt}
+        updatedAt={employee.updatedAt}
       />
     </div>
   );

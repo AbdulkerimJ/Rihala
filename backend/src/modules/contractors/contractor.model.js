@@ -14,10 +14,6 @@ const contractorSchema = new mongoose.Schema(
       required: [true, "Phone number is required"],
       trim: true,
     },
-    notes: {
-      type: String,
-      trim: true,
-    },
     status: {
       type: String,
       enum: {

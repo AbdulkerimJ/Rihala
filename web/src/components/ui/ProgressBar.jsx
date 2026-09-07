@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 
 const variantStyles = {
-  default: "bg-primary",
+  default: "bg-brand",
+  brand: "bg-brand",
   success: "bg-success",
   warning: "bg-warning",
   danger: "bg-danger",

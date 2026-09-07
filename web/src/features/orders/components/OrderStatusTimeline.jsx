@@ -1,14 +1,14 @@
 import { formatDateTime } from "../../../utils/formatters";
 import { ORDER_STATUS_CONFIG } from "../constants";
-import { DetailSection } from "../../../components/ui/DetailSection";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
+import { InfoBlock } from "../../../components/ui/InfoBlock";
 
 export const OrderStatusTimeline = ({ statusHistory = [], createdBy }) => {
   if (!statusHistory || statusHistory.length === 0) return null;
 
   return (
-    <DetailSection title="Status Audit Timeline">
-      <div className="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-border/60">
+    <InfoBlock title="Status Audit Timeline">
+      <div className="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-border/60 mt-1">
         {statusHistory.map((historyItem, idx) => {
           const historyConfig =
             ORDER_STATUS_CONFIG[historyItem.status] || ORDER_STATUS_CONFIG.pending;
@@ -35,17 +35,17 @@ export const OrderStatusTimeline = ({ statusHistory = [], createdBy }) => {
                 />
               </span>
               <div className="flex flex-col">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <StatusBadge
                     status={historyItem.status}
                     className="text-[11px] px-2 py-0.5"
                   />
-                  <span className="text-[11px] text-muted">
+                  <span className="text-[11px] font-medium text-muted">
                     {formatDateTime(historyItem.changedAt)}
                   </span>
                 </div>
                 {historyItem.changedBy && (
-                  <span className="text-xs text-secondary mt-0.5">
+                  <span className="text-xs font-medium text-secondary mt-1">
                     by {historyItem.changedBy?.name || createdBy?.name || "System"}
                   </span>
                 )}
@@ -54,6 +54,6 @@ export const OrderStatusTimeline = ({ statusHistory = [], createdBy }) => {
           );
         })}
       </div>
-    </DetailSection>
+    </InfoBlock>
   );
 };

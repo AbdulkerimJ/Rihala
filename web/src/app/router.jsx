@@ -17,6 +17,7 @@ import { UsersList } from "../features/users/pages/UsersList";
 import { UserDetail } from "../features/users/pages/UserDetail";
 import { RolesList } from "../features/roles/pages/RolesList";
 import { CustomersList } from "../features/customers/pages/CustomersList";
+import { CustomerDetail } from "../features/customers/pages/CustomerDetail";
 import { OrdersList } from "../features/orders/pages/OrdersList";
 import { OrderDetail } from "../features/orders/pages/OrderDetail";
 import { SupplierDetail } from "../features/suppliers/pages/SupplierDetail";
@@ -26,7 +27,6 @@ import { EmployeeDetail } from "../features/employees/pages/EmployeeDetail";
 import { AttendancesList } from "../features/attendances/pages/AttendancesList";
 import { OvertimesList } from "../features/overtimes/pages/OvertimesList";
 import { WeeklyPayrollsList } from "../features/weekly-payrolls/pages/WeeklyPayrollsList";
-import { WeeklyPayrollDetail } from "../features/weekly-payrolls/pages/WeeklyPayrollDetail";
 
 
 import { Finance } from "../features/finance/pages/Finance";
@@ -131,6 +131,14 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: "customers/:id",
+        element: (
+          <RequirePermission permission="customers.read">
+            <CustomerDetail />
+          </RequirePermission>
+        ),
+      },
+      {
         path: "payments",
         element: <Finance />,
       },
@@ -209,14 +217,6 @@ export const router = createBrowserRouter([
         element: (
           <RequirePermission permission="weeklyPayrolls.read">
             <WeeklyPayrollsList />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: "weekly-payrolls/:id",
-        element: (
-          <RequirePermission permission="weeklyPayrolls.read">
-            <WeeklyPayrollDetail />
           </RequirePermission>
         ),
       },

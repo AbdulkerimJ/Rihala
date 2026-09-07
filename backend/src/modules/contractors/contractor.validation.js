@@ -16,7 +16,6 @@ const createContractorSchema = z.object({
     .refine((value) => isValidEthiopianPhone(value), {
       message: "Please enter a valid Ethiopian phone number.",
     }),
-  notes: emptyToUndefined(z.string().trim().max(1000, "Notes cannot exceed 1000 characters").optional().nullable()),
   status: z.enum(["active", "inactive"]).optional().default("active"),
 }).strict();
 
@@ -37,7 +36,6 @@ const updateContractorSchema = z.object({
       })
       .optional()
   ),
-  notes: emptyToUndefined(z.string().trim().max(1000, "Notes cannot exceed 1000 characters").optional().nullable()),
   status: z.enum(["active", "inactive"]).optional(),
 }).strict().refine((data) => Object.keys(data).length > 0, {
   message: "At least one field must be provided to update",

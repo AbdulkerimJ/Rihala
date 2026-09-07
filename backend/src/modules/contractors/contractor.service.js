@@ -16,7 +16,6 @@ const createContractorService = async (data) => {
     if (existing.deletedAt !== null) {
       // Restore deleted contractor
       existing.name = data.name;
-      if (data.notes !== undefined) existing.notes = data.notes;
       existing.status = data.status || "active";
       existing.deletedAt = null;
       existing.deletedBy = null;
@@ -70,7 +69,6 @@ const updateContractorService = async (id, updateData) => {
 
   if (updateData.name !== undefined) contractor.name = updateData.name;
   if (updateData.phone !== undefined) contractor.phone = updateData.phone;
-  if (updateData.notes !== undefined) contractor.notes = updateData.notes;
   if (updateData.status !== undefined) contractor.status = updateData.status;
 
   await contractor.save();

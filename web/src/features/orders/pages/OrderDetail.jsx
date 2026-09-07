@@ -4,27 +4,22 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
 import { getOrderById, updateOrder } from "../api";
-import {
-  getCustomerPayments,
-  createCustomerPayment,
-} from "../../customer-payments/api";
+import { getCustomerPayments, createCustomerPayment } from "../../customer-payments/api";
 import { getCustomers } from "../../customers/api";
 import { usePermission } from "../../../hooks/usePermission";
 
-
-
-import {
-  getApiErrorMessage,
-  unwrapEntityResponse,
-  unwrapListResponse,
-} from "../../../utils/apiResponse";
+import { getApiErrorMessage, unwrapEntityResponse, unwrapListResponse } from "../../../utils/apiResponse";
 import { DetailSkeleton } from "../../../components/ui/skeletons";
 import { ErrorState } from "../../../components/ui/ErrorState";
-import { DetailSection } from "../../../components/ui/DetailSection";
 import { SystemInfoSection } from "../../../components/ui/SystemInfoSection";
 import { Modal } from "../../../components/ui/Modal";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
-import { OrderDetailHeader } from "../components/OrderDetailHeader";
+import { PageHeader } from "../../../components/ui/PageHeader";
+import { Button } from "../../../components/ui/Button";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
+import { Can } from "../../../components/Can";
+import { Edit, CreditCard, ShoppingCart } from "lucide-react";
+
 import { OrderSummaryCards } from "../components/OrderSummaryCards";
 import { OrderStatusPipeline } from "../components/OrderStatusPipeline";
 import { OrderPaymentsSection } from "../components/OrderPaymentsSection";
@@ -42,7 +37,7 @@ export const OrderDetail = () => {
   const [isPaymentModalOpen, setPaymentModalOpen] = useState(false);
   const [cancellingOrder, setCancellingOrder] = useState(false);
 
-  // 1. Fetch Order (Layer 4 permission compliance)
+  // 1. Fetch Order
   const orderQuery = useQuery({
     queryKey: ["orders", id],
     queryFn: () => getOrderById(id),
@@ -51,7 +46,7 @@ export const OrderDetail = () => {
 
   const order = unwrapEntityResponse(orderQuery.data);
 
-  // 2. Fetch Customer Payments for this order (Layer 4 permission compliance)
+  // 2. Fetch Customer Payments
   const paymentsQuery = useQuery({
     queryKey: ["customer-payments", { order: id }],
     queryFn: () => getCustomerPayments({ order: id, limit: 100 }),
@@ -60,7 +55,7 @@ export const OrderDetail = () => {
 
   const payments = unwrapListResponse(paymentsQuery.data).items || [];
 
-  // 3. Fetch Customers list for the Edit Modal
+  // 3. Fetch Customers
   const customersQuery = useQuery({
     queryKey: ["customers", "for-order-edit"],
     queryFn: () => getCustomers({ limit: 1000 }),
@@ -89,9 +84,7 @@ export const OrderDetail = () => {
     mutationFn: createCustomerPayment,
     meta: { suppressToast: true },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["customer-payments", { order: id }],
-      });
+      queryClient.invalidateQueries({ queryKey: ["customer-payments", { order: id }] });
       queryClient.invalidateQueries({ queryKey: ["customer-payments"] });
       queryClient.invalidateQueries({ queryKey: ["orders", id] });
       queryClient.invalidateQueries({ queryKey: ["orders"] });
@@ -105,51 +98,60 @@ export const OrderDetail = () => {
   });
 
   // 5. Financial Calculations
-  const activePayments = useMemo(
-    () => payments.filter((p) => p.status !== "voided"),
-    [payments]
-  );
-  const totalPaid = useMemo(
-    () => activePayments.reduce((sum, p) => sum + (p.amount || 0), 0),
-    [activePayments]
-  );
+  const activePayments = useMemo(() => payments.filter((p) => p.status !== "voided"), [payments]);
+  const totalPaid = useMemo(() => activePayments.reduce((sum, p) => sum + (p.amount || 0), 0), [activePayments]);
   const agreedAmount = order?.agreedAmount || 0;
   const remainingBalance = Math.max(0, agreedAmount - totalPaid);
-  const paymentProgress =
-    agreedAmount > 0
-      ? Math.min(100, Math.round((totalPaid / agreedAmount) * 100))
-      : 0;
+  const paymentProgress = agreedAmount > 0 ? Math.min(100, Math.round((totalPaid / agreedAmount) * 100)) : 0;
   const isFullyPaid = totalPaid >= agreedAmount && agreedAmount > 0;
 
   // 6. Delivery Schedule
   const daysUntilDue = useMemo(() => {
     if (!order?.expectedCompletionDate) return null;
-    const diff =
-      new Date(order.expectedCompletionDate).getTime() - new Date().getTime();
+    const diff = new Date(order.expectedCompletionDate).getTime() - new Date().getTime();
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   }, [order?.expectedCompletionDate]);
 
   if (orderQuery.isLoading) return <DetailSkeleton />;
-  if (orderQuery.isError || !order) {
-    return (
-      <ErrorState
-        description={getApiErrorMessage(
-          orderQuery.error,
-          "Failed to load order details."
-        )}
-      />
-    );
-  }
+  if (orderQuery.isError || !order) return <ErrorState description={getApiErrorMessage(orderQuery.error, "Failed to load order details.")} />;
 
   return (
     <div className="space-y-6">
       {/* 1. Header Bar */}
-      <OrderDetailHeader
-        order={order}
-        isFullyPaid={isFullyPaid}
-        remainingBalance={remainingBalance}
-        onOpenEditModal={() => setEditModalOpen(true)}
-        onOpenPaymentModal={() => setPaymentModalOpen(true)}
+      <PageHeader
+        title={`Order #${order.orderNumber}`}
+        description="Customer order details, progress, and financials."
+        backTo="/orders"
+        backLabel="Back to orders"
+        titleCustom={
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-primary font-display tracking-tight flex items-center gap-2">
+              <ShoppingCart className="w-6 h-6 text-secondary" />
+              Order <span className="text-secondary/50">#</span>{order.orderNumber}
+            </h1>
+            <StatusBadge status={order.status} />
+            {isFullyPaid && <StatusBadge status="paid" label="Fully Paid" showDot={false} />}
+          </div>
+        }
+        actions={
+          <div className="flex items-center gap-3">
+            <Can permission="customerPayments.create">
+              <Button 
+                variant="primary" 
+                leftIcon={CreditCard} 
+                onClick={() => setPaymentModalOpen(true)}
+                disabled={isFullyPaid || order.status === "cancelled"}
+              >
+                Record Payment
+              </Button>
+            </Can>
+            <Can permission="orders.update">
+              <Button variant="outline" leftIcon={Edit} onClick={() => setEditModalOpen(true)}>
+                Edit Order
+              </Button>
+            </Can>
+          </div>
+        }
       />
 
       {/* 2. Enhanced Colored Summary Cards */}
@@ -163,48 +165,35 @@ export const OrderDetail = () => {
         canReadCustomers={can("customers.read")}
       />
 
-      {/* 3. Visual Workflow Pipeline / Stepper */}
+      {/* 3. Description & Notes - Full width at the top for maximum prominence */}
+      <div className="bg-surface rounded-2xl border border-border/50 p-6 sm:p-8 shadow-sm">
+        <span className="text-xs font-semibold text-secondary uppercase tracking-wider block mb-3">Order Description</span>
+        <p className="text-base text-primary leading-relaxed whitespace-pre-wrap font-medium">
+          {order.description || "No description provided."}
+        </p>
+        
+        {order.notes && (
+          <div className="pt-4 mt-4 border-t border-border/50">
+            <span className="text-xs font-semibold text-secondary uppercase tracking-wider block mb-2">Internal Notes</span>
+            <p className="text-sm text-secondary leading-relaxed whitespace-pre-wrap">
+              {order.notes}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* 4. Visual Workflow Pipeline / Stepper */}
       <OrderStatusPipeline
         status={order.status}
-        onStatusChange={(newStatus) =>
-          updateMutation.mutate({
-            id: order._id,
-            data: { status: newStatus },
-          })
-        }
+        onStatusChange={(newStatus) => updateMutation.mutate({ id: order._id, data: { status: newStatus } })}
         onCancelClick={() => setCancellingOrder(true)}
         isPending={updateMutation.isPending}
       />
 
-      {/* 4. Main Body: Order Information & Financials */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left Column (2 Cols): Description & Payments */}
+      {/* 5. Main Grid: Payments (Left) & Sidebar (Right) */}
+      <div className="flex flex-col-reverse lg:grid lg:grid-cols-3 gap-6">
+        {/* Left Column (2 Cols): Payments */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Order Description & Notes */}
-          <DetailSection title="Description & Notes">
-            <div className="space-y-4">
-              <div>
-                <span className="text-xs font-semibold text-secondary uppercase tracking-wider block mb-1">
-                  Description
-                </span>
-                <p className="text-sm text-primary leading-relaxed whitespace-pre-wrap">
-                  {order.description || "No description provided."}
-                </p>
-              </div>
-
-              {order.notes && (
-                <div className="pt-3 border-t border-border/50">
-                  <span className="text-xs font-semibold text-secondary uppercase tracking-wider block mb-1">
-                    Notes
-                  </span>
-                  <p className="text-sm text-secondary leading-relaxed whitespace-pre-wrap">
-                    {order.notes}
-                  </p>
-                </div>
-              )}
-            </div>
-          </DetailSection>
-
           {/* Customer Payments Log */}
           {can("customerPayments.read") && (
             <OrderPaymentsSection
@@ -239,34 +228,22 @@ export const OrderDetail = () => {
             createdAt={order.createdAt}
             updatedAt={order.updatedAt}
             extraItems={[
-              { label: "Order Number", value: order.orderNumber || "-" },
-              {
-                label: "Created By",
-                value: order.createdBy?.name || "Unknown User",
-              },
+              { label: "Created By", value: order.createdBy?.name || "Unknown User" },
             ]}
           />
         </div>
       </div>
 
-      {/* 5. Modals & Dialogs */}
-      {/* Edit Order Modal */}
-      <Modal
-        isOpen={isEditModalOpen}
-        title="Edit Order Details"
-        onClose={() => setEditModalOpen(false)}
-      >
+      {/* 6. Modals & Dialogs */}
+      <Modal isOpen={isEditModalOpen} title="Edit Order Details" onClose={() => setEditModalOpen(false)}>
         <OrderForm
           initialData={order}
           customers={customers}
           onClose={() => setEditModalOpen(false)}
-          onSubmit={(data) =>
-            updateMutation.mutateAsync({ id: order._id, data })
-          }
+          onSubmit={(data) => updateMutation.mutateAsync({ id: order._id, data })}
         />
       </Modal>
 
-      {/* Direct Payment Modal */}
       <CustomerPaymentModal
         isOpen={isPaymentModalOpen}
         onClose={() => setPaymentModalOpen(false)}
@@ -275,7 +252,6 @@ export const OrderDetail = () => {
         onSubmit={(data) => createPaymentMutation.mutateAsync(data)}
       />
 
-      {/* Cancel Order Confirm Dialog */}
       <ConfirmDialog
         isOpen={cancellingOrder}
         title="Cancel Order"
@@ -283,15 +259,9 @@ export const OrderDetail = () => {
         confirmLabel="Cancel Order"
         variant="danger"
         isSubmitting={updateMutation.isPending}
-        onConfirm={() =>
-          updateMutation.mutate({
-            id: order._id,
-            data: { status: "cancelled" },
-          })
-        }
+        onConfirm={() => updateMutation.mutate({ id: order._id, data: { status: "cancelled" } })}
         onCancel={() => setCancellingOrder(false)}
       />
-
     </div>
   );
 };
