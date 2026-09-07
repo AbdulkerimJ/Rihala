@@ -23,6 +23,7 @@ import { ErrorState } from "../../../components/ui/ErrorState";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
 import { Can } from "../../../components/Can";
+import { DataTable } from "../../../components/ui/DataTable";
 import { TableSkeleton } from "../../../components/ui/skeletons";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
@@ -176,6 +177,167 @@ export const UsersList = () => {
     );
   }
 
+  const columns = [
+    {
+      header: "Name",
+      accessor: "name",
+      className: "font-medium text-primary",
+    },
+    {
+      header: "Email",
+      accessor: "email",
+      className: "text-secondary",
+    },
+    {
+      header: "Status",
+      accessor: (row) => <StatusBadge status={row.status} />,
+    },
+    {
+      header: "Roles",
+      accessor: (row) =>
+        row.roles?.length
+          ? row.roles.map((role) => role.name || role).join(", ")
+          : "-",
+      className: "text-secondary hidden sm:table-cell",
+    },
+    {
+      header: "Created",
+      accessor: (row) => formatDateTime(row.createdAt),
+      className: "text-secondary hidden md:table-cell",
+    },
+    {
+      header: "Actions",
+      isActions: true,
+      accessor: (user) => (
+        <div
+          className="flex justify-end gap-1.5"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        >
+          {!user.deletedAt && (
+            <>
+              <Can permission="users.assign-role">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  leftIcon={ShieldCheck}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setRolesUser(user);
+                    setIsRolesModalOpen(true);
+                  }}
+                  title="Assign Roles"
+                />
+              </Can>
+              <Can permission="users.update">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  leftIcon={Edit}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setEditingUser(user);
+                    setIsModalOpen(true);
+                  }}
+                  title="Edit"
+                />
+                {user.status === "invited" && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    leftIcon={Send}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      resendMutation.mutate(user._id);
+                    }}
+                    disabled={
+                      resendMutation.isPending &&
+                      resendMutation.variables === user._id
+                    }
+                    title="Re-invite"
+                  />
+                )}
+              </Can>
+              <Can permission="users.update">
+                {user.status === "inactive" ? (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    leftIcon={CheckCircle}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      activateMutation.mutate(user._id);
+                    }}
+                    disabled={
+                      activateMutation.isPending &&
+                      activateMutation.variables === user._id
+                    }
+                    title="Activate"
+                  />
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    leftIcon={XCircle}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      deactivateMutation.mutate(user._id);
+                    }}
+                    disabled={
+                      deactivateMutation.isPending &&
+                      deactivateMutation.variables === user._id
+                    }
+                    title="Deactivate"
+                  />
+                )}
+              </Can>
+            </>
+          )}
+          {user.deletedAt ? (
+            <Can permission="users.restore">
+              <Button
+                variant="ghost"
+                size="icon"
+                leftIcon={RotateCcw}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  restoreMutation.mutate(user._id);
+                }}
+                disabled={
+                  restoreMutation.isPending &&
+                  restoreMutation.variables === user._id
+                }
+                title="Restore"
+              />
+            </Can>
+          ) : (
+            <Can permission="users.delete">
+              <Button
+                variant="danger-ghost"
+                size="icon"
+                leftIcon={Trash2}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleDelete(user._id);
+                }}
+                title="Delete"
+              />
+            </Can>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -206,166 +368,166 @@ export const UsersList = () => {
         }
       />
 
-      {usersQuery.isLoading ? (
-        <TableSkeleton columns={6} rows={6} />
-      ) : users.length === 0 ? (
-        <EmptyState
-          title={showDeleted ? "No deleted users" : "No users found"}
-          description={
-            showDeleted
-              ? "Deleted users will appear here."
-              : "Invite a user to get started."
-          }
-          actionLabel={!showDeleted && can("users.create") ? "Invite User" : null}
-          onAction={!showDeleted && can("users.create") ? () => setIsModalOpen(true) : undefined}
-        />
-      ) : (
-        <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-border">
-              <thead className="bg-main">
-                <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-secondary">
-                    Name
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-secondary">
-                    Email
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-secondary">
-                    Status
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-secondary">
-                    Roles
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-secondary">
-                    Created
-                  </th>
-                  <th className="px-4 py-2 text-right text-xs font-medium uppercase tracking-wider text-secondary">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border bg-surface">
-                {users.map((user) => (
-                  <tr
-                    key={user._id}
-                    onClick={() => navigate(`/users/${user._id}`)}
-                    className="hover:bg-main transition-colors cursor-pointer"
-                  >
-                    <td className="px-4 py-2 text-xs font-medium text-primary">
-                      <span className="hover:text-brand font-medium text-primary">
-                        {user.name}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2 text-xs text-secondary">
-                      {user.email}
-                    </td>
-                    <td className="px-4 py-2 text-xs">
-                      <StatusBadge status={user.status} />
-                    </td>
-                    <td className="px-4 py-2 text-xs text-secondary">
-                      {user.roles?.length
-                        ? user.roles.map((role) => role.name || role).join(", ")
-                        : "-"}
-                    </td>
-                    <td className="px-4 py-2 text-xs text-secondary">
-                      {formatDateTime(user.createdAt)}
-                    </td>
-                    <td
-                      className="px-4 py-2 text-right text-xs"
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+      <DataTable
+        columns={columns}
+        data={users}
+        keyExtractor={(user) => user._id}
+        onRowClick={(user) => navigate(`/users/${user._id}`)}
+        mobileRow={(user) => ({
+          to: `/users/${user._id}`,
+          title: user.name,
+          subtitle: `${user.email}${user.roles?.length ? ` • ${user.roles.map((role) => role.name || role).join(", ")}` : ""}`,
+          right: <StatusBadge status={user.status} />,
+          actions: (
+            <>
+              {!user.deletedAt && (
+                <>
+                  <Can permission="users.assign-role">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      leftIcon={ShieldCheck}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setRolesUser(user);
+                        setIsRolesModalOpen(true);
+                      }}
                     >
-                      <div className="flex justify-end gap-1.5">
-                        {!user.deletedAt && (
-                          <>
-                            <Can permission="users.assign-role">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                leftIcon={ShieldCheck}
-                                onClick={() => {
-                                  setRolesUser(user);
-                                  setIsRolesModalOpen(true);
-                                }}
-                                title="Assign Roles"
-                              />
-                            </Can>
-                            <Can permission="users.update">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                leftIcon={Edit}
-                                onClick={() => {
-                                  setEditingUser(user);
-                                  setIsModalOpen(true);
-                                }}
-                                title="Edit"
-                              />
-                              {user.status === "invited" && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  leftIcon={Send}
-                                  onClick={() => resendMutation.mutate(user._id)}
-                                  disabled={resendMutation.isPending && resendMutation.variables === user._id}
-                                  title="Re-invite"
-                                />
-                              )}
-                            </Can>
-                            <Can permission="users.update">
-                              {user.status === "inactive" ? (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  leftIcon={CheckCircle}
-                                  onClick={() => activateMutation.mutate(user._id)}
-                                  disabled={activateMutation.isPending && activateMutation.variables === user._id}
-                                  title="Activate"
-                                />
-                              ) : (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  leftIcon={XCircle}
-                                  onClick={() => deactivateMutation.mutate(user._id)}
-                                  disabled={deactivateMutation.isPending && deactivateMutation.variables === user._id}
-                                  title="Deactivate"
-                                />
-                              )}
-                            </Can>
-                          </>
-                        )}
-                        {user.deletedAt ? (
-                          <Can permission="users.restore">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              leftIcon={RotateCcw}
-                              onClick={() => restoreMutation.mutate(user._id)}
-                              disabled={restoreMutation.isPending && restoreMutation.variables === user._id}
-                              title="Restore"
-                            />
-                          </Can>
-                        ) : (
-                          <Can permission="users.delete">
-                            <Button
-                              variant="danger-ghost"
-                              size="icon"
-                              leftIcon={Trash2}
-                              onClick={() => handleDelete(user._id)}
-                              title="Delete"
-                            />
-                          </Can>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+                      Assign Roles
+                    </Button>
+                  </Can>
+                  <Can permission="users.update">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      leftIcon={Edit}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setEditingUser(user);
+                        setIsModalOpen(true);
+                      }}
+                    >
+                      Edit
+                    </Button>
+                    {user.status === "invited" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        leftIcon={Send}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          resendMutation.mutate(user._id);
+                        }}
+                        disabled={
+                          resendMutation.isPending &&
+                          resendMutation.variables === user._id
+                        }
+                      >
+                        Re-invite
+                      </Button>
+                    )}
+                  </Can>
+                  <Can permission="users.update">
+                    {user.status === "inactive" ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        leftIcon={CheckCircle}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          activateMutation.mutate(user._id);
+                        }}
+                        disabled={
+                          activateMutation.isPending &&
+                          activateMutation.variables === user._id
+                        }
+                      >
+                        Activate
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        leftIcon={XCircle}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          deactivateMutation.mutate(user._id);
+                        }}
+                        disabled={
+                          deactivateMutation.isPending &&
+                          deactivateMutation.variables === user._id
+                        }
+                      >
+                        Deactivate
+                      </Button>
+                    )}
+                  </Can>
+                </>
+              )}
+              {user.deletedAt ? (
+                <Can permission="users.restore">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    leftIcon={RotateCcw}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      restoreMutation.mutate(user._id);
+                    }}
+                    disabled={
+                      restoreMutation.isPending &&
+                      restoreMutation.variables === user._id
+                    }
+                  >
+                    Restore
+                  </Button>
+                </Can>
+              ) : (
+                <Can permission="users.delete">
+                  <Button
+                    variant="danger-ghost"
+                    size="sm"
+                    leftIcon={Trash2}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleDelete(user._id);
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </Can>
+              )}
+            </>
+          ),
+        })}
+        isLoading={usersQuery.isLoading}
+        isFetching={usersQuery.isFetching}
+        emptyState={
+          <EmptyState
+            title={showDeleted ? "No deleted users" : "No users found"}
+            description={
+              showDeleted
+                ? "Deleted users will appear here."
+                : "Invite a user to get started."
+            }
+            actionLabel={
+              !showDeleted && can("users.create") ? "Invite User" : null
+            }
+            onAction={
+              !showDeleted && can("users.create")
+                ? () => setIsModalOpen(true)
+                : undefined
+            }
+          />
+        }
+      />
 
       <Modal
         isOpen={isModalOpen}
