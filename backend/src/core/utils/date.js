@@ -16,8 +16,6 @@ const normalizeDateValue = (value) => {
 
   // We want the calendar date this represents in the local timezone,
   // represented as a UTC midnight.
-  // for example, if the date is 2026-08-08T02:11:39+03:00
-  // the local date is 2026-08-08, so we set the date to 2026-08-08T00:00:00Z
   const utcDate = new Date(
     Date.UTC(
       parsedDate.getFullYear(),

@@ -143,7 +143,7 @@ test("Active supplier can receive a supplier payment", async () => {
       supplier: supplierId,
       amount: 5000,
       type: "GENERAL",
-      date: new Date()
+      paymentDate: new Date()
     });
 
     assert.equal(payment.amount, 5000);
@@ -168,7 +168,7 @@ test("Inactive supplier cannot receive a new supplier payment", async () => {
         supplier: supplierId,
         amount: 5000,
         type: "GENERAL",
-        date: new Date()
+        paymentDate: new Date()
       }),
       ValidationError,
       "Cannot create payment for an inactive supplier"

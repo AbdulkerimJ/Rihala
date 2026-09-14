@@ -88,7 +88,7 @@ export const router = createBrowserRouter([
       {
         path: "analytics",
         element: (
-          <RequirePermission permission="dashboard.read">
+          <RequirePermission permission="analytics.read">
             <Analytics />
           </RequirePermission>
         ),

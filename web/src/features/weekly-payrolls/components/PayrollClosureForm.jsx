@@ -76,9 +76,9 @@ export const PayrollClosureForm = ({ onClose }) => {
       queryClient.invalidateQueries({ queryKey: ["employees"] }); 
       queryClient.invalidateQueries({ queryKey: ["employee-payments"] });
       queryClient.invalidateQueries({ queryKey: ["payroll-calculation"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
       toast.success("Payroll closed successfully");
       setSelectedEmployee("");
-      onClose();
       onClose();
     },
   });

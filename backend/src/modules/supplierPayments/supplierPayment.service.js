@@ -41,7 +41,7 @@ const createSupplierPaymentInSession = async (data, session) => {
     supplier: supplier._id,
     type: data.type,
     amount: data.amount,
-    date: data.date,
+    paymentDate: data.paymentDate,
     note: data.note,
     allocations: [],
     unallocatedAmount: data.amount, // Default before hooks
@@ -125,7 +125,7 @@ const updateSupplierPaymentService = async (paymentId, updateData) => {
         throw new ValidationError("Cannot update a voided payment.");
       }
 
-      if (updateData.date) payment.date = updateData.date;
+      if (updateData.paymentDate) payment.paymentDate = updateData.paymentDate;
       if (updateData.note !== undefined) payment.note = updateData.note;
 
       if (updateData.amount && updateData.amount !== payment.amount) {

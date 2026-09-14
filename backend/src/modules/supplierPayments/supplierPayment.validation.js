@@ -5,7 +5,7 @@ const createSpecificPaymentSchema = z.object({
   supplier: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid supplier ID"),
   purchaseId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid purchase ID"),
   amount: z.number().positive("Payment amount must be positive"),
-  date: z.string().datetime({ message: "Invalid ISO datetime string" }),
+  paymentDate: z.string().datetime({ message: "Invalid ISO datetime string" }),
   paymentReference: z.string().trim().optional(),
   note: z.string().max(1000).optional().nullable(),
 }).strict({ error: "Invalid fields in specific payment payload" });
@@ -14,7 +14,7 @@ const createGeneralPaymentSchema = z.object({
   type: z.literal("GENERAL"),
   supplier: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid supplier ID"),
   amount: z.number().positive("Payment amount must be positive"),
-  date: z.string().datetime({ message: "Invalid ISO datetime string" }),
+  paymentDate: z.string().datetime({ message: "Invalid ISO datetime string" }),
   paymentReference: z.string().trim().optional(),
   note: z.string().max(1000).optional().nullable(),
 }).strict({ error: "Invalid fields in general payment payload" });
@@ -26,9 +26,9 @@ const createSupplierPaymentSchema = z.union([
 
 const updateSupplierPaymentSchema = z.object({
   amount: z.number().positive("Payment amount must be positive").optional(),
-  date: z.string().datetime({ message: "Invalid ISO datetime string" }).optional(),
+  paymentDate: z.string().datetime({ message: "Invalid ISO datetime string" }).optional(),
   note: z.string().max(1000).optional().nullable(),
-}).strict({ error: "Only amount, date, and note can be updated" });
+}).strict({ error: "Only amount, paymentDate, and note can be updated" });
 
 const supplierPaymentIdSchema = z.object({
   id: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid payment ID"),

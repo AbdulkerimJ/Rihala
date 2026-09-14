@@ -68,6 +68,7 @@ export const SupplierPaymentsList = () => {
       queryClient.invalidateQueries({ queryKey: ["supplier-payments"] });
       queryClient.invalidateQueries({ queryKey: ["suppliers"] }); // Balance changed
       queryClient.invalidateQueries({ queryKey: ["purchases"] }); // Purchase payment status changed
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
       toast.success("Payment recorded successfully");
       setIsOpen(false);
     },
@@ -79,6 +80,7 @@ export const SupplierPaymentsList = () => {
       queryClient.invalidateQueries({ queryKey: ["supplier-payments"] });
       queryClient.invalidateQueries({ queryKey: ["suppliers"] }); // Balance changed
       queryClient.invalidateQueries({ queryKey: ["purchases"] }); // Purchase payment status changed
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
       toast.success("Payment voided successfully");
       setVoidingPayment(null);
     },
@@ -87,7 +89,7 @@ export const SupplierPaymentsList = () => {
   const columns = [
     { header: "Receipt No", accessor: (row) => row.paymentReference || "-", className: "font-mono font-medium text-xs hidden sm:table-cell" },
     { header: "Supplier", accessor: (row) => row.supplier?.name || "Unknown", className: "font-medium" },
-    { header: "Date", accessor: (row) => formatDate(row.date), className: "text-secondary" },
+    { header: "Date", accessor: (row) => formatDate(row.paymentDate), className: "text-secondary" },
     { header: "Amount", accessor: (row) => <MoneyDisplay amount={row.amount} className={row.status === 'voided' ? 'line-through opacity-50' : ''} /> },
     { 
       header: "Status", 
@@ -171,7 +173,7 @@ export const SupplierPaymentsList = () => {
         onRowClick={(row) => setSelectedPayment(row)}
         mobileRow={(row) => ({
           title: row.supplier?.name || "Unknown",
-          subtitle: `${row.paymentReference || "-"} • ${formatDate(row.date)}`,
+          subtitle: `${row.paymentReference || "-"} • ${formatDate(row.paymentDate)}`,
           right: (
             <div className="flex items-center gap-2 shrink-0">
               <span className={`text-xs font-bold text-primary ${row.status === 'voided' ? 'line-through opacity-50 text-secondary' : ''}`}>

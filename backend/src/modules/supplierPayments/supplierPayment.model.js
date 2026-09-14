@@ -46,7 +46,7 @@ const supplierPaymentSchema = new mongoose.Schema(
       required: true,
       min: [0, "Unallocated amount cannot be negative"],
     },
-    date: {
+    paymentDate: {
       type: Date,
       required: [true, "Payment date is required"],
     },

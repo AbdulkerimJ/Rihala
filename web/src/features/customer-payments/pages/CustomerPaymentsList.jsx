@@ -78,6 +78,7 @@ export const CustomerPaymentsList = () => {
       queryClient.invalidateQueries({ queryKey: ["customer-payments"] });
       queryClient.invalidateQueries({ queryKey: ["customers"] }); // Balance changed
       queryClient.invalidateQueries({ queryKey: ["orders"] }); // Paid amount changed
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
       toast.success("Payment recorded successfully");
       setIsOpen(false);
     },

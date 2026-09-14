@@ -140,7 +140,7 @@ export const SupplierPaymentModal = ({
         type: data.purchase ? "SPECIFIC" : "GENERAL",
         supplier: data.supplier,
         amount: data.amount,
-        date: new Date(data.paymentDate).toISOString(),
+        paymentDate: new Date(data.paymentDate).toISOString(),
         note: data.notes,
       };
       if (data.purchase) {

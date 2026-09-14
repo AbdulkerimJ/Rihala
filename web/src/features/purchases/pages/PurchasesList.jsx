@@ -93,6 +93,7 @@ export const PurchasesList = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["purchases"] });
       queryClient.invalidateQueries({ queryKey: ["suppliers"] }); // Purchase changes supplier balance
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
       toast.success("Purchase recorded successfully");
       setIsOpen(false);
     },

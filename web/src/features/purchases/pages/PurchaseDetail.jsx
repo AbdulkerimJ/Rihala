@@ -52,6 +52,7 @@ export const PurchaseDetail = () => {
       queryClient.invalidateQueries({ queryKey: ["supplier-payments"] }); 
       queryClient.invalidateQueries({ queryKey: ["suppliers"] }); 
       queryClient.invalidateQueries({ queryKey: ["purchases"] }); 
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
       toast.success("Payment recorded successfully"); 
       setPaymentModalOpen(false); 
     },
@@ -64,6 +65,7 @@ export const PurchaseDetail = () => {
     onSuccess: () => { 
       queryClient.invalidateQueries({ queryKey: ["purchases"] }); 
       queryClient.invalidateQueries({ queryKey: ["suppliers"] }); 
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
       toast.success("Purchase updated successfully"); 
       setEditModalOpen(false); 
     },

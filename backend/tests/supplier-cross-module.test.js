@@ -48,7 +48,7 @@ test("Supplier Cross-Module Integrity Tests", async (t) => {
   await t.test("Test A & D: SPECIFIC credit leakage and zero allocation context", async (t) => {
     const purchaseA = await createPurchaseService({
       supplier: supplierAId,
-      date: new Date(),
+      paymentDate: new Date(),
       items: [{ material: materialId, quantity: 10, unitPrice: 100 }], // Total 1000
     });
 
@@ -57,7 +57,7 @@ test("Supplier Cross-Module Integrity Tests", async (t) => {
       supplier: supplierAId,
       amount: 800, // Partial payment so it's not "PAID" which locks items
       purchaseId: purchaseA._id,
-      date: new Date(),
+      paymentDate: new Date(),
     });
 
     assert.strictEqual(specificPayment.allocations[0].purchase._id.toString(), purchaseA._id.toString());
@@ -78,7 +78,7 @@ test("Supplier Cross-Module Integrity Tests", async (t) => {
     // Create Purchase B for 500
     const purchaseB = await createPurchaseService({
       supplier: supplierAId,
-      date: new Date(),
+      paymentDate: new Date(),
       items: [{ material: materialId, quantity: 5, unitPrice: 100 }],
     });
 
@@ -102,7 +102,7 @@ test("Supplier Cross-Module Integrity Tests", async (t) => {
   await t.test("Test B & C: Supplier reassignment with active and voided payment", async (t) => {
     const purchaseC = await createPurchaseService({
       supplier: supplierAId,
-      date: new Date(),
+      paymentDate: new Date(),
       items: [{ material: materialId, quantity: 10, unitPrice: 100 }],
     });
 
@@ -111,7 +111,7 @@ test("Supplier Cross-Module Integrity Tests", async (t) => {
       supplier: supplierAId,
       purchaseId: purchaseC._id,
       amount: 1000,
-      date: new Date(),
+      paymentDate: new Date(),
     });
 
     // Try reassignment with active payment
@@ -134,7 +134,7 @@ test("Supplier Cross-Module Integrity Tests", async (t) => {
     // Create Purchase D (no payments)
     const purchaseD = await createPurchaseService({
       supplier: supplierAId,
-      date: new Date(),
+      paymentDate: new Date(),
       items: [{ material: materialId, quantity: 1, unitPrice: 100 }],
     });
 
@@ -149,7 +149,7 @@ test("Supplier Cross-Module Integrity Tests", async (t) => {
   await t.test("Test E & F: Paid Purchase immutability", async (t) => {
     const purchaseE = await createPurchaseService({
       supplier: supplierAId,
-      date: new Date(),
+      paymentDate: new Date(),
       items: [{ material: materialId, quantity: 10, unitPrice: 100 }], // 1000
     });
 
@@ -158,7 +158,7 @@ test("Supplier Cross-Module Integrity Tests", async (t) => {
       supplier: supplierAId,
       purchaseId: purchaseE._id,
       amount: 1000,
-      date: new Date(),
+      paymentDate: new Date(),
     });
 
     const paidPurchase = await Purchase.findById(purchaseE._id);
@@ -173,7 +173,7 @@ test("Supplier Cross-Module Integrity Tests", async (t) => {
     // legitimate partial modification
     const purchaseF = await createPurchaseService({
       supplier: supplierAId,
-      date: new Date(),
+      paymentDate: new Date(),
       items: [{ material: materialId, quantity: 10, unitPrice: 100 }], // 1000
     });
 
@@ -182,7 +182,7 @@ test("Supplier Cross-Module Integrity Tests", async (t) => {
       supplier: supplierAId,
       purchaseId: purchaseF._id,
       amount: 500,
-      date: new Date(),
+      paymentDate: new Date(),
     });
 
     // Update items to exactly 500
@@ -196,13 +196,13 @@ test("Supplier Cross-Module Integrity Tests", async (t) => {
   await t.test("Test G & H: Concurrent allocations and reconciliations", async (t) => {
     const purchaseG = await createPurchaseService({
       supplier: supplierAId,
-      date: new Date(),
+      paymentDate: new Date(),
       items: [{ material: materialId, quantity: 10, unitPrice: 100 }], // 1000
     });
 
     const purchaseH = await createPurchaseService({
       supplier: supplierAId,
-      date: new Date(),
+      paymentDate: new Date(),
       items: [{ material: materialId, quantity: 10, unitPrice: 100 }], // 1000
     });
 
@@ -210,7 +210,7 @@ test("Supplier Cross-Module Integrity Tests", async (t) => {
       type: "GENERAL",
       supplier: supplierAId,
       amount: 1500,
-      date: new Date(),
+      paymentDate: new Date(),
     });
 
     // Both purchases should consume the general payment automatically during their creation if it existed,

@@ -178,6 +178,7 @@ export const ExpensesList = () => {
     mutationFn: createExpense,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
       toast.success("Expense created successfully");
       setIsOpen(false);
     },
@@ -187,6 +188,7 @@ export const ExpensesList = () => {
     mutationFn: updateExpense,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
       toast.success("Expense updated successfully");
       setIsOpen(false);
     },
@@ -196,6 +198,7 @@ export const ExpensesList = () => {
     mutationFn: voidExpense,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
       toast.success("Expense voided successfully");
       setVoidingExpense(null);
     },
