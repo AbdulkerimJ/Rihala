@@ -324,7 +324,7 @@ export const CustomerDetail = () => {
               <span className="flex items-center gap-2 text-xs font-semibold text-secondary uppercase tracking-wider mb-2">
                 <MapPin className="w-4 h-4 text-emerald-500" /> Address
               </span>
-              <p className="text-sm text-primary whitespace-pre-wrap leading-relaxed">
+              <p className="text-sm text-primary whitespace-pre-wrap break-words leading-relaxed">
                 {customer.address || "No address provided."}
               </p>
             </div>
@@ -332,7 +332,7 @@ export const CustomerDetail = () => {
               <span className="flex items-center gap-2 text-xs font-semibold text-secondary uppercase tracking-wider mb-2">
                 <FileText className="w-4 h-4 text-emerald-500" /> Notes
               </span>
-              <p className="text-sm text-primary whitespace-pre-wrap leading-relaxed">
+              <p className="text-sm text-primary whitespace-pre-wrap break-words leading-relaxed">
                 {customer.notes || "No additional notes."}
               </p>
             </div>

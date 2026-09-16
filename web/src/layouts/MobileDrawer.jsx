@@ -1,7 +1,7 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
-import { X, LogOut } from "lucide-react";
+import { X, LogOut, Loader2 } from "lucide-react";
 import { usePermission } from "../hooks/usePermission";
 import { useAuth } from "../hooks/useAuth";
 
@@ -46,10 +46,17 @@ export const MobileDrawer = ({ isOpen, onClose, navGroups }) => {
     return () => window.removeEventListener("keydown", handleKey);
   }, [isOpen, onClose]);
 
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
   const handleLogout = async () => {
-    onClose();
-    await logout();
-    navigate("/login");
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      navigate("/login");
+      onClose();
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   return createPortal(
@@ -165,10 +172,11 @@ export const MobileDrawer = ({ isOpen, onClose, navGroups }) => {
           <div className="pt-2 border-t border-border/40">
             <button
               onClick={handleLogout}
-              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-danger hover:bg-danger/10 transition-shadow duration-150"
+              disabled={isLoggingOut}
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-danger hover:bg-danger/10 transition-shadow duration-150 disabled:opacity-70"
             >
-              <LogOut className="h-5 w-5" />
-              <span className="text-sm font-semibold">Sign Out</span>
+              {isLoggingOut ? <Loader2 className="h-5 w-5 animate-spin" /> : <LogOut className="h-5 w-5" />}
+              <span className="text-sm font-semibold">{isLoggingOut ? "Signing Out..." : "Sign Out"}</span>
             </button>
           </div>
 

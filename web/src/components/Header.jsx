@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut } from "lucide-react";
+import { LogOut, Loader2 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { SearchInput } from "./ui/SearchInput";
 import { ThemeToggle } from "./ui/ThemeToggle";
@@ -21,9 +22,16 @@ export const Header = ({ currentUser, sectionTitle }) => {
   const userRole = currentUser?.roles?.[0]?.name || "No Role";
   const userName = currentUser?.name || "No User";
 
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
   const handleLogout = async () => {
-    await logout();
-    navigate("/login");
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      navigate("/login");
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   return (
@@ -79,10 +87,11 @@ export const Header = ({ currentUser, sectionTitle }) => {
           variant="danger-ghost"
           size="icon"
           onClick={handleLogout}
+          disabled={isLoggingOut}
           className="rounded-lg p-2 transition-shadow ml-1"
           title="Sign out"
         >
-          <LogOut className="h-4 w-4" />
+          {isLoggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
         </Button>
       </div>
     </header>

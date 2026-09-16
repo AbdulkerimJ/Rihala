@@ -91,14 +91,14 @@ export const Dashboard = () => {
 
       {/* 3. Main Content: Recent Orders (Left) + Quick Actions & Recent Receipts (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 order-2 lg:order-1">
           <DashboardRecentOrders
             orders={orders}
             loadingOrders={loadingOrders}
           />
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6 order-1 lg:order-2">
           <DashboardQuickActions />
           <DashboardRecentPayments
             payments={recentPayments}

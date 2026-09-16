@@ -23,6 +23,8 @@ import { ErrorState } from "../../../components/ui/ErrorState";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Button } from "../../../components/ui/Button";
 import { Can } from "../../../components/Can";
+import { FilterBar } from "../../../components/ui/FilterBar";
+import { Select } from "../../../components/ui/Select";
 import { DataTable } from "../../../components/ui/DataTable";
 import { TableSkeleton } from "../../../components/ui/skeletons";
 import { EmptyState } from "../../../components/ui/EmptyState";
@@ -44,7 +46,8 @@ export const UsersList = () => {
   const [isRolesModalOpen, setIsRolesModalOpen] = useState(false);
   const [rolesUser, setRolesUser] = useState(null);
   const [userToDelete, setUserToDelete] = useState(null);
-  const [showDeleted, setShowDeleted] = useState(false);
+  const [filters, setFilters] = useState({ search: "", status: "active" });
+  const showDeleted = filters.status === "deleted";
   const [resendData, setResendData] = useState(null);
 
   const usersQuery = useQuery({
@@ -57,20 +60,22 @@ export const UsersList = () => {
     const payload = usersQuery.data;
     if (!payload?.data) return [];
 
+    let list = [];
     if (Array.isArray(payload.data)) {
-      return payload.data;
-    }
-    
-    if (Array.isArray(payload.data.data)) {
-      return payload.data.data;
-    }
-
-    if (Array.isArray(payload.data.users)) {
-      return payload.data.users;
+      list = payload.data;
+    } else if (Array.isArray(payload.data.data)) {
+      list = payload.data.data;
+    } else if (Array.isArray(payload.data.users)) {
+      list = payload.data.users;
     }
 
-    return [];
-  }, [usersQuery.data]);
+    if (filters.search) {
+      const q = filters.search.toLowerCase();
+      list = list.filter(u => u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q));
+    }
+
+    return list;
+  }, [usersQuery.data, filters.search]);
 
   const refresh = () =>
     queryClient.invalidateQueries({ queryKey: [USERS_QUERY_KEY] });
@@ -345,13 +350,6 @@ export const UsersList = () => {
         description="Manage invited users, active accounts, and role assignments."
         actions={
           <>
-            <Button
-              variant="outline"
-              onClick={() => setShowDeleted((value) => !value)}
-              disabled={usersQuery.isFetching}
-            >
-              {showDeleted ? "Show Existing Users" : "Show Deleted Users"}
-            </Button>
             <Can permission="users.create">
               <Button
                 variant="primary"
@@ -367,6 +365,23 @@ export const UsersList = () => {
           </>
         }
       />
+
+      <FilterBar 
+        filters={filters}
+        searchPlaceholder="Search by name or email..."
+        searchValue={filters.search}
+        onSearchChange={(val) => setFilters(p => ({ ...p, search: val }))}
+        onClear={filters.search !== "" || filters.status !== "active" ? () => setFilters({ search: "", status: "active" }) : undefined}
+      >
+        <Select
+          value={filters.status}
+          onChange={(e) => setFilters(p => ({ ...p, status: e.target.value }))}
+          options={[
+            { value: "active", label: "Existing Users" },
+            { value: "deleted", label: "Deleted Users" }
+          ]}
+        />
+      </FilterBar>
 
       <DataTable
         columns={columns}

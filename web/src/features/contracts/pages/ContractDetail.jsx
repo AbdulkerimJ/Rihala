@@ -127,7 +127,7 @@ export const ContractDetail = () => {
         }
         actions={
           (contract.status === "ACTIVE" || contract.status === "COMPLETED") && (
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
               {contract.status === "ACTIVE" && (
                 <Can permission="contractCompletions.create">
                   <Button 
@@ -168,7 +168,7 @@ export const ContractDetail = () => {
 
       <ContractProgressBar contract={contract} />
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
           <h3 className="text-sm font-bold text-secondary uppercase tracking-widest mb-3">Completions Log</h3>
           {contract.completions?.length > 0 ? (
@@ -231,7 +231,7 @@ export const ContractDetail = () => {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2 mt-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         <InfoBlock title="Contract Information">
           <InfoRow label="Contractor" value={contract.contractor?.name} />
           <InfoRow label="Task" value={contract.task?.name} />

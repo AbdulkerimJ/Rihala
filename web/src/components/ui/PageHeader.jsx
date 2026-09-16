@@ -15,8 +15,8 @@ export const PageHeader = ({ title, description, actions, backTo, backLabel }) =
   return (
     <div className="flex flex-col gap-3 sm:gap-4 mb-4 sm:mb-6">
       {/* Top row: back + title + actions */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+        <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
           {backTo && (
             <button
               type="button"
@@ -41,7 +41,7 @@ export const PageHeader = ({ title, description, actions, backTo, backLabel }) =
 
         {/* Actions — compact on mobile */}
         {actions && (
-          <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <div className="flex shrink-0 flex-wrap items-center gap-2 w-full sm:w-auto justify-start sm:justify-end">
             {actions}
           </div>
         )}
