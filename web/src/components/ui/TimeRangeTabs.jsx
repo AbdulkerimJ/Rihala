@@ -8,7 +8,7 @@ export const TimeRangeTabs = ({ timeRange, onTimeRangeChange }) => {
   ];
 
   return (
-    <div className="inline-flex items-center p-1 rounded-xl bg-main border border-border shadow-xs shrink-0 w-full sm:w-auto overflow-x-auto">
+    <div className="inline-flex items-center p-0.5 sm:p-1 rounded-lg sm:rounded-xl bg-main border border-border shadow-xs shrink-0">
       {options.map((option) => {
         const isSelected = timeRange === option.key;
         return (
@@ -16,7 +16,7 @@ export const TimeRangeTabs = ({ timeRange, onTimeRangeChange }) => {
             key={option.key}
             type="button"
             onClick={() => onTimeRangeChange(option.key)}
-            className={`flex-1 sm:flex-none px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-lg transition-all whitespace-nowrap ${
+            className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-sm font-semibold rounded-md sm:rounded-lg transition-all whitespace-nowrap ${
               isSelected
                 ? "bg-surface text-primary shadow-xs"
                 : "text-secondary hover:text-primary hover:bg-surface/50"

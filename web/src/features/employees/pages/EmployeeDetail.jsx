@@ -139,11 +139,6 @@ export const EmployeeDetail = () => {
             value: (
               <MoneyDisplay
                 amount={stats?.currentBalance ?? 0}
-                className={
-                  !stats || stats.currentBalance <= 0
-                    ? "text-success"
-                    : "text-danger"
-                }
               />
             ),
             isLoading: statsQuery.isLoading,
@@ -152,7 +147,7 @@ export const EmployeeDetail = () => {
                 ? { color: "success", text: "Fully settled" }
                 : stats.currentBalance > 0
                 ? { color: "danger", text: "Unpaid balance", pulse: true }
-                : { color: "warning", text: "Advance balance" },
+                : { color: "warning", text: "Overpaid" },
           },
         ]}
       />

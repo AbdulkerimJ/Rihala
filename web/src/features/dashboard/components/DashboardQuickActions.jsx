@@ -41,12 +41,11 @@ export const DashboardQuickActions = () => {
   if (availableActions.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-4 sm:p-5 shadow-xs space-y-3">
-      <h3 className="text-xs font-semibold text-secondary uppercase tracking-wider">
-        Quick Shortcuts
-      </h3>
-
-      <div className="grid grid-cols-2 gap-2.5">
+    <div className="rounded-xl border border-dashed border-border bg-accent/[0.03] p-3">
+      <p className="text-[10px] font-semibold text-muted uppercase tracking-widest mb-2.5 px-0.5">
+        Quick Actions
+      </p>
+      <div className="grid grid-cols-2 gap-2">
         {availableActions.map((action) => {
           const Icon = action.icon;
 
@@ -54,7 +53,7 @@ export const DashboardQuickActions = () => {
             <Link
               key={action.to}
               to={action.to}
-              className="flex items-center gap-2.5 p-2.5 rounded-lg border border-border/70 hover:border-border hover:bg-main/50 transition-colors text-xs font-semibold text-primary"
+              className="flex items-center gap-2.5 p-2.5 rounded-lg border border-border/70 bg-surface hover:border-border hover:bg-main/50 transition-colors text-xs font-semibold text-primary"
             >
               <div className={`p-1.5 rounded-md ${action.variant} shrink-0`}>
                 <Icon className="w-4 h-4" />

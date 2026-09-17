@@ -73,7 +73,7 @@ export const Dashboard = () => {
   const recentPayments = unwrapListResponse(paymentsData).items || [];
 
   return (
-    <div className="space-y-6 sm:space-y-8 animate-[fadeSlideUp_0.3s_ease_both] pb-8">
+    <div className="space-y-4 sm:space-y-6 lg:space-y-8 animate-[fadeSlideUp_0.3s_ease_both] pb-8">
       {/* 1. Header with Time Selector */}
       <DashboardHeader
         timeRange={timeRange}

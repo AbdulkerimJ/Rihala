@@ -68,8 +68,8 @@ export const Modal = ({
   return createPortal(
     <div
       className={`fixed inset-0 z-50 transition-opacity duration-200 ${
-        visible ? "opacity-100" : "opacity-0"
-      }`}
+        visible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+      } sm:flex sm:items-center sm:justify-center sm:p-4`}
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
@@ -80,30 +80,30 @@ export const Modal = ({
         onClick={handleBackdropClick}
       />
 
-      {/* ── MOBILE: bottom sheet ── */}
+      {/* Modal Container */}
       <div
         className={`
-          sm:hidden
-          absolute inset-x-0 bottom-0 z-10
+          absolute inset-x-0 bottom-0 sm:relative sm:inset-auto sm:bottom-auto
           flex flex-col
-          bg-surface rounded-t-2xl shadow-2xl border border-border/50
-          max-h-[90dvh]
-          transition-transform duration-300 ease-out
-          ${visible ? "translate-y-0" : "translate-y-full"}
+          bg-surface sm:rounded-xl rounded-t-2xl shadow-2xl border border-border/50
+          max-h-[90dvh] sm:max-h-[90vh]
+          w-full ${maxWidth}
+          transition-transform duration-300 sm:duration-200 ease-out
+          ${visible ? "translate-y-0 sm:scale-100 sm:opacity-100" : "translate-y-full sm:translate-y-0 sm:scale-95 sm:opacity-0"}
           ${className}
         `}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Drag handle pill */}
-        <div className="flex justify-center pt-3 pb-1 shrink-0">
+        {/* Drag handle pill (Mobile only) */}
+        <div className="flex sm:hidden justify-center pt-3 pb-1 shrink-0">
           <div className="h-1 w-10 rounded-full bg-border" />
         </div>
 
         {title && (
-          <div className="flex items-center justify-between border-b border-border px-5 py-3 shrink-0 bg-surface">
+          <div className="flex items-center justify-between border-b border-border px-5 py-3 sm:py-4 sm:px-6 shrink-0 bg-surface sm:rounded-t-xl rounded-t-2xl">
             <h3
               id="modal-title"
-              className="text-lg font-bold tracking-tight text-primary font-display"
+              className="text-lg sm:text-xl font-bold tracking-tight text-primary font-display"
             >
               {title}
             </h3>
@@ -120,51 +120,8 @@ export const Modal = ({
           </div>
         )}
 
-        <div className="overflow-y-auto flex-1 pb-safe">
+        <div className="overflow-y-auto flex-1 pb-safe sm:pb-0">
           {children}
-        </div>
-      </div>
-
-      {/* ── DESKTOP: centered dialog ── */}
-      <div
-        className={`
-          hidden sm:flex
-          absolute inset-0 items-center justify-center p-4 overflow-y-auto
-        `}
-        onClick={handleBackdropClick}
-      >
-        <div
-          className={`
-            w-full ${maxWidth}
-            rounded-xl border border-border bg-surface shadow-2xl
-            overflow-hidden max-h-[90vh] flex flex-col
-            transition-shadow duration-200
-            ${visible ? "scale-100 opacity-100" : "scale-95 opacity-0"}
-            ${className}
-          `}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {title && (
-            <div className="flex items-center justify-between border-b border-border px-5 py-4 sm:px-6 bg-surface shrink-0">
-              <h3
-                id="modal-title"
-                className="text-xl font-bold tracking-tight text-primary font-display"
-              >
-                {title}
-              </h3>
-              {showCloseButton && onClose && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={onClose}
-                  aria-label="Close dialog"
-                >
-                  <X className="h-5 w-5" />
-                </Button>
-              )}
-            </div>
-          )}
-          <div className="overflow-y-auto flex-1">{children}</div>
         </div>
       </div>
     </div>,

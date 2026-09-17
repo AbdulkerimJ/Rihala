@@ -97,7 +97,6 @@ export const ContractorHeader = ({
           value: (
             <MoneyDisplay
               amount={stats?.currentBalance ?? 0}
-              className={isOwed ? "text-danger" : "text-success"}
             />
           ),
           isLoading: isStatsLoading,
