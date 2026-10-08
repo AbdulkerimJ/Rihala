@@ -65,6 +65,7 @@ export const EmployeePaymentsList = () => {
       queryClient.invalidateQueries({ queryKey: ["employee-payments"] });
       queryClient.invalidateQueries({ queryKey: ["employees"] }); // Balance changed
       queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success("Payment recorded successfully");
       setIsOpen(false);
     },
@@ -76,6 +77,7 @@ export const EmployeePaymentsList = () => {
       queryClient.invalidateQueries({ queryKey: ["employee-payments"] });
       queryClient.invalidateQueries({ queryKey: ["employees"] }); // Balance changed
       queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success("Payment voided successfully");
       setVoidingPayment(null);
     },

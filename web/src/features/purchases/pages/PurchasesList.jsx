@@ -94,6 +94,7 @@ export const PurchasesList = () => {
       queryClient.invalidateQueries({ queryKey: ["purchases"] });
       queryClient.invalidateQueries({ queryKey: ["suppliers"] }); // Purchase changes supplier balance
       queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success("Purchase recorded successfully");
       setIsOpen(false);
     },

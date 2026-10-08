@@ -179,6 +179,7 @@ export const ExpensesList = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
       queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success("Expense created successfully");
       setIsOpen(false);
     },
@@ -189,6 +190,7 @@ export const ExpensesList = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
       queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success("Expense updated successfully");
       setIsOpen(false);
     },
@@ -199,6 +201,7 @@ export const ExpensesList = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
       queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success("Expense voided successfully");
       setVoidingExpense(null);
     },

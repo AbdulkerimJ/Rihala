@@ -93,6 +93,7 @@ export const OrdersList = () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       queryClient.invalidateQueries({ queryKey: ["customers"] });
       queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success("Order created successfully");
       setIsOpen(false);
     },
@@ -104,6 +105,7 @@ export const OrdersList = () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       queryClient.invalidateQueries({ queryKey: ["customers"] });
       queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success("Order updated successfully");
       setIsOpen(false);
     },

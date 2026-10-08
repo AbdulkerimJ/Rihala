@@ -66,6 +66,7 @@ export const ContractorPaymentsList = () => {
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
       queryClient.invalidateQueries({ queryKey: ["contractors"] });
       queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success("Payment voided successfully");
       setVoidingPayment(null);
     },

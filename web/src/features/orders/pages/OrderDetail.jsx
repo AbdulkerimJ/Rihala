@@ -72,6 +72,7 @@ export const OrderDetail = () => {
       queryClient.invalidateQueries({ queryKey: ["orders", id] });
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success("Order updated successfully");
       setEditModalOpen(false);
       setCancellingOrder(false);
@@ -91,6 +92,7 @@ export const OrderDetail = () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       queryClient.invalidateQueries({ queryKey: ["customers"] });
       queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success("Payment recorded successfully");
       setPaymentModalOpen(false);
     },

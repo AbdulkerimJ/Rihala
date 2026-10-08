@@ -69,6 +69,7 @@ export const SupplierPaymentsList = () => {
       queryClient.invalidateQueries({ queryKey: ["suppliers"] }); // Balance changed
       queryClient.invalidateQueries({ queryKey: ["purchases"] }); // Purchase payment status changed
       queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success("Payment recorded successfully");
       setIsOpen(false);
     },
@@ -81,6 +82,7 @@ export const SupplierPaymentsList = () => {
       queryClient.invalidateQueries({ queryKey: ["suppliers"] }); // Balance changed
       queryClient.invalidateQueries({ queryKey: ["purchases"] }); // Purchase payment status changed
       queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success("Payment voided successfully");
       setVoidingPayment(null);
     },
